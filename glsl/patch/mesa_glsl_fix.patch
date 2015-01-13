@@ -1,0 +1,211 @@
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/camerainfo.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/camerainfo.ir
+*** Mesa-9.0.1.org/src/glsl/builtins/ir/camerainfo.ir	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/camerainfo.ir	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 0 ****
+--- 1,9 ----
++ ((function camerainfo
++    (signature float
++      (parameters
++        (declare (out) vec3 eye)
++        (declare (out) vec3 lookat)
++        (declare (out) vec3 up))
++      ((return (constant float (0.0)))))
++ 
++ ))
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/isectinfo.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/isectinfo.ir
+*** Mesa-9.0.1.org/src/glsl/builtins/ir/isectinfo.ir	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/isectinfo.ir	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 0 ****
+--- 1,8 ----
++ ((function isectinfo
++    (signature float
++      (parameters
++        (declare (out) vec3 p)
++        (declare (out) vec3 n)
++        (declare (out) vec3 indir))
++      ((return (constant float (0.0)))))
++ ))
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/random.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/random.ir
+*** Mesa-9.0.1.org/src/glsl/builtins/ir/random.ir	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/random.ir	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 0 ****
+--- 1,6 ----
++ ((function random
++    (signature float
++      (parameters
++        (declare (out) float value))
++      ((return (constant float (0.0)))))
++ ))
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/rayattrib.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/rayattrib.ir
+*** Mesa-9.0.1.org/src/glsl/builtins/ir/rayattrib.ir	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/rayattrib.ir	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 0 ****
+--- 1,6 ----
++ ((function rayattrib
++    (signature float
++      (parameters
++        (declare (out) float val))
++      ((return (expression float + (var_ref val) (var_ref val)))))
++ ))
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/raydepth.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/raydepth.ir
+*** Mesa-9.0.1.org/src/glsl/builtins/ir/raydepth.ir	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/raydepth.ir	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 0 ****
+--- 1,6 ----
++ ((function raydepth
++    (signature int
++      (parameters
++        (declare (out) int depth))
++      ((return (expression int + (var_ref depth) (var_ref depth)))))
++ ))
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/rayoption.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/rayoption.ir
+*** Mesa-9.0.1.org/src/glsl/builtins/ir/rayoption.ir	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/rayoption.ir	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 0 ****
+--- 1,7 ----
++ ((function rayoption
++    (signature int
++      (parameters
++        (declare (out) int prev_double_sided)
++        (declare (in) int double_sided))
++      ((return (constant int (0)))))
++ ))
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/trace.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/trace.ir
+*** Mesa-9.0.1.org/src/glsl/builtins/ir/trace.ir	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/trace.ir	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 0 ****
+--- 1,22 ----
++ ((function trace
++    (signature float
++      (parameters
++        (declare (in) vec3 org)
++        (declare (in) vec3 dir))
++      ((return (constant float (0.0)))))
++ 
++    (signature float
++      (parameters
++        (declare (in) vec3 org)
++        (declare (in) vec3 dir)
++        (declare (out) vec4 col))
++      ((return (constant float (0.0)))))
++ 
++    (signature float
++      (parameters
++        (declare (in) vec3 org)
++        (declare (in) vec3 dir)
++        (declare (out) vec4 col)
++        (declare (in) float userattrib))
++      ((return (constant float (0.0)))))
++ ))
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_random.glsl Mesa-9.0.1.lsgl/src/glsl/builtins/profiles/LSGL_random.glsl
+*** Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_random.glsl	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/builtins/profiles/LSGL_random.glsl	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 0 ****
+--- 1,3 ----
++ #extension GL_LSGL_random : enable
++ 
++ float random(out float value);
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_trace.glsl Mesa-9.0.1.lsgl/src/glsl/builtins/profiles/LSGL_trace.glsl
+*** Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_trace.glsl	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/builtins/profiles/LSGL_trace.glsl	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 0 ****
+--- 1,9 ----
++ #extension GL_LSGL_trace : enable
++ 
++ float trace (vec3 org, vec3 dir);
++ float trace (vec3 org, vec3 dir, out vec4 col, float attrib);
++ float rayattrib (out float value);
++ int   raydepth (out int depth);
++ int   rayoption(out int prev_double_sided, int double_sided);
++ float isectinfo (out vec3 p, out vec3 n, out vec3 indir);
++ float camerainfo (out vec3 eye, out vec3 lookat, out vec3 up);
+diff -crN Mesa-9.0.1.org/src/glsl/glcpp/glcpp-parse.y Mesa-9.0.1.lsgl/src/glsl/glcpp/glcpp-parse.y
+*** Mesa-9.0.1.org/src/glsl/glcpp/glcpp-parse.y	2012-11-10 03:16:31.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/glcpp/glcpp-parse.y	2014-06-04 12:29:57.000000000 +0900
+***************
+*** 1153,1160 ****
+  	add_builtin_define(parser, "GL_ARB_draw_buffers", 1);
+  	add_builtin_define(parser, "GL_ARB_texture_rectangle", 1);
+  
+! 	if (api == API_OPENGLES2)
+  		add_builtin_define(parser, "GL_ES", 1);
+  
+  	if (extensions != NULL) {
+  	   if (extensions->EXT_texture_array) {
+--- 1153,1162 ----
+  	add_builtin_define(parser, "GL_ARB_draw_buffers", 1);
+  	add_builtin_define(parser, "GL_ARB_texture_rectangle", 1);
+  
+! 	if (api == API_OPENGLES2) {
+  		add_builtin_define(parser, "GL_ES", 1);
++     add_builtin_define(parser, "LSGL_ES", 1);
++   }
+  
+  	if (extensions != NULL) {
+  	   if (extensions->EXT_texture_array) {
+***************
+*** 1192,1197 ****
+--- 1194,1200 ----
+  	language_version = 110;
+  	add_builtin_define(parser, "__VERSION__", language_version);
+  
++ 
+  	return parser;
+  }
+  
+diff -crN Mesa-9.0.1.org/src/glsl/glsl_parser_extras.cpp Mesa-9.0.1.lsgl/src/glsl/glsl_parser_extras.cpp
+*** Mesa-9.0.1.org/src/glsl/glsl_parser_extras.cpp	2012-11-10 03:16:31.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/glsl_parser_extras.cpp	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 289,294 ****
+--- 289,298 ----
+     EXT(ARB_shader_bit_encoding,        true,  true,  true,  true,  false,     ARB_shader_bit_encoding),
+     EXT(ARB_uniform_buffer_object,      true,  false, true,  true,  false,     ARB_uniform_buffer_object),
+     EXT(OES_standard_derivatives,       false, false, true,  false,  true,     OES_standard_derivatives),
++ 
++    // LSGL
++    EXT(LSGL_trace,                     false, false, true,  false, true,      dummy_true),
++    EXT(LSGL_random,                    false, false, true,  false, true,      dummy_true),
+  };
+  
+  #undef EXT
+diff -crN Mesa-9.0.1.org/src/glsl/glsl_parser_extras.h Mesa-9.0.1.lsgl/src/glsl/glsl_parser_extras.h
+*** Mesa-9.0.1.org/src/glsl/glsl_parser_extras.h	2012-11-10 03:16:31.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/glsl_parser_extras.h	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 207,212 ****
+--- 207,218 ----
+     bool OES_standard_derivatives_warn;
+     /*@}*/
+  
++    bool LSGL_trace_enable;
++    bool LSGL_trace_warn;
++ 
++    bool LSGL_random_enable;
++    bool LSGL_random_warn;
++ 
+     /** Extensions supported by the OpenGL implementation. */
+     const struct gl_extensions *extensions;
+  
+diff -crN Mesa-9.0.1.org/src/glsl/ir_print_visitor.cpp Mesa-9.0.1.lsgl/src/glsl/ir_print_visitor.cpp
+*** Mesa-9.0.1.org/src/glsl/ir_print_visitor.cpp	2012-09-01 08:36:09.000000000 +0900
+--- Mesa-9.0.1.lsgl/src/glsl/ir_print_visitor.cpp	2014-06-04 12:27:33.000000000 +0900
+***************
+*** 55,60 ****
+--- 55,61 ----
+  	 }
+  
+  	 printf(")\n");
++ 	 printf(")\n");
+        }
+     }
+  
