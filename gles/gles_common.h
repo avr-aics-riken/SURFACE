@@ -1,0 +1,696 @@
+/*
+ * LSGL - Large Scale Graphics Library
+ *
+ * Copyright (c) 2013 Advanced Institute for Computational Science, RIKEN.
+ * All rights reserved.
+ *
+ */
+
+#ifndef __LSGL_GLES_COMMON_H__
+#define __LSGL_GLES_COMMON_H__
+
+#include <set>
+#include <vector>
+#include <string>
+
+#include "../include/GLES2/gl2.h"
+#include "../render/prim_mesh.h"
+#include "../render/timerutil.h"
+#include "../render/camera.h"
+#include "../render/texture.h"
+#include "../glsl/glsl_runtime.h"
+
+#ifdef LSGL_DEBUG_TRACE
+#define TRACE_EVENT(message, ...)                                              \
+  fprintf(stderr, "[LSGL] %s(%s:%d) " message "\n", __FUNCTION__, __FILE__,    \
+          __LINE__, ##__VA_ARGS__)
+#else
+#define TRACE_EVENT(message, ...) (void(0))
+#endif
+
+extern "C" {
+
+typedef bool (*LSGLProgressCallback)(int progress, int y, int height);
+}
+
+namespace lsgl {
+
+using namespace lsgl::render;
+
+const int kMaxVertexAttribs = 8;
+const int kMaxVertexUniformVectors = 128;
+const int kMaxFragmentUniformVectors = 16;
+const int kMaxVaryingVectors = 8;
+const int kMaxTextureImageUnits = 8;
+const int kMaxColorAttachments = 1;
+const int kMaxTextureWidthHeight = 4096;
+const int kMaxVertexTextureUnits = 0;
+const int kSampleBuffersPerRenderbuffer = 1;
+const int kMaxSamplesPerPixel = 8;
+const int kMaxDrawStack = 16;
+const float kMinPointSize = 1.0f;
+const float kMaxPointSize = 1.0f;
+const float kMinLineWidth = 1.0f;
+const float kMaxLineWidth = 1.0f;
+
+const int kVtxAttrPosition = 0;
+const int kVtxAttrNormal = 1;
+const int kVtxAttrTexCoord = 2;
+const int kVtxAttrMaterial = 3;
+
+class Context;
+
+/// GLES color
+struct Color {
+  float red;
+  float green;
+  float blue;
+  float alpha;
+};
+
+/// GLES vertex attribute
+struct VertexAttribute {
+  bool enabled;
+
+  // For glVertexAttribPointer
+  GLint size;
+  GLenum type;
+  GLboolean normalized;
+  GLsizei stride;
+  const GLvoid *ptr;
+
+  // For vertex buffer
+  int handle;
+
+  // For glVertexAttrib
+  bool uniform;
+  union {
+    GLfloat fval1;
+    GLfloat fval2[2];
+    GLfloat fval3[3];
+    GLfloat fval4[4];
+  } u;
+};
+
+/// GLES state
+struct State {
+  Color colorClearValue_;
+  GLclampf depthClearValue_;
+  GLint stencilClearValue_;
+
+  bool cullFace;
+  GLenum cullMode;
+  GLenum frontFace;
+  bool depthTest;
+  GLenum depthFunc;
+  GLclampf nearDepth;
+  GLclampf farDepth;
+  bool blend;
+  GLenum sourceBlendRGB;
+  GLenum destBlendRGB;
+  GLenum sourceBlendAlpha;
+  GLenum destBlendAlpha;
+  GLenum blendEquationRGB;
+  GLenum blendEquationAlpha;
+  Color blendColor;
+  bool stencilTest;
+  GLenum stencilFunc;
+  GLint stencilRef;
+  GLuint stencilMask;
+  GLenum stencilFail;
+  GLenum stencilPassDepthFail;
+  GLenum stencilPassDepthPass;
+  GLuint stencilWritemask;
+  GLenum stencilBackFunc;
+  GLint stencilBackRef;
+  GLuint stencilBackMask;
+  GLenum stencilBackFail;
+  GLenum stencilBackPassDepthFail;
+  GLenum stencilBackPassDepthPass;
+  GLuint stencilBackWritemask;
+  bool polygonOffsetFill;
+  GLfloat polygonOffsetFactor;
+  GLfloat polygonOffsetUnits;
+  bool sampleAlphaToCoverage;
+  bool sampleCoverage;
+  GLclampf sampleCoverageValue;
+  bool sampleCoverageInvert;
+  bool scissorTest;
+  bool dither;
+
+  GLfloat lineWidth;
+
+  GLenum generateMipmapHint;
+  GLenum fragmentShaderDerivativeHint;
+
+  GLint viewportX;
+  GLint viewportY;
+  GLsizei viewportWidth;
+  GLsizei viewportHeight;
+  float zNear;
+  float zFar;
+
+  GLint scissorX;
+  GLint scissorY;
+  GLsizei scissorWidth;
+  GLsizei scissorHeight;
+
+  bool colorMaskRed;
+  bool colorMaskGreen;
+  bool colorMaskBlue;
+  bool colorMaskAlpha;
+  bool depthMask;
+
+  GLenum activeSampler; // Active texture unit selector - GL_TEXTURE0
+  GLuint arrayBuffer;
+  GLuint elementArrayBuffer;
+  GLuint frameBuffer;
+  GLuint renderBuffer;
+
+  GLuint readFramebuffer;
+  GLuint drawFramebuffer;
+  GLuint currentProgram;
+  GLuint texture1D[kMaxTextureImageUnits];
+  GLuint texture2D[kMaxTextureImageUnits];
+  GLuint texture3D[kMaxTextureImageUnits];
+  GLuint textureCubeMap[kMaxTextureImageUnits];
+
+  std::vector<VertexAttribute> vertexAttributes[kMaxDrawStack];
+  int currentDrawStackIndex;
+
+  GLint unpackAlignment;
+  GLint packAlignment;
+  bool packReverseRowOrder;
+
+  GLenum lastError;
+
+  // LSGL
+  GLint pixelStep;
+};
+
+/// Base class for GLES vertex buffer.
+class Buffer {
+public:
+  Buffer();
+  virtual ~Buffer();
+
+  void Data(size_t size, const void *data, GLenum usage);
+  void SubData(unsigned int offset, size_t size, const void *data);
+
+  void Retain(size_t size, const void *data, GLenum usage);
+
+  inline const GLubyte *GetData() const {
+    if (retained_) {
+      return ptr_;
+    } else {
+      return &data_[0];
+    }
+  }
+  inline GLsizeiptr GetSize() const { return size_; }
+  inline GLenum GetUsage() const { return usage_; }
+
+  // inline bool IsStatic() const { return (GetUsage() == GL_STATIC_DRAW) ||
+  //(GetUsage() == GL_STATIC_READ) || (GetUsage() == GL_STATIC_COPY); }
+  inline bool IsStatic() const { return (GetUsage() == GL_STATIC_DRAW); }
+
+  bool IsRetained() const { return retained_; }
+
+private:
+  std::vector<GLubyte> data_;
+  GLsizeiptr size_;
+  GLenum usage_;
+  const unsigned char *ptr_;
+  bool retained_;
+};
+
+/// Base class for GLES texture data provider.
+class Texture {
+public:
+  Texture();
+  virtual ~Texture();
+
+  // Make a internal copy of texture data.
+  void Data2D(const void *data, GLuint width, GLuint height, int compos,
+              GLenum type);
+  void Data3D(const void *data, GLuint width, GLuint height, GLuint depth,
+              int compos, GLenum type);
+
+  // Just retain a pointer to the texture data(no internal copy happens).
+  void Retain2D(const void *data, GLuint width, GLuint height, int compos,
+                GLenum type);
+  void Retain3D(const void *data, GLuint width, GLuint height, GLuint depth,
+                int compos, GLenum type);
+
+  inline void Fetch(float *rgba, float u, float v) const {
+    assert(texture_);
+    texture_->fetch(rgba, u, v);
+  }
+  inline void Fetch(float *rgba, float u, float v, float r) const {
+    assert(texture3D_);
+    if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_DOUBLE) {
+      FilterTexture3DDouble(rgba, texture3D_, u, v, r);
+    } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_FLOAT) {
+      FilterTexture3DFloat(rgba, texture3D_, u, v, r);
+    } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) {
+      FilterTexture3DByte(rgba, texture3D_, u, v, r);
+    } else {
+      assert(0); // && "Unknown 3D texture format");
+    }
+  }
+
+  Texture3D *GetTexture3D() const { return texture3D_; }
+
+private:
+  void Free();
+
+  render::Texture2D *texture_;
+  Texture3D *texture3D_;
+  std::vector<GLubyte> data_;
+  GLsizeiptr size_;
+  bool retained_;
+  int numCompos_;
+};
+
+/// GLES renderbuffer.
+class Renderbuffer {
+public:
+  Renderbuffer();
+  virtual ~Renderbuffer();
+
+  /// Allocate buffer for renderbuffer.
+  bool Allocate(GLuint width, GLuint height, GLuint bytesPerPixel,
+                GLenum format);
+
+  inline GLuint GetWidth() const { return width_; }
+  inline GLuint GetHeight() const { return height_; }
+  inline GLuint GetBytesPerPixel() const { return bytesPerPixel_; }
+  inline GLuint GetBitsPerPixel() const { return GetBytesPerPixel() * 8; }
+  inline GLuint GetSize() const {
+    return GetWidth() * GetHeight() * GetBytesPerPixel();
+  }
+  inline GLenum GetFormat() const { return format_; }
+  inline char *GetBuffer() { return buffer_; }
+
+  /// True if a renderbuffer has same size for specified renderbuffer.
+  inline bool IsSameSize(const Renderbuffer *rb) const {
+    return (width_ == rb->width_) && (height_ == rb->height_);
+  }
+
+private:
+  void Free();
+
+  GLuint width_;
+  GLuint height_;
+  GLuint bytesPerPixel_;
+  GLenum format_;
+  char *buffer_;
+};
+
+/// GLES framebuffer
+class Framebuffer {
+public:
+  Framebuffer();
+  virtual ~Framebuffer();
+
+  void AttachColorBuffer(GLuint index, Renderbuffer *rb);
+  void AttachDepthBuffer(Renderbuffer *rb);
+  void AttachStencilBuffer(Renderbuffer *rb);
+
+  inline Renderbuffer *GetColorBuffer(GLuint index) {
+    assert(index < kMaxColorAttachments);
+    return colorBuffers_[index];
+  }
+  inline Renderbuffer *GetDepthBuffer() { return depthBuffer_; }
+  inline Renderbuffer *GetStencilBuffer() { return stencilBuffer_; }
+
+  inline bool HasAttachment() const { return attachments_; }
+  inline bool HasValidSize() const { return validSize_; }
+  inline GLuint GetWidth() const { return width_; }
+  inline GLuint GetHeight() const { return height_; }
+
+private:
+  void UpdateAttachmentStatus();
+
+  Renderbuffer *colorBuffers_[kMaxColorAttachments];
+  Renderbuffer *depthBuffer_;
+  Renderbuffer *stencilBuffer_;
+  GLuint width_;
+  GLuint height_;
+  bool attachments_;
+  bool validSize_;
+};
+
+/// Represents GLES shader uniform variable
+struct Uniform {
+  Uniform(GLenum _type, const char *_name, int _arraySize)
+      : name(std::string(_name)), type(_type), arraySize(_arraySize) {}
+
+  bool isArray() { return (arraySize > 1); }
+
+  GLenum type;
+  std::string name;
+  int arraySize;
+
+  // Uniform variable is implemented as opaque data
+  std::vector<unsigned char> data;
+};
+
+struct UniformLocation {
+  UniformLocation(const char *_name, unsigned int _element,
+                  unsigned int _index) {
+    name = std::string(_name);
+    element = _element;
+    index = _index;
+  }
+
+  std::string name;
+  unsigned int element;
+  unsigned int index;
+};
+
+/// Represents GLES shader varying variable
+class Varying {
+public:
+  Varying(GLenum _type, int _count, const char *_name, int _arraySize)
+      : name(std::string(_name)), type(_type), count(_count),
+        arraySize(_arraySize) {}
+  ~Varying() {}
+
+  Varying(const Varying &rhs)
+      : type(rhs.type), name(rhs.name), count(rhs.count),
+        arraySize(rhs.arraySize), data(rhs.data) {}
+
+  bool IsArray() const { return (arraySize > 1) ? true : false; }
+
+  GLenum type;
+  std::string name;
+  int count;
+  int arraySize;
+
+  // Varuing variable is implemented as opaque data
+  std::vector<unsigned char> data;
+};
+
+struct VaryingLocation {
+  VaryingLocation(const char *_name, unsigned int _element,
+                  unsigned int _index) {
+    name = std::string(_name);
+    element = _element;
+    index = _index;
+  }
+
+  std::string name;
+  unsigned int element;
+  unsigned int index;
+};
+
+///
+/// GLES Attrib <-> GLSL Varying connection table
+///
+struct VaryingConnection {
+  int srcIndex;             // the index to vertex attrib.
+  int dstIndex;             // the slot index to varying variable.
+  const unsigned char *ptr; // the pointer to vertex attribute.
+  int size;
+  int stride;
+};
+
+/// ShadingState holds runtime shader information
+struct ShadingState {
+  std::vector<VaryingConnection> varyingConnections;
+  std::vector<Varying> varyings; // buffer for varying variables
+
+  void Copy(ShadingState &src) {
+    varyingConnections.clear();
+    // printf("sz = %d\n", (int)src.varyingConnections.size());
+    for (size_t i = 0; i < src.varyingConnections.size(); i++) {
+      assert(src.varyingConnections[i].dstIndex < 100);
+      varyingConnections.push_back(src.varyingConnections[i]);
+    }
+
+    varyings.clear();
+    // printf("varuings.sz = %d\n", (int)src.varyings.size());
+    for (size_t i = 0; i < src.varyings.size(); i++) {
+      varyings.push_back(src.varyings[i]);
+    }
+  }
+};
+
+/// Base class of vertex and fragment shader.
+class Shader {
+  //
+  // DLL shader method
+  //
+  typedef struct {
+    void *shaderEvalFunc;
+    void *shaderInfoFunc;
+    void *shaderInitFunc;
+  } Method;
+
+public:
+  Shader();
+  virtual ~Shader();
+
+  virtual GLenum GetType() const = 0;
+
+  inline bool IsCompiled() const { return compiled_; }
+  inline const std::string &GetSource() const { return source_; }
+#ifdef ENABLE_LLVM
+  inline ShaderRuntime *GetShaderRT() const { return &shaderRT_; }
+#endif
+
+  /// Loads precompiled dll shader.
+  bool LoadShaderBinary(std::string &filename);
+
+  void Source(GLsizei count, const GLchar **string, const GLint *length);
+  bool Compile();
+
+  /// Get uniform variable information from the loaded shader and
+  /// set result to uniforms and uniformLocations.
+  /// Valid after LoadShaderBinary()
+  void BuildUniformInfo(std::vector<Uniform> &uniforms,
+                        std::vector<UniformLocation> &uniformLocations);
+
+  /// Get varying variable information from the loaded shader and
+  /// set result to varyings and varyingLocations.
+  /// Valid after LoadShaderBinary()
+  void BuildVaryingInfo(std::vector<Varying> &varyings,
+                        std::vector<VaryingLocation> &varyingLocations);
+
+  bool Release();
+
+  void SetAttached() { isAttached_ = true; }
+
+  bool IsAttached() const { return isAttached_; }
+
+protected:
+  virtual bool DoCompile() = 0;
+
+  std::string source_;
+
+  void *handle_;         /// Shader DLL handle
+  std::string filename_; /// Filename(for binary shader)
+  Method method_;
+
+private:
+  bool compiled_;
+  bool isBinary_;
+  bool isAttached_;
+};
+
+/// Vertex shader
+class VertexShader : public Shader {
+public:
+  VertexShader();
+  virtual ~VertexShader();
+
+  inline virtual GLenum GetType() const { return GL_VERTEX_SHADER; }
+
+private:
+  virtual bool DoCompile();
+};
+
+/// Fragment shader
+class FragmentShader : public Shader {
+public:
+  typedef struct {
+    float frame[3][3]; // (eye, lookat, up) in world coord.
+    float fov;
+  } CameraInfo;
+
+  FragmentShader();
+  virtual ~FragmentShader();
+
+  inline virtual GLenum GetType() const { return GL_FRAGMENT_SHADER; }
+
+  /// Prepare shader evaluation. Setup varying/uniform variable, etc.
+  bool PrepareEval(FragmentState &fragmentState, // [out]
+                   ShadingState &shadingState,   // [out]
+                   const std::vector<Uniform> &uniforms,
+                   const std::vector<Varying> &varyings,
+                   const std::vector<VaryingLocation> &varyingLocations,
+                   const std::vector<VertexAttribute> &vertexAttributes,
+                   const Context &ctx) const;
+
+  /// Evaluate fragment shader. Returns true if success, false if the fragment
+  /// was discarded.
+  bool Eval(GLfloat fragColor[4], FragmentState &fragmentState,
+            ShadingState &shadingState,
+            const std::vector<VertexAttribute> &vertexAttributes,
+            const GLfloat fragCoord[4], const vector3 &position,
+            const vector3 &normal, const vector3 &raydir, int raydepth,
+            float px, float py, int doubleSided, float rayattrib,
+            const unsigned char *prev_node, unsigned int prev_prim_id, float u,
+            float v, unsigned int f0, unsigned f1, unsigned f2,
+            const CameraInfo &cameraInfo, int threadID) const;
+
+private:
+  virtual bool DoCompile();
+
+  // FragmentState state_;
+};
+
+/// GLES Program object
+class Program {
+public:
+  Program();
+  ~Program();
+
+  Program(const Program &prg) { // Copy constructor.
+
+    linked_ = prg.linked_;
+    vertexShaders_ = prg.vertexShaders_;
+    fragmentShaders_ = prg.fragmentShaders_;
+
+    samplerPSs_ = prg.samplerPSs_;
+    samplerVSs_ = prg.samplerVSs_;
+    uniforms_ = prg.uniforms_;
+    uniformLocations_ = prg.uniformLocations_;
+    varyings_ = prg.varyings_;
+    varyingLocations_ = prg.varyingLocations_;
+  }
+
+  inline bool IsLinked() const { return linked_; }
+  inline GLuint GetVertexShaderCount() const {
+    return (GLuint)vertexShaders_.size();
+  }
+  // inline GLuint GetGeometryShaderCount() const { return
+  // geometryShaders_.size(); }
+  inline GLuint GetFragmentShaderCount() const {
+    return (GLuint)fragmentShaders_.size();
+  }
+  // inline GLuint GetAttachedCount() const { return GetVertexShaderCount() +
+  // GetGeometryShaderCount() + GetFragmentShaderCount(); }
+  inline GLuint GetAttachedCount() const {
+    return GetVertexShaderCount() + GetFragmentShaderCount();
+  }
+
+  inline const VertexShader *GetVertexShader(GLuint idx) const {
+    return vertexShaders_[idx];
+  }
+  // inline const GeometryShader *GetGeometryShader(GLuint idx) const { return
+  // geometryShaders_[idx]; }
+  inline const FragmentShader *GetFragmentShader(GLuint idx) const {
+    return fragmentShaders_[idx];
+  }
+
+  inline FragmentShader *GetFragmentShader(GLuint idx) {
+    return fragmentShaders_[idx];
+  }
+
+  bool AttachShader(Shader *shader);
+  bool DetachShader(Shader *shader);
+
+  /// Links vertex and fragment shaders.
+  bool Link();
+
+  bool SetUniform1iv(GLint location, GLsizei count, const GLint *v);
+
+  bool SetUniform1fv(GLint location, GLsizei count, const GLfloat *v);
+  bool SetUniform2fv(GLint location, GLsizei count, const GLfloat *v);
+  bool SetUniform3fv(GLint location, GLsizei count, const GLfloat *v);
+  bool SetUniform4fv(GLint location, GLsizei count, const GLfloat *v);
+
+  bool SetUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose,
+                           const GLfloat *v);
+  bool SetUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose,
+                           const GLfloat *v);
+  bool SetUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,
+                           const GLfloat *v);
+
+  /// Look ups uniform slot from variable name
+  GLint GetUniformLocation(const std::string &name) const;
+
+  /// Get uniform variable at specified location.
+  Uniform const *GetUniform(GLint location) const;
+
+  /// Look ups varying slot from variable name
+  GLint GetVaryingLocation(const std::string &name) const;
+
+  /// Get varying variable at specified location.
+  Varying const *GetVarying(GLint location) const;
+
+  /// Prepare shader evaluation. Setup uniform variable for example.
+  bool PrepareEval(FragmentState &fragmentState, ShadingState &shadingState,
+                   const std::vector<VertexAttribute> &vertexAttributes,
+                   const Context &ctx) const;
+
+private:
+  bool IsAttached(Shader *shader);
+
+  bool linked_;
+  std::vector<VertexShader *> vertexShaders_;
+  std::vector<FragmentShader *> fragmentShaders_;
+
+  struct Sampler {
+    Sampler();
+
+    bool active;
+    GLint textureUnit;
+  };
+
+  // Program state
+  std::vector<Sampler> samplerPSs_;
+  std::vector<Sampler> samplerVSs_;
+  std::vector<Uniform> uniforms_;
+  std::vector<UniformLocation> uniformLocations_;
+  std::vector<Varying> varyings_;
+  std::vector<VaryingLocation> varyingLocations_;
+};
+
+/// Utility class for data buffer
+template <typename T> class DataBuffer {
+public:
+  DataBuffer() : count_(0) {}
+
+  T *Add(unsigned int count);
+
+  inline void Clear() { count_ = 0; }
+  inline GLuint GetCount() const { return count_; }
+  inline T *GetBase() { return (count_ == 0) ? NULL : &buffer_[0]; }
+  inline GLuint GetByteSize() const {
+    return (GLuint)(buffer_.size() * sizeof(T));
+  }
+
+private:
+  std::vector<T> buffer_;
+  unsigned int count_;
+};
+
+template <typename T> T *DataBuffer<T>::Add(unsigned int count) {
+  // increase buffer size first as necessary
+  buffer_.resize(count_ + count);
+
+  // get pointer to buffer location and increment internal count
+  T *ptr = &buffer_[count_];
+  count_ += count;
+  return ptr;
+}
+
+// random number utils
+void initialize_random();
+float randomreal(int thread_id);
+
+} // namespace lsgl
+
+#endif // __LSGL_GLES_COMMON_H__
