@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef __PARTICLE_ACCEL_H__
-#define __PARTICLE_ACCEL_H__
+#ifndef __LSGL_RENDER_ACCEL_PARTICLE_H__
+#define __LSGL_RENDER_ACCEL_PARTICLE_H__
 
 #include <vector>
 
@@ -111,4 +111,4 @@ private:
 } // namespace render
 } // namespace lsgl
 
-#endif // __PARTICLE_ACCEL_H__
+#endif // __LSGL_RENDER_ACCEL_PARTICLE_H__

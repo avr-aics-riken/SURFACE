@@ -19,6 +19,12 @@
 
 #include "simd_util.h"
 
+#ifdef _MSC_VER
+#define FORCEINLINE __forceinline
+#else
+#define FORCEINLINE __attribute__((always_inline)) inline
+#endif
+
 namespace lsgl {
 namespace render {
 
@@ -27,54 +33,41 @@ public:
   //-----------------------------------------------
   // type defines
   typedef T value_type;
-  typedef T &reference;
   typedef const T &const_reference;
   typedef vector3t<T> this_type;
 
   typedef std::size_t size_type;
-  typedef std::ptrdiff_t difference_type;
 
   typedef T *iterator;
   typedef const float *const_iterator;
 
 public:
   static const size_type c_size = 3; // container size
-public:
-  //-----------------------------------------------
-  // functions for iterator
-  iterator begin() { return element(); }
-  iterator end() { return element() + c_size; }
-  const_iterator begin() const { return element(); }
-  const_iterator end() const { return element() + c_size; }
 
 public:
-#define SC_(a) static_cast<float>(a)
-  //-----------------------------------------------
   // constructors and destructor
-  vector3t() {}
+  FORCEINLINE vector3t() {}
 
-  vector3t(value_type _x, value_type _y, value_type _z)
+  FORCEINLINE vector3t(value_type _x, value_type _y, value_type _z)
       : m0(_x), m1(_y), m2(_z) {}
 
-  vector3t(const this_type &rhs) : m0(rhs.m0), m1(rhs.m1), m2(rhs.m2) {}
+  FORCEINLINE vector3t(const this_type &rhs) : m0(rhs.m0), m1(rhs.m1), m2(rhs.m2) {}
 
   explicit vector3t(const value_type rhs[c_size])
-      : m0(SC_(rhs[0])), m1(SC_(rhs[1])), m2(SC_(rhs[2])) {}
+      : m0(rhs[0]), m1(rhs[1]), m2(rhs[2]) {}
 
-  template <class X> vector3t(const vector3t<X> &rhs) {
-    m0 = SC_(rhs[0]);
-    m1 = SC_(rhs[1]);
-    m2 = SC_(rhs[2]);
+  template <class X> FORCEINLINE vector3t(const vector3t<X> &rhs) {
+    m0 = rhs[0];
+    m1 = rhs[1];
+    m2 = rhs[2];
   }
 
   ~vector3t() {}
-  //
-  // void swap(this_type& rhs){std::swap(*this,rhs);}
 
   //-----------------------------------------------
   // inserters
 
-  this_type &operator=(const this_type &rhs) {
+  FORCEINLINE this_type &operator=(const this_type &rhs) {
 
     m0 = rhs.m0;
     m1 = rhs.m1;
@@ -83,26 +76,19 @@ public:
     return *this;
   }
 
-  template <class X> this_type &operator=(const vector3t<X> &rhs) {
+  template <class X> FORCEINLINE this_type &operator=(const vector3t<X> &rhs) {
 
-    m0 = SC_(rhs[0]);
-    m1 = SC_(rhs[1]);
-    m2 = SC_(rhs[2]);
+    m0 = rhs[0];
+    m1 = rhs[1];
+    m2 = rhs[2];
 
     return *this;
   }
 
-  void assign(size_type num, value_type val) {
-    size_t sz = (num < c_size) ? num : c_size;
-    for (size_t i = 0; i < sz; i++)
-      element()[i] = val;
-  }
-
-#undef SC_
   //-----------------------------------------------
   // operators
 
-  this_type &negate() {
+  FORCEINLINE this_type &negate() {
     m0 = -m0;
     m1 = -m1;
     m2 = -m2;
@@ -110,7 +96,7 @@ public:
   }
 
 #define DECLARE_OP_EQUAL(OP)                                                   \
-  this_type &operator OP(const this_type &rhs) {                               \
+  FORCEINLINE this_type &operator OP(const this_type &rhs) {                   \
     m0 OP rhs.m0;                                                              \
     m1 OP rhs.m1;                                                              \
     m2 OP rhs.m2;                                                              \
@@ -124,14 +110,14 @@ public:
 
 #undef DECLARE_OP_EQUAL
 
-  this_type &operator*=(T rhs) {
+  FORCEINLINE this_type &operator*=(T rhs) {
     m0 *= rhs;
     m1 *= rhs;
     m2 *= rhs;
 
     return *this;
   }
-  this_type &operator/=(T rhs) {
+  FORCEINLINE this_type &operator/=(T rhs) {
     m0 /= rhs;
     m1 /= rhs;
     m2 /= rhs;
@@ -140,32 +126,28 @@ public:
   }
   //--------------------------------
 
-  value_type &operator[](size_type i) { return element()[i]; }
+  FORCEINLINE value_type &operator[](size_type i) { return element()[i]; }
 
-  value_type operator[](size_type i) const { return element()[i]; }
+  FORCEINLINE value_type operator[](size_type i) const { return element()[i]; }
 
-  value_type &at(size_type i) {
+  FORCEINLINE value_type &at(size_type i) {
     // if(c_size<=i){throw std::out_of_range(debug());}
     return element()[i];
   }
 
-  const value_type &at(size_type i) const {
+  FORCEINLINE const value_type &at(size_type i) const {
     // if(c_size<=i){throw std::out_of_range(debug());}
     return element()[i];
   }
 
   //-----------------------------------------------
   // utilities
-  value_type length() const {
-    using namespace std;
-    return sqrt(sqr_length());
+  FORCEINLINE value_type length() const {
+    return std::sqrt(sqr_length());
   }
-  value_type sqr_length() const { return ((m0 * m0) + (m1 * m1) + (m2 * m2)); }
+  FORCEINLINE value_type sqr_length() const { return ((m0 * m0) + (m1 * m1) + (m2 * m2)); }
 
-  value_type sum() const { return m0 + m1 + m2; }
-
-  this_type &normalize() {
-    using namespace std;
+  FORCEINLINE this_type &normalize() {
 
     value_type length = sqr_length(); //||V||^2
                                       // if (length == T()) return *this;
@@ -178,8 +160,7 @@ public:
     return *this;
   }
 
-  this_type &fast_normalize() {
-    using namespace std;
+  FORCEINLINE this_type &fast_normalize() {
     value_type length = sqr_length(); //||V||^2
     float4 v = vset1_f4(length);
     float4 vinv_len = vfastrsqrt_f4(v);
@@ -200,10 +181,10 @@ private:
   const T *element() const { return &m0; }
 };
 
-template <class T> inline const vector3t<T> operator+(const vector3t<T> &rhs) {
+template <class T> FORCEINLINE const vector3t<T> operator+(const vector3t<T> &rhs) {
   return rhs;
 }
-template <class T> inline vector3t<T> operator-(const vector3t<T> &rhs) {
+template <class T> FORCEINLINE vector3t<T> operator-(const vector3t<T> &rhs) {
   return vector3t<T>(rhs).negate();
 }
 
@@ -243,8 +224,6 @@ template <class T> inline T sqr_length(const vector3t<T> &rhs) {
   return rhs.sqr_length();
 }
 
-template <class T> inline T sum(const vector3t<T> &rhs) { return rhs.sum(); }
-
 template <class T> inline vector3t<T> normalize(const vector3t<T> &rhs) {
   return vector3t<T>(rhs).normalize();
 }
@@ -270,21 +249,6 @@ inline bool operator==(const vector3t<T> &lhs, const vector3t<T> &rhs) {
 template <class T>
 inline bool operator!=(const vector3t<T> &lhs, const vector3t<T> &rhs) {
   return !(lhs == rhs);
-}
-
-template <class T, class CharT, class Traits>
-std::basic_ostream<CharT, Traits> &
-operator<<(std::basic_ostream<CharT, Traits> &os, const vector3t<T> &rhs) {
-  std::basic_ostringstream<CharT, Traits> s;
-  s.flags(os.flags());
-  s.imbue(os.getloc());
-  s.precision(os.precision());
-  s << "(";
-  for (std::size_t i = 0; i < 2; ++i) {
-    s << rhs[i] << ",";
-  }
-  s << rhs[2] << ")";
-  return os << s.str();
 }
 
 typedef vector3t<float> vector3;
