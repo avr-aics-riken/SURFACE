@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef __ACCEL_TETRA_H__
-#define __ACCEL_TETRA_H__
+#ifndef __LSGL_RENDER_ACCEL_TETRA_H__
+#define __LSGL_RENDER_ACCEL_TETRA_H__
 
 #include <vector>
 
@@ -104,4 +104,4 @@ private:
 } // namespace render
 } // namespace lsgl
 
-#endif // __BVH_TETRA_H__
+#endif // __LSGL_RENDER_ACCEL_TETRA_H__

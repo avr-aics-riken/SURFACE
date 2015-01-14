@@ -58,7 +58,7 @@ namespace {
 
 typedef __m128d double2;
 
-#define FORCEINLINE __attribute__((always_inline))
+//#define FORCEINLINE __attribute__((always_inline))
 
 #define vseld2(a, b, cond) _fjsp_selmov_v2r8((a), (b), (cond))
 #define vabsd2(a) _fjsp_abs_v2r8((a))
@@ -187,7 +187,7 @@ IsectD2(double2 &tInOut, double2 &tidInOut, // Use as integer(53bit)
 
 typedef __m128d double2;
 
-#define FORCEINLINE __attribute__((always_inline))
+//#define FORCEINLINE __attribute__((always_inline))
 
 #define vseld2(a, b, m) _mm_or_pd(_mm_and_pd((m), (a)), _mm_andnot_pd((m), (b)))
 #define vabsd2(a)                                                              \

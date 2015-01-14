@@ -130,7 +130,7 @@ inline double2 vdotd2(double2 ax, double2 ay, double2 az, double2 bx,
 
 typedef __m128d double2;
 
-#define FORCEINLINE __attribute__((always_inline))
+//#define FORCEINLINE __attribute__((always_inline))
 
 #define vseld2(a, b, m) _mm_or_pd(_mm_and_pd((m), (a)), _mm_andnot_pd((m), (b)))
 #define vabsd2(a)                                                              \
