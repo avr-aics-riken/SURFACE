@@ -112,8 +112,8 @@ float trace(void *fragptr, vec3 *org, vec3 *dir, vec4 *shadecol,
   //
   Intersection isect;
 
-  vector3 rayorg;
-  vector3 raydir;
+  real3 rayorg;
+  real3 raydir;
 
   rayorg[0] = org->v[0];
   rayorg[1] = org->v[1];
@@ -181,8 +181,8 @@ float shadow(void *fragptr, vec3 *org, vec3 *dir) {
 
   Intersection isect;
 
-  vector3 rayorg;
-  vector3 raydir;
+  real3 rayorg;
+  real3 raydir;
 
   rayorg[0] = org->v[0];
   rayorg[1] = org->v[1];

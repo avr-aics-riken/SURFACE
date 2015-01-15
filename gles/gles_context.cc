@@ -213,7 +213,7 @@ void Context::lsglEvalFragmentShader() {
       fragCoord[2] = 0.0f;
       fragCoord[3] = 0.0f;
 
-      vector3 pos, normal, raydir;
+      real3 pos, normal, raydir;
       float px = 0.5f + x;
       float py = 0.5f + y;
       float raydepth = 0.0f;
@@ -255,7 +255,7 @@ void Context::lsglEvalSingleFragmentShader() {
   fragCoord[2] = 0.0f;
   fragCoord[3] = 0.0f;
 
-  vector3 pos, normal, raydir;
+  real3 pos, normal, raydir;
   float px = 0.5f;
   float py = 0.5f;
   float raydepth = 0.0f;

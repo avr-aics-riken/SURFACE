@@ -17,7 +17,6 @@
 
 #include "toplevel_bvh.h"
 #include "matrix.h"
-#include "vector3.h"
 
 using namespace lsgl::render;
 

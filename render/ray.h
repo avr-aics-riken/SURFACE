@@ -10,6 +10,7 @@
 #define __LSGL_RENDER_RAY_H__
 
 #include <limits>
+#include <cmath>
 #include <cstdio>
 #ifdef _MSC_VER
 #include "stdint.h" // compat/stdint.h
@@ -17,7 +18,8 @@
 #include <stdint.h>
 #endif
 
-#include "vector3.h"
+#include "render_common.h"
+#include "simd_util.h"
 
 namespace lsgl {
 namespace render {
@@ -42,13 +44,13 @@ inline float sse_fastinv(float x) { return 1.0f / x; }
 class Ray;
 
 typedef int32_t Ray_id_t;
-inline Ray_id_t get_Ray_id(const vector3 &org, const vector3 &dir) {
+inline Ray_id_t get_Ray_id(const real3 &org, const real3 &dir) {
   return 0; // @todo
 }
 
 class Ray {
 public:
-  inline static int get_phase(const vector3 &dir) {
+  inline static int get_phase(const real3 &dir) {
     int phase = 0;
     if (dir[0] < 0)
       phase |= 1;
@@ -59,7 +61,7 @@ public:
     return phase;
   }
 
-  inline static Ray_id_t get_Ray_data(const vector3 &org, const vector3 &dir) {
+  inline static Ray_id_t get_Ray_data(const real3 &org, const real3 &dir) {
     Ray_id_t n = get_Ray_id(org, dir) | get_phase(dir);
     return n;
   }
@@ -74,7 +76,7 @@ public:
       return sse_fastinv(x);
     }
 #else
-    if (std::abs(x) < 1.0e-6f) {
+    if (fabs(x) < 1.0e-6f) {
       if (x < 0.0f) {
         return -FLT_MAX;
       } else {
@@ -85,8 +87,8 @@ public:
     }
 #endif
   }
-  inline static vector3 safe_invert3(const vector3 &v) {
-    return vector3(safe_invert(v[0]), safe_invert(v[1]), safe_invert(v[2]));
+  inline static real3 safe_invert3(const real3 &v) {
+    return real3(safe_invert(v[0]), safe_invert(v[1]), safe_invert(v[2]));
   }
 
 public:
@@ -118,11 +120,11 @@ public:
   // {
   //  data_ = get_Ray_id(org_, dir_) | rhs.phase();
   //}
-  Ray(const vector3 &org, const vector3 &dir)
+  Ray(const real3 &org, const real3 &dir)
       : org_(org), dir_(dir), idir_(safe_invert3(dir)),
         data_(get_Ray_data(org, dir)), double_sided(1),
         prev_prim_id((unsigned int)(-1)), prev_node(NULL) {}
-  Ray(const vector3 &org, const vector3 &dir, const vector3 &idir)
+  Ray(const real3 &org, const real3 &dir, const real3 &idir)
       : org_(org), dir_(dir), idir_(idir), data_(get_Ray_data(org, dir)),
         double_sided(1), prev_prim_id((unsigned int)(-1)), prev_node(NULL) {}
 
@@ -135,14 +137,14 @@ public:
     return *this;
   }
 
-  // vector3& origin()           {return org_;}
-  const vector3 &origin() const { return org_; }
+  // real3& origin()           {return org_;}
+  const real3 &origin() const { return org_; }
 
-  // vector3& direction()           {return dir_;}
-  const vector3 &direction() const { return dir_; }
+  // real3& direction()           {return dir_;}
+  const real3 &direction() const { return dir_; }
 
-  // vector3& inversed_direction()           {return idir_;}
-  const vector3 &inversed_direction() const { return idir_; }
+  // real3& inversed_direction()           {return idir_;}
+  const real3 &inversed_direction() const { return idir_; }
 
   Ray_id_t phase() const { return data_ & 0x7; }
   Ray_id_t id() const { return data_; }
@@ -166,16 +168,11 @@ public:
   const unsigned char *prev_node;
 
 protected:
-  vector3 org_;
-  vector3 dir_;
-  vector3 idir_;
+  real3 org_;
+  real3 dir_;
+  real3 idir_;
   Ray_id_t data_;
 };
-
-inline bool operator==(const Ray &lhs, const Ray &rhs) {
-  return ((lhs.data() == rhs.data()) && (lhs.origin() == rhs.origin()) &&
-          (lhs.direction() == rhs.direction()));
-}
 
 } // namespace render
 } // namespace lsgl

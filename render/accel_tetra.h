@@ -61,8 +61,7 @@ struct TetraBuildStatistics {
   int numBranchNodes;
 
   // Set default value: Taabb = 0.2
-  TetraBuildStatistics()
-      : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
+  TetraBuildStatistics() : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
 };
 
 /// Tetra Acceleration class

@@ -21,10 +21,11 @@
 
 #include "accel_tetra.h"
 #include "prefix_tree_util.h"
+#include "tinymt64.h"
 
 using namespace lsgl::render;
 
-#define MAX_LEAF_ELEMENTS (16)
+#define MAX_LEAF_ELEMENTS (8)
 #define MAX_TREE_DEPTH_32BIT                                                   \
   (22) // FYI, log2(1G/16) ~= 25.897, log2(1G/32) ~= 21
 
@@ -45,6 +46,421 @@ using namespace lsgl::render;
 #endif
 
 namespace {
+
+// @todo { multithread }
+tinymt64_t tinymt64;
+
+void init_random()
+{
+  tinymt64.mat1 = 0xfa051f40;
+  tinymt64.mat2 = 0xffd0fff4;
+  tinymt64.tmat = 0x58d02ffeffbfffbcULL;
+  tinymt64_init(&tinymt64, (uint64_t)1234);
+}
+
+float randomreal() {
+  return (float)tinymt64_generate_double(&tinymt64);
+}
+
+inline real3 vcross(real3 a, real3 b) {
+  real3 c;
+  c[0] = a[1] * b[2] - a[2] * b[1];
+  c[1] = a[2] * b[0] - a[0] * b[2];
+  c[2] = a[0] * b[1] - a[1] * b[0];
+  return c;
+}
+
+inline real vdot(real3 a, real3 b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+inline double3 vcrossd(double3 a, double3 b) {
+  double3 c;
+  c[0] = a[1] * b[2] - a[2] * b[1];
+  c[1] = a[2] * b[0] - a[0] * b[2];
+  c[2] = a[0] * b[1] - a[1] * b[0];
+  return c;
+}
+
+inline double vdotd(double3 a, double3 b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+inline int fsign(const real x) {
+  real eps = std::numeric_limits<real>::epsilon() * 1024;
+  return (x > eps ? 1 : (x < -eps ? -1 : 0));
+}
+
+//
+// Simple Pluecker coordinate class
+//
+class Pluecker {
+public:
+  real3 d; // direction
+  real3 c; // cross
+
+  Pluecker(const real3 &v0, const real3 &v1) : d(v1 - v0), c(vcross(v1, v0)) {}
+};
+
+// Inner product
+inline real operator*(const Pluecker &p0, const Pluecker &p1) {
+  return vdot(p0.d, p1.c) + vdot(p1.d, p0.c);
+}
+
+// Ray - Tetrahedron intersection based on
+// - Fast Ray-Tetrahedron Intersection using Plu ̈cker Coordinates
+//   Nikos Platis and Theoharis Theoharis, JGT 2003
+//   http://realtimecollisiondetection.net/files/PlatisRayTetra/RayTetraPluecker.cpp
+//
+
+// Computes the parametric distance tEnter and tLeave
+// of enterPoint and leavePoint from orig
+// (To enhance performance of the intersection algorithm, this code
+// should in practice be incorporated to the function below.)
+
+void ComputeParametricDist(const real3 &orig, const real3 &dir,
+                           const real3 &enterPoint, const real3 &leavePoint,
+                           double &tEnter, double &tLeave) {
+  if (dir.x) {
+    double invDirx = 1.0 / dir.x;
+    tEnter = (enterPoint.x - orig.x) * invDirx;
+    tLeave = (leavePoint.x - orig.x) * invDirx;
+  } else if (dir.y) {
+    double invDiry = 1.0 / dir.y;
+    tEnter = (enterPoint.y - orig.y) * invDiry;
+    tLeave = (leavePoint.y - orig.y) * invDiry;
+  } else {
+    double invDirz = 1.0 / dir.z;
+    tEnter = (enterPoint.z - orig.z) * invDirz;
+    tLeave = (leavePoint.z - orig.z) * invDirz;
+  }
+}
+
+bool RayTetraPluecker(const real3 &orig, const real3 &dir, const real3 vert[],
+                      int &enterFace, int &leaveFace, real3 &enterPoint,
+                      real3 &leavePoint, double &uEnter1, double &uEnter2,
+                      double &uLeave1, double &uLeave2, double &tEnter,
+                      double &tLeave) {
+  enterFace = -1;
+  leaveFace = -1;
+
+  double uAB = 0, uAC = 0, uDB = 0, uDC = 0, uBC = 0, uAD = 0;
+  // Keep the compiler happy about uninitialized variables
+  int signAB = -2, signAC = -2, signDB = -2, signDC = -2, signBC = -2,
+      signAD = -2;
+
+  // In the following: A,B,C,D=vert[i], i=0,1,2,3.
+  real3 dest = orig + dir;
+  Pluecker plRay(orig, dest);
+
+  int nextSign = 0;
+
+  // Examine face ABC
+  uAB = plRay * Pluecker(vert[0], vert[1]);
+  signAB = fsign(uAB);
+
+  uAC = plRay * Pluecker(vert[0], vert[2]);
+  signAC = fsign(uAC);
+
+  if ((signAC == -signAB) || (signAC == 0) || (signAB == 0)) {
+    // Face ABC may intersect with the ray
+    uBC = plRay * Pluecker(vert[1], vert[2]);
+    signBC = fsign(uBC);
+
+    int signABC = signAB;
+    if (signABC == 0) {
+      signABC = -signAC;
+      if (signABC == 0) {
+        signABC = signBC;
+      }
+    }
+
+    if ((signABC != 0) && ((signBC == signABC) || (signBC == 0))) {
+      // Face ABC intersects with the ray
+      double invVolABC = 1.0 / (uAB + uBC - uAC);
+      if (signABC == 1) {
+        enterFace = 3;
+        uEnter1 = -uAC * invVolABC;
+        uEnter2 = uAB * invVolABC;
+        enterPoint = (1 - uEnter1 - uEnter2) * vert[0] + uEnter1 * vert[1] +
+                     uEnter2 * vert[2];
+
+        nextSign = -1;
+      } else {
+        leaveFace = 3;
+        uLeave1 = -uAC * invVolABC;
+        uLeave2 = uAB * invVolABC;
+        leavePoint = (1 - uLeave1 - uLeave2) * vert[0] + uLeave1 * vert[1] +
+                     uLeave2 * vert[2];
+
+        nextSign = 1;
+      }
+
+      // Determine the other intersecting face between BAD, CDA, DCB
+      // Examine face BAD
+      uAD = plRay * Pluecker(vert[0], vert[3]);
+      signAD = fsign(uAD);
+
+      if ((signAD == nextSign) || (signAD == 0)) {
+        // Face BAD may intersect with the ray
+        uDB = plRay * Pluecker(vert[3], vert[1]);
+        signDB = fsign(uDB);
+
+        if ((signDB == nextSign) ||
+            ((signDB == 0) && ((signAD != 0) || (signAB != 0)))) {
+          // Face BAD intersects with the ray
+          double invVolBAD = 1.0 / (uAD + uDB - uAB);
+          if (nextSign == 1) {
+            enterFace = 2;
+            uEnter1 = uDB * invVolBAD;
+            uEnter2 = -uAB * invVolBAD;
+            enterPoint = (1 - uEnter1 - uEnter2) * vert[1] + uEnter1 * vert[0] +
+                         uEnter2 * vert[3];
+
+            ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                  tLeave);
+            return true;
+          } else {
+            leaveFace = 2;
+            uLeave1 = uDB * invVolBAD;
+            uLeave2 = -uAB * invVolBAD;
+            leavePoint = (1 - uLeave1 - uLeave2) * vert[1] + uLeave1 * vert[0] +
+                         uLeave2 * vert[3];
+
+            ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                  tLeave);
+            return true;
+          }
+        }
+      }
+
+      // Face BAD does not intersect with the ray.
+      // Determine the other intersecting face between CDA, DCB
+      uDC = plRay * Pluecker(vert[3], vert[2]);
+      signDC = fsign(uDC);
+
+      if ((signDC == -nextSign) ||
+          ((signDC == 0) && ((signAD != 0) || (signAC != 0)))) {
+        // Face CDA intersects with the ray
+        double invVolCDA = 1.0 / (uAC - uDC - uAD);
+        if (nextSign == 1) {
+          enterFace = 1;
+          uEnter1 = uAC * invVolCDA;
+          uEnter2 = -uDC * invVolCDA;
+          enterPoint = (1 - uEnter1 - uEnter2) * vert[2] + uEnter1 * vert[3] +
+                       uEnter2 * vert[0];
+
+          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                tLeave);
+          return true;
+        } else {
+          leaveFace = 1;
+          uLeave1 = uAC * invVolCDA;
+          uLeave2 = -uDC * invVolCDA;
+          leavePoint = (1 - uLeave1 - uLeave2) * vert[2] + uLeave1 * vert[3] +
+                       uLeave2 * vert[0];
+
+          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                tLeave);
+          return true;
+        }
+      } else {
+        // Face DCB intersects with the ray
+        if (signDB == -2) {
+          uDB = plRay * Pluecker(vert[3], vert[1]);
+        }
+
+        double invVolDCB = 1.0 / (uDC - uBC - uDB);
+        if (nextSign == 1) {
+          enterFace = 0;
+          uEnter1 = -uDB * invVolDCB;
+          uEnter2 = uDC * invVolDCB;
+          enterPoint = (1 - uEnter1 - uEnter2) * vert[3] + uEnter1 * vert[2] +
+                       uEnter2 * vert[1];
+
+          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                tLeave);
+          return true;
+        } else {
+          leaveFace = 0;
+          uLeave1 = -uDB * invVolDCB;
+          uLeave2 = uDC * invVolDCB;
+          leavePoint = (1 - uLeave1 - uLeave2) * vert[3] + uLeave1 * vert[2] +
+                       uLeave2 * vert[1];
+
+          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                tLeave);
+          return true;
+        }
+      }
+    }
+  }
+
+  // Examine face BAD
+  uAD = plRay * Pluecker(vert[0], vert[3]);
+  signAD = fsign(uAD);
+
+  if ((signAD == -signAB) || (signAB == 0) || (signAD == 0)) {
+    // Face BAD may intersect with the ray
+    uDB = plRay * Pluecker(vert[3], vert[1]);
+    signDB = fsign(uDB);
+
+    int signBAD = -signAB;
+    if (signBAD == 0) {
+      signBAD = signAD;
+      if (signBAD == 0) {
+        signBAD = signDB;
+      }
+    }
+
+    if ((signBAD != 0) && ((signDB == signBAD) || (signDB == 0))) {
+      // Face BAD intersects with the ray
+      double invVolBAD = 1.0 / (uAD + uDB - uAB);
+      if (signBAD == 1) {
+        enterFace = 2;
+        uEnter1 = uDB * invVolBAD;
+        uEnter2 = -uAB * invVolBAD;
+        enterPoint = (1 - uEnter1 - uEnter2) * vert[1] + uEnter1 * vert[0] +
+                     uEnter2 * vert[3];
+
+        nextSign = -1;
+      } else {
+        leaveFace = 2;
+        uLeave1 = uDB * invVolBAD;
+        uLeave2 = -uAB * invVolBAD;
+        leavePoint = (1 - uLeave1 - uLeave2) * vert[1] + uLeave1 * vert[0] +
+                     uLeave2 * vert[3];
+
+        nextSign = 1;
+      }
+
+      // Determine the other intersecting face between CDA, DCB
+      uDC = plRay * Pluecker(vert[3], vert[2]);
+      signDC = fsign(uDC);
+
+      if ((signDC == -nextSign) ||
+          ((signDC == 0) && ((signAD != 0) || (signAC != 0)))) {
+        // Face CDA intersects with the ray
+        double invVolCDA = 1.0 / (uAC - uDC - uAD);
+        if (nextSign == 1) {
+          enterFace = 1;
+          uEnter1 = uAC * invVolCDA;
+          uEnter2 = -uDC * invVolCDA;
+          enterPoint = (1 - uEnter1 - uEnter2) * vert[2] + uEnter1 * vert[3] +
+                       uEnter2 * vert[0];
+
+          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                tLeave);
+          return true;
+        } else {
+          leaveFace = 1;
+          uLeave1 = uAC * invVolCDA;
+          uLeave2 = -uDC * invVolCDA;
+          leavePoint = (1 - uLeave1 - uLeave2) * vert[2] + uLeave1 * vert[3] +
+                       uLeave2 * vert[0];
+
+          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                tLeave);
+          return true;
+        }
+      } else {
+        // Face DCB intersects with the ray
+        if (signBC == -2) {
+          uBC = plRay * Pluecker(vert[1], vert[2]);
+        }
+
+        double invVolDCB = 1.0 / (uDC - uBC - uDB);
+        if (nextSign == 1) {
+          enterFace = 0;
+          uEnter1 = -uDB * invVolDCB;
+          uEnter2 = uDC * invVolDCB;
+          enterPoint = (1 - uEnter1 - uEnter2) * vert[3] + uEnter1 * vert[2] +
+                       uEnter2 * vert[1];
+
+          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                tLeave);
+          return true;
+        } else {
+          leaveFace = 0;
+          uLeave1 = -uDB * invVolDCB;
+          uLeave2 = uDC * invVolDCB;
+          leavePoint = (1 - uLeave1 - uLeave2) * vert[3] + uLeave1 * vert[2] +
+                       uLeave2 * vert[1];
+
+          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                                tLeave);
+          return true;
+        }
+      }
+    }
+  }
+
+  // Examine face CDA
+  if ((-signAD == signAC) || (signAC == 0) || (signAD == 0)) {
+    // Face CDA may intersect with the ray
+    uDC = plRay * Pluecker(vert[3], vert[2]);
+    signDC = fsign(uDC);
+
+    int signCDA = signAC;
+    if (signCDA == 0) {
+      signCDA = -signAD;
+      if (signCDA == 0) {
+        signCDA = -signDC;
+      }
+    }
+
+    if ((signCDA != 0) && ((-signDC == signCDA) || (signDC == 0))) {
+      // Face CDA intersects with the ray
+      // Face DCB also intersects with the ray
+      double invVolCDA = 1.0 / (uAC - uDC - uAD);
+
+      if (signBC == -2) {
+        uBC = plRay * Pluecker(vert[1], vert[2]);
+      }
+      if (signDB == -2) {
+        uDB = plRay * Pluecker(vert[3], vert[1]);
+      }
+      double invVolDCB = 1.0 / (uDC - uBC - uDB);
+
+      if (signCDA == 1) {
+        enterFace = 1;
+        uEnter1 = uAC * invVolCDA;
+        uEnter2 = -uDC * invVolCDA;
+        enterPoint = (1 - uEnter1 - uEnter2) * vert[2] + uEnter1 * vert[3] +
+                     uEnter2 * vert[0];
+
+        leaveFace = 0;
+        uLeave1 = -uDB * invVolDCB;
+        uLeave2 = uDC * invVolDCB;
+        leavePoint = (1 - uLeave1 - uLeave2) * vert[3] + uLeave1 * vert[2] +
+                     uLeave2 * vert[1];
+
+        ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                              tLeave);
+        return true;
+      } else {
+        leaveFace = 1;
+        uLeave1 = uAC * invVolCDA;
+        uLeave2 = -uDC * invVolCDA;
+        leavePoint = (1 - uLeave1 - uLeave2) * vert[2] + uLeave1 * vert[3] +
+                     uLeave2 * vert[0];
+
+        enterFace = 0;
+        uEnter1 = -uDB * invVolDCB;
+        uEnter2 = uDC * invVolDCB;
+        enterPoint = (1 - uEnter1 - uEnter2) * vert[3] + uEnter1 * vert[2] +
+                     uEnter2 * vert[1];
+
+        ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
+                              tLeave);
+        return true;
+      }
+    }
+  }
+
+  // Three faces do not intersect with the ray, the fourth will not.
+  return false;
+}
 
 //
 // SAH functions
@@ -72,13 +488,12 @@ static inline double CalculateSurfaceArea(const real3 &min, const real3 &max) {
 static inline void GetBoundingBoxOfTetra(real3 &bmin, real3 &bmax,
                                          const Tetrahedron *tetras,
                                          unsigned int index) {
-  assert(0); // @todo
-#if 0
-  unsigned int f0 = tetras->faces[3 * index + 0];
-  unsigned int f1 = tetras->faces[3 * index + 1];
-  unsigned int f2 = tetras->faces[3 * index + 2];
+  unsigned int f0 = tetras->faces[4 * index + 0];
+  unsigned int f1 = tetras->faces[4 * index + 1];
+  unsigned int f2 = tetras->faces[4 * index + 2];
+  unsigned int f3 = tetras->faces[4 * index + 3];
 
-  real3 p[3];
+  real3 p[4];
 
   if (tetras->isDoublePrecisionPos) {
     p[0] = real3(tetras->dvertices[3 * f0 + 0], tetras->dvertices[3 * f0 + 1],
@@ -87,6 +502,8 @@ static inline void GetBoundingBoxOfTetra(real3 &bmin, real3 &bmax,
                  tetras->dvertices[3 * f1 + 2]);
     p[2] = real3(tetras->dvertices[3 * f2 + 0], tetras->dvertices[3 * f2 + 1],
                  tetras->dvertices[3 * f2 + 2]);
+    p[3] = real3(tetras->dvertices[3 * f3 + 0], tetras->dvertices[3 * f3 + 1],
+                 tetras->dvertices[3 * f3 + 2]);
   } else {
     p[0] = real3(tetras->vertices[3 * f0 + 0], tetras->vertices[3 * f0 + 1],
                  tetras->vertices[3 * f0 + 2]);
@@ -94,12 +511,14 @@ static inline void GetBoundingBoxOfTetra(real3 &bmin, real3 &bmax,
                  tetras->vertices[3 * f1 + 2]);
     p[2] = real3(tetras->vertices[3 * f2 + 0], tetras->vertices[3 * f2 + 1],
                  tetras->vertices[3 * f2 + 2]);
+    p[3] = real3(tetras->vertices[3 * f3 + 0], tetras->vertices[3 * f3 + 1],
+                 tetras->vertices[3 * f3 + 2]);
   }
 
   bmin = p[0];
   bmax = p[0];
 
-  for (int i = 1; i < 3; i++) {
+  for (int i = 1; i < 4; i++) {
     bmin[0] = std::min(bmin[0], p[i][0]);
     bmin[1] = std::min(bmin[1], p[i][1]);
     bmin[2] = std::min(bmin[2], p[i][2]);
@@ -108,7 +527,6 @@ static inline void GetBoundingBoxOfTetra(real3 &bmin, real3 &bmax,
     bmax[1] = std::max(bmax[1], p[i][1]);
     bmax[2] = std::max(bmax[2], p[i][2]);
   }
-#endif
 }
 
 static void ContributeBinBuffer(BinBuffer *bins, // [out]
@@ -149,7 +567,6 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
     real3 bmin;
     real3 bmax;
 
-    assert(0);
     GetBoundingBoxOfTetra(bmin, bmax, tetras, indices[i]);
 
     real3 quantizedBMin = (bmin - sceneMin) * sceneInvSize;
@@ -297,11 +714,10 @@ public:
     int axis = axis_;
     real pos = pos_;
 
-    assert(0);
-#if 0 // todo
-    unsigned int i0 = tetras_->faces[3 * i + 0];
-    unsigned int i1 = tetras_->faces[3 * i + 1];
-    unsigned int i2 = tetras_->faces[3 * i + 2];
+    unsigned int i0 = tetras_->faces[4 * i + 0];
+    unsigned int i1 = tetras_->faces[4 * i + 1];
+    unsigned int i2 = tetras_->faces[4 * i + 2];
+    unsigned int i3 = tetras_->faces[4 * i + 3];
 
     real3 p0(tetras_->vertices[3 * i0 + 0], tetras_->vertices[3 * i0 + 1],
              tetras_->vertices[3 * i0 + 2]);
@@ -309,11 +725,12 @@ public:
              tetras_->vertices[3 * i1 + 2]);
     real3 p2(tetras_->vertices[3 * i2 + 0], tetras_->vertices[3 * i2 + 1],
              tetras_->vertices[3 * i2 + 2]);
+    real3 p3(tetras_->vertices[3 * i3 + 0], tetras_->vertices[3 * i3 + 1],
+             tetras_->vertices[3 * i3 + 2]);
 
-    real center = p0[axis] + p1[axis] + p2[axis];
+    real center = p0[axis] + p1[axis] + p2[axis] + p3[axis];
 
-    return (center < pos * 3.0);
-#endif
+    return (center < pos * 4.0);
   }
 
 private:
@@ -331,12 +748,10 @@ public:
     int axis = axis_;
     double pos = pos_;
 
-    assert(0);
-
-#if 0 // todo
-    unsigned int i0 = tetras_->faces[3 * i + 0];
-    unsigned int i1 = tetras_->faces[3 * i + 1];
-    unsigned int i2 = tetras_->faces[3 * i + 2];
+    unsigned int i0 = tetras_->faces[4 * i + 0];
+    unsigned int i1 = tetras_->faces[4 * i + 1];
+    unsigned int i2 = tetras_->faces[4 * i + 2];
+    unsigned int i3 = tetras_->faces[4 * i + 3];
 
     double3 p0(tetras_->dvertices[3 * i0 + 0], tetras_->dvertices[3 * i0 + 1],
                tetras_->dvertices[3 * i0 + 2]);
@@ -344,11 +759,12 @@ public:
                tetras_->dvertices[3 * i1 + 2]);
     double3 p2(tetras_->dvertices[3 * i2 + 0], tetras_->dvertices[3 * i2 + 1],
                tetras_->dvertices[3 * i2 + 2]);
+    double3 p3(tetras_->dvertices[3 * i3 + 0], tetras_->dvertices[3 * i3 + 1],
+               tetras_->dvertices[3 * i3 + 2]);
 
-    double center = p0[axis] + p1[axis] + p2[axis];
+    double center = p0[axis] + p1[axis] + p2[axis] + p3[axis];
 
-    return (center < pos * 3.0);
-#endif
+    return (center < pos * 4.0);
   }
 
 private:
@@ -364,14 +780,25 @@ static void ComputeBoundingBox(real3 &bmin, real3 &bmax, const T *vertices,
                                unsigned int rightIndex) {
   const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
 
+  bmin[0] = std::numeric_limits<real>::max();
+  bmin[1] = std::numeric_limits<real>::max();
+  bmin[2] = std::numeric_limits<real>::max();
+  bmax[0] = -std::numeric_limits<real>::max();
+  bmax[1] = -std::numeric_limits<real>::max();
+  bmax[2] = -std::numeric_limits<real>::max();
+
+  if (rightIndex <= leftIndex) {
+    return;
+  }
+
   size_t i = leftIndex;
   size_t idx = indices[i];
-  bmin[0] = vertices[3 * faces[3 * idx + 0] + 0] - kEPS;
-  bmin[1] = vertices[3 * faces[3 * idx + 0] + 1] - kEPS;
-  bmin[2] = vertices[3 * faces[3 * idx + 0] + 2] - kEPS;
-  bmax[0] = vertices[3 * faces[3 * idx + 0] + 0] + kEPS;
-  bmax[1] = vertices[3 * faces[3 * idx + 0] + 1] + kEPS;
-  bmax[2] = vertices[3 * faces[3 * idx + 0] + 2] + kEPS;
+  bmin[0] = vertices[3 * faces[4 * idx + 0] + 0] - kEPS;
+  bmin[1] = vertices[3 * faces[4 * idx + 0] + 1] - kEPS;
+  bmin[2] = vertices[3 * faces[4 * idx + 0] + 2] - kEPS;
+  bmax[0] = vertices[3 * faces[4 * idx + 0] + 0] + kEPS;
+  bmax[1] = vertices[3 * faces[4 * idx + 0] + 1] + kEPS;
+  bmax[2] = vertices[3 * faces[4 * idx + 0] + 2] + kEPS;
 
   // Assume tetras are composed of all tetrahedrons
   for (i = leftIndex; i < rightIndex; i++) { // for each faces
@@ -872,6 +1299,9 @@ size_t TetraAccel::BuildTree(const Tetrahedron *tetras, unsigned int leftIdx,
   assert(leftIdx <= rightIdx);
 
   debug("d: %d, l: %d, r: %d\n", depth, leftIdx, rightIdx);
+
+  assert(tetras);
+  assert(tetras->faces);
 
   size_t offset = nodes_.size();
 
@@ -1389,33 +1819,9 @@ inline bool IntersectRayAABB(real &tminOut, // [out]
   return false; // no hit
 }
 
-inline real3 vcross(real3 a, real3 b) {
-  real3 c;
-  c[0] = a[1] * b[2] - a[2] * b[1];
-  c[1] = a[2] * b[0] - a[0] * b[2];
-  c[2] = a[0] * b[1] - a[1] * b[0];
-  return c;
-}
-
-inline real vdot(real3 a, real3 b) {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-
-inline double3 vcrossd(double3 a, double3 b) {
-  double3 c;
-  c[0] = a[1] * b[2] - a[2] * b[1];
-  c[1] = a[2] * b[0] - a[0] * b[2];
-  c[2] = a[0] * b[1] - a[1] * b[0];
-  return c;
-}
-
-inline double vdotd(double3 a, double3 b) {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-
 inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut,
-                          const vector3 &v0, const vector3 &v1,
-                          const vector3 &v2, const real3 &rayOrg,
+                          const real3 &v0, const real3 &v1,
+                          const real3 &v2, const real3 &rayOrg,
                           const real3 &rayDir, bool doubleSided) {
   const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
 
@@ -1467,8 +1873,8 @@ inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut,
 }
 
 inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
-                           const vector3d &v0, const vector3d &v1,
-                           const vector3d &v2, const double3 &rayOrg,
+                           const double3 &v0, const double3 &v1,
+                           const double3 &v2, const double3 &rayOrg,
                            const double3 &rayDir, bool doubleSided) {
   const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
 
@@ -1526,7 +1932,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
 
   bool hit = false;
 
-  unsigned int numTriangles = node.data[0];
+  unsigned int numTetras = node.data[0];
   unsigned int offset = node.data[1];
 
   real t = isect.t; // current hit distance
@@ -1534,6 +1940,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
   bool doubleSided = (bool)ray.double_sided;
 
   if (tetras->isDoublePrecisionPos) {
+    assert(0);
 
     double3 rayOrg;
     rayOrg[0] = ray.origin()[0];
@@ -1545,7 +1952,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
     rayDir[1] = ray.direction()[1];
     rayDir[2] = ray.direction()[2];
 
-    for (unsigned int i = 0; i < numTriangles; i++) {
+    for (unsigned int i = 0; i < numTetras; i++) {
       int faceIdx = indices[i + offset];
 
       // self-intersection check
@@ -1557,7 +1964,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
       int f1 = tetras->faces[3 * faceIdx + 1];
       int f2 = tetras->faces[3 * faceIdx + 2];
 
-      vector3d v0, v1, v2;
+      double3 v0, v1, v2;
       v0[0] = tetras->dvertices[3 * f0 + 0];
       v0[1] = tetras->dvertices[3 * f0 + 1];
       v0[2] = tetras->dvertices[3 * f0 + 2];
@@ -1577,6 +1984,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
         isect.u = u;
         isect.v = v;
         isect.prim_id = faceIdx;
+
         hit = true;
       }
     }
@@ -1593,38 +2001,54 @@ bool TestLeafNode(Intersection &isect, // [inout]
     rayDir[1] = ray.direction()[1];
     rayDir[2] = ray.direction()[2];
 
-    for (unsigned int i = 0; i < numTriangles; i++) {
+    for (unsigned int i = 0; i < numTetras; i++) {
       int faceIdx = indices[i + offset];
 
       // self-intersection check
       if (faceIdx == ray.prev_prim_id) {
         continue;
       }
-      int f0 = tetras->faces[3 * faceIdx + 0];
-      int f1 = tetras->faces[3 * faceIdx + 1];
-      int f2 = tetras->faces[3 * faceIdx + 2];
+      int f0 = tetras->faces[4 * faceIdx + 0];
+      int f1 = tetras->faces[4 * faceIdx + 1];
+      int f2 = tetras->faces[4 * faceIdx + 2];
+      int f3 = tetras->faces[4 * faceIdx + 3];
 
-      vector3 v0, v1, v2;
-      v0[0] = tetras->vertices[3 * f0 + 0];
-      v0[1] = tetras->vertices[3 * f0 + 1];
-      v0[2] = tetras->vertices[3 * f0 + 2];
+      real3 vtx[4];
+      vtx[0][0] = tetras->vertices[3 * f0 + 0];
+      vtx[0][1] = tetras->vertices[3 * f0 + 1];
+      vtx[0][2] = tetras->vertices[3 * f0 + 2];
 
-      v1[0] = tetras->vertices[3 * f1 + 0];
-      v1[1] = tetras->vertices[3 * f1 + 1];
-      v1[2] = tetras->vertices[3 * f1 + 2];
+      vtx[1][0] = tetras->vertices[3 * f1 + 0];
+      vtx[1][1] = tetras->vertices[3 * f1 + 1];
+      vtx[1][2] = tetras->vertices[3 * f1 + 2];
 
-      v2[0] = tetras->vertices[3 * f2 + 0];
-      v2[1] = tetras->vertices[3 * f2 + 1];
-      v2[2] = tetras->vertices[3 * f2 + 2];
+      vtx[2][0] = tetras->vertices[3 * f2 + 0];
+      vtx[2][1] = tetras->vertices[3 * f2 + 1];
+      vtx[2][2] = tetras->vertices[3 * f2 + 2];
 
-      real u, v;
-      if (TriangleIsect(t, u, v, v0, v1, v2, rayOrg, rayDir, doubleSided)) {
-        // Update isect state
-        isect.t = t;
-        isect.u = u;
-        isect.v = v;
-        isect.prim_id = faceIdx;
-        hit = true;
+      vtx[3][0] = tetras->vertices[3 * f3 + 0];
+      vtx[3][1] = tetras->vertices[3 * f3 + 1];
+      vtx[3][2] = tetras->vertices[3 * f3 + 2];
+
+
+      int    enterF, leaveF;
+      real3  enterP, leaveP;
+      double enterU, leaveU;
+      double enterV, leaveV;
+      double enterT, leaveT;
+      if (RayTetraPluecker(rayOrg, rayDir, vtx, enterF, leaveF, enterP, leaveP, enterU, leaveU, enterV, leaveV, enterT, leaveT)) {
+
+        if ((enterT >= 0.0) && (enterT < t)) {
+          // Update isect state. 
+          // @todo { Record leaving point. }
+          isect.t = enterT;
+          isect.u = enterU;
+          isect.v = enterV;
+          isect.prim_id = faceIdx;
+          isect.subface_id = enterF; // 0,1,2 or 3
+          t = enterT;
+          hit = true;
+        }
       }
     }
   }
@@ -1637,14 +2061,17 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
   // face index
   const unsigned int *faces = tetras->faces;
 
-  isect.f0 = faces[3 * isect.prim_id + 0];
-  isect.f1 = faces[3 * isect.prim_id + 1];
-  isect.f2 = faces[3 * isect.prim_id + 2];
+  isect.f0 = faces[4 * isect.prim_id + 0];
+  isect.f1 = faces[4 * isect.prim_id + 1];
+  isect.f2 = faces[4 * isect.prim_id + 2];
+  isect.f3 = faces[4 * isect.prim_id + 3];
 
   if (tetras->isDoublePrecisionPos) {
+    assert(0); // @todo
+#if 0
     const double *vertices = tetras->dvertices;
 
-    vector3d p0, p1, p2;
+    real3d p0, p1, p2;
     p0[0] = vertices[3 * isect.f0 + 0];
     p0[1] = vertices[3 * isect.f0 + 1];
     p0[2] = vertices[3 * isect.f0 + 2];
@@ -1659,35 +2086,53 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
     isect.position = ray.origin() + isect.t * ray.direction();
 
     // calc geometric normal.
-    vector3d p10 = p1 - p0;
-    vector3d p20 = p2 - p0;
-    vector3d n = cross(p10, p20);
+    real3d p10 = p1 - p0;
+    real3d p20 = p2 - p0;
+    real3d n = cross(p10, p20);
     n.normalize();
 
     isect.geometric = n;
     isect.normal = n;
+#endif
 
   } else {
     const float *vertices = tetras->vertices;
 
-    vector3 p0, p1, p2;
-    p0[0] = vertices[3 * isect.f0 + 0];
-    p0[1] = vertices[3 * isect.f0 + 1];
-    p0[2] = vertices[3 * isect.f0 + 2];
-    p1[0] = vertices[3 * isect.f1 + 0];
-    p1[1] = vertices[3 * isect.f1 + 1];
-    p1[2] = vertices[3 * isect.f1 + 2];
-    p2[0] = vertices[3 * isect.f2 + 0];
-    p2[1] = vertices[3 * isect.f2 + 1];
-    p2[2] = vertices[3 * isect.f2 + 2];
+    real3 p[4];
+    p[0][0] = vertices[3 * isect.f0 + 0];
+    p[0][1] = vertices[3 * isect.f0 + 1];
+    p[0][2] = vertices[3 * isect.f0 + 2];
+    p[1][0] = vertices[3 * isect.f1 + 0];
+    p[1][1] = vertices[3 * isect.f1 + 1];
+    p[1][2] = vertices[3 * isect.f1 + 2];
+    p[2][0] = vertices[3 * isect.f2 + 0];
+    p[2][1] = vertices[3 * isect.f2 + 1];
+    p[2][2] = vertices[3 * isect.f2 + 2];
+    p[3][0] = vertices[3 * isect.f3 + 0];
+    p[3][1] = vertices[3 * isect.f3 + 1];
+    p[3][2] = vertices[3 * isect.f3 + 2];
 
     // calc shading point.
     isect.position = ray.origin() + isect.t * ray.direction();
 
     // calc geometric normal.
-    vector3 p10 = p1 - p0;
-    vector3 p20 = p2 - p0;
-    vector3 n = cross(p10, p20);
+    real3 p0, p1, p2;
+
+    // @fixme { Validation required! }
+    int face_table[4][3] = {
+      { 0, 1, 3},
+      { 1, 2, 3},
+      { 2, 0, 3},
+      { 0, 1, 2}};
+
+    p0 = p[face_table[isect.subface_id][0]];
+    p1 = p[face_table[isect.subface_id][1]];
+    p2 = p[face_table[isect.subface_id][2]];
+
+    real3 p10 = p1 - p0;
+    real3 p20 = p2 - p0;
+    real3 n = cross(p10, p20);
+    //printf("n = %f, %f, %f\n", n[0], n[1], n[2]);
     n.normalize();
 
     isect.geometric = n;

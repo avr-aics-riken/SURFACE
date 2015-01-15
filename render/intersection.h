@@ -9,7 +9,7 @@
 #ifndef __LSGL_INTERSECTION_H__
 #define __LSGL_INTERSECTION_H__
 
-#include "vector3.h"
+#include "render_common.h"
 
 namespace lsgl {
 namespace render {
@@ -20,13 +20,16 @@ struct Intersection {
   float v; // varycentric coord
   unsigned int prim_id;
 
-  vector3 position;
-  vector3 geometric; // geometric_normal
-  vector3 normal;    // shading normal
+  unsigned int subface_id; // For tetra primitive
+
+  real3 position;
+  real3 geometric;  // geometric_normal
+  real3 normal;     // shading normal
 
   unsigned int f0;
   unsigned int f1;
   unsigned int f2;
+  unsigned int f3;    // for tetra primitive
 
 #ifdef ENABLE_TRAVERSE_PROFILING
   unsigned int numTriangleTests_;
