@@ -1,7 +1,7 @@
 #ifndef __RENDER_MATRIX_H__
 #define __RENDER_MATRIX_H__
 
-#include "vector3.h"
+#include "render_common.h" // real3
 
 namespace lsgl {
 namespace render {
@@ -172,7 +172,7 @@ public:
     dst[2] = tmp[2];
   }
 
-  static void MultV(vector3 &dst, const T m[4][4], const vector3 &v) {
+  static void MultV(real3 &dst, const T m[4][4], const real3 &v) {
     T tmp[3];
     tmp[0] = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2] + m[3][0];
     tmp[1] = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2] + m[3][1];

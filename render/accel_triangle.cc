@@ -187,7 +187,9 @@ IsectD2(double2 &tInOut, double2 &tidInOut, // Use as integer(53bit)
 
 typedef __m128d double2;
 
-//#define FORCEINLINE __attribute__((always_inline))
+#ifndef FORCEINLINE
+#define FORCEINLINE __attribute__((always_inline))
+#endif
 
 #define vseld2(a, b, m) _mm_or_pd(_mm_and_pd((m), (a)), _mm_andnot_pd((m), (b)))
 #define vabsd2(a)                                                              \
@@ -1821,8 +1823,8 @@ inline double vdotd(double3 a, double3 b) {
 }
 
 inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut,
-                          const vector3 &v0, const vector3 &v1,
-                          const vector3 &v2, const real3 &rayOrg,
+                          const real3 &v0, const real3 &v1,
+                          const real3 &v2, const real3 &rayOrg,
                           const real3 &rayDir, bool doubleSided) {
   const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
 
@@ -1874,8 +1876,8 @@ inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut,
 }
 
 inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
-                           const vector3d &v0, const vector3d &v1,
-                           const vector3d &v2, const double3 &rayOrg,
+                           const double3 &v0, const double3 &v1,
+                           const double3 &v2, const double3 &rayOrg,
                            const double3 &rayDir, bool doubleSided) {
   const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
 
@@ -1964,7 +1966,7 @@ static bool FORCEINLINE TestLeafNode(Intersection &isect, // [inout]
       int f1 = mesh->faces[3 * faceIdx + 1];
       int f2 = mesh->faces[3 * faceIdx + 2];
 
-      vector3d v0, v1, v2;
+      double3 v0, v1, v2;
       v0[0] = mesh->dvertices[3 * f0 + 0];
       v0[1] = mesh->dvertices[3 * f0 + 1];
       v0[2] = mesh->dvertices[3 * f0 + 2];
@@ -2127,7 +2129,7 @@ static bool FORCEINLINE TestLeafNode(Intersection &isect, // [inout]
         int f1 = mesh->faces[3 * faceIdx + 1];
         int f2 = mesh->faces[3 * faceIdx + 2];
 
-        vector3 v0, v1, v2;
+        real3 v0, v1, v2;
         v0[0] = mesh->vertices[3 * f0 + 0];
         v0[1] = mesh->vertices[3 * f0 + 1];
         v0[2] = mesh->vertices[3 * f0 + 2];
@@ -2289,7 +2291,7 @@ static bool FORCEINLINE TestLeafNode(Intersection &isect, // [inout]
         int f1 = mesh->faces[3 * faceIdx + 1];
         int f2 = mesh->faces[3 * faceIdx + 2];
 
-        vector3 v0, v1, v2;
+        real3 v0, v1, v2;
         v0[0] = mesh->vertices[3 * f0 + 0];
         v0[1] = mesh->vertices[3 * f0 + 1];
         v0[2] = mesh->vertices[3 * f0 + 2];
@@ -2342,7 +2344,7 @@ static bool FORCEINLINE TestLeafNode(Intersection &isect, // [inout]
       int f1 = mesh->faces[3 * faceIdx + 1];
       int f2 = mesh->faces[3 * faceIdx + 2];
 
-      vector3 v0, v1, v2;
+      real3 v0, v1, v2;
       v0[0] = mesh->vertices[3 * f0 + 0];
       v0[1] = mesh->vertices[3 * f0 + 1];
       v0[2] = mesh->vertices[3 * f0 + 2];
@@ -2382,7 +2384,7 @@ void BuildIntersection(Intersection &isect, const Mesh *mesh, Ray &ray) {
   if (mesh->isDoublePrecisionPos) {
     const double *vertices = mesh->dvertices;
 
-    vector3d p0, p1, p2;
+    double3 p0, p1, p2;
     p0[0] = vertices[3 * isect.f0 + 0];
     p0[1] = vertices[3 * isect.f0 + 1];
     p0[2] = vertices[3 * isect.f0 + 2];
@@ -2397,9 +2399,17 @@ void BuildIntersection(Intersection &isect, const Mesh *mesh, Ray &ray) {
     isect.position = ray.origin() + isect.t * ray.direction();
 
     // calc geometric normal.
-    vector3d p10 = p1 - p0;
-    vector3d p20 = p2 - p0;
-    vector3d n = cross(p10, p20);
+    real3 p10;
+   	p10[0] = p1[0] - p0[0];
+   	p10[1] = p1[1] - p0[1];
+   	p10[2] = p1[2] - p0[2];
+
+    real3 p20;
+   	p20[0] = p2[0] - p0[0];
+   	p20[1] = p2[1] - p0[1];
+   	p20[2] = p2[2] - p0[2];
+
+    real3 n = cross(p10, p20);
     n.normalize();
 
     isect.geometric = n;
@@ -2408,7 +2418,7 @@ void BuildIntersection(Intersection &isect, const Mesh *mesh, Ray &ray) {
   } else {
     const float *vertices = mesh->vertices;
 
-    vector3 p0, p1, p2;
+    real3 p0, p1, p2;
     p0[0] = vertices[3 * isect.f0 + 0];
     p0[1] = vertices[3 * isect.f0 + 1];
     p0[2] = vertices[3 * isect.f0 + 2];
@@ -2423,9 +2433,9 @@ void BuildIntersection(Intersection &isect, const Mesh *mesh, Ray &ray) {
     isect.position = ray.origin() + isect.t * ray.direction();
 
     // calc geometric normal.
-    vector3 p10 = p1 - p0;
-    vector3 p20 = p2 - p0;
-    vector3 n = cross(p10, p20);
+    real3 p10 = p1 - p0;
+    real3 p20 = p2 - p0;
+    real3 n = cross(p10, p20);
     n.normalize();
 
     isect.geometric = n;

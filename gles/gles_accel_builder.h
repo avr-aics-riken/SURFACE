@@ -18,6 +18,7 @@
 #include "../render/accel_triangle.h"
 #include "../render/accel_particle.h"
 #include "../render/accel_line.h"
+#include "../render/accel_tetra.h"
 #include "gles_common.h"
 #include "GLES2/gl2.h"
 
@@ -30,13 +31,15 @@ class AccelBuilder {
 public:
   typedef ParticleAccel ParticleAccelerator;
   typedef LineAccel LineAccelerator;
+  typedef TetraAccel TetraAccelerator;
   typedef BVHAccel MeshAccelerator;
 
   typedef enum {
     PRIMITIVE_INVALID,
     PRIMITIVE_TRIANGLES,
     PRIMITIVE_POINTS,
-    PRIMITIVE_LINES
+    PRIMITIVE_LINES,
+    PRIMITIVE_TETRAHEDRONS
   } PrimitiveType;
 
   struct ArrayBufInfo {
@@ -95,8 +98,13 @@ public:
                                   const VertexAttribute *vertexAttributes,
                                   GLsizei count, GLuint offset,
                                   GLfloat constantWidth);
+  TetraAccelerator *BuildTetraAccel(const Buffer *elembuf, const Buffer *arraybuf,
+                                  bool isDoublePrecisionPos,
+                                  const VertexAttribute *vertexAttributes,
+                                  GLsizei count, GLuint offset);
   static bool AddMeshData(MeshData *md, MeshAccelerator *accel);
   static bool AddParticleData(MeshData *md, ParticleAccelerator *accel);
+  static bool AddTetraData(MeshData *md, TetraAccelerator *accel);
   void Invalidate(const Buffer *buf);
   void EndFrame();
 
@@ -146,6 +154,10 @@ private:
   static void AddLineData(MeshData *md, const Buffer *elembuf,
                           const Buffer *arraybuf, const ArrayBufInfo *abinfo,
                           GLsizei count, GLuint offset, GLfloat constantWidth);
+  static void AddTetraData(MeshData *md, const Buffer *elembuf,
+                          const Buffer *arraybuf, bool isDoublePrecisionPos,
+                          const ArrayBufInfo *abinfo,
+                          GLsizei count, GLuint offset);
   static void DebugDumpMesh(const Mesh *mesh);
 
   unsigned char *Locate(const Buffer *elembuf, const Buffer *arraybuf,

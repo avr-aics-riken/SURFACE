@@ -253,6 +253,78 @@ AccelBuilder::LineAccelerator *AccelBuilder::BuildLineAccel(
   return reinterpret_cast<LineAccelerator *>(ce->meshData.accel);
 }
 
+AccelBuilder::TetraAccelerator *
+AccelBuilder::BuildTetraAccel(const Buffer *elembuf, const Buffer *arraybuf,
+                    bool isDoublePrecisionPos,
+                    const VertexAttribute *vertexAttributes,
+                    GLsizei count, GLuint offset) {
+  // ensure the position vertex attribute is enabled, at minimum
+  const VertexAttribute *attrPos = &vertexAttributes[kVtxAttrPosition];
+  if (attrPos->enabled == false) {
+    return NULL;
+  }
+
+  // initialize array buffer info
+  ArrayBufInfo abinfo = { 0 };
+  abinfo.offsetPosition = (GLubyte *)attrPos->ptr - (GLubyte *)NULL;
+
+  // FIXME: assume non-interleaved XYZ float for position (for now)
+  if ((attrPos->size == 3) && (attrPos->type == GL_FLOAT) &&
+      (attrPos->normalized == GL_FALSE) &&
+      (attrPos->stride == (3 * sizeof(float)))) {
+    // OK
+  } else if ((attrPos->size == 3) && (attrPos->type == GL_DOUBLE) &&
+             (attrPos->normalized == GL_FALSE) &&
+             (attrPos->stride == (3 * sizeof(double)))) {
+    // OK. Double preicsion
+    assert(isDoublePrecisionPos == true);
+  } else {
+    fprintf(stderr, "[LSGL] Unsupported primitive format.\n");
+    return NULL;
+  }
+
+  // first try to locate this mesh in our static cache
+  TetraAccelerator *accel = reinterpret_cast<TetraAccelerator *>(
+      Locate(elembuf, arraybuf, &abinfo, count, offset));
+  if (accel != NULL) {
+    return accel;
+  }
+
+  // allocate a new cache entry and initialize
+  CacheEntry *ce = new CacheEntry;
+  ce->elembuf = elembuf;
+  ce->arraybuf = arraybuf;
+  ce->isDoublePrecisionPos = isDoublePrecisionPos;
+  ce->abinfo = abinfo;
+  ce->count = count;
+  ce->offset = offset;
+  ce->hitCount = 1;
+  ce->builtTime = clock();
+
+  // build the mesh accelerator
+  AddTetraData(&ce->meshData, elembuf, arraybuf, isDoublePrecisionPos, &abinfo,
+              count, offset);
+
+  // if both buffers are marked as static, add this mesh to the static cache
+  // list, otherwise add it to the dynamic list instead
+  if ((elembuf->IsStatic() == true) && (arraybuf->IsStatic() == true)) {
+    staticList_.push_back(ce);
+    ce->dynamic = false;
+  } else {
+    dynamicList_.push_back(ce);
+    ce->dynamic = true;
+  }
+
+  // update used cache size, and add the mesh accelerator to our map
+  cacheSizeUsed_ += ce->meshData.GetByteSize();
+  meshDataMap_[ce->meshData.accel] = ce;
+
+  // print current cache usage info and return a pointer to the accelerator
+  printf("[LSGL] TetraBuilder cache: %dKB used / %dKB free (%.2f%%)\n",
+         GetCacheUsed() / 1024, GetCacheSize() / 1024, GetCachePercent());
+  return reinterpret_cast<AccelBuilder::TetraAccelerator *>(ce->meshData.accel);
+}
+
 bool AccelBuilder::AddMeshData(MeshData *md, MeshAccelerator *accel) {
   // locate the cache entry for this accelerator
   MeshDataMap::const_iterator it =
@@ -609,6 +681,94 @@ void AccelBuilder::AddLineData(MeshData *md, const Buffer *elembuf,
   md->accel = reinterpret_cast<unsigned char *>(accel);
 }
 
+void AccelBuilder::AddTetraData(MeshData *md, const Buffer *elembuf,
+                                   const Buffer *arraybuf,
+                                   bool isDoublePrecisionPos,
+                                   const ArrayBufInfo *abinfo, GLsizei count,
+                                   GLuint offset) {
+  GLuint maxIndex;
+
+  // first free any existing accelerator
+  AccelBuilder::TetraAccelerator *pacc =
+      reinterpret_cast<AccelBuilder::TetraAccelerator *>(md->accel);
+  delete pacc;
+  md->accel = NULL;
+
+  Tetrahedron *tetras =
+      new Tetrahedron(); // @fixme { No delete operaton for this object. }
+
+  if (isDoublePrecisionPos) {
+    // @todo { provide zero-copy version. }
+    AddData(md->indexBuffer, elembuf, count, offset,
+            md->dpositionBuffer.GetCount() / 3, &maxIndex);
+
+    if (arraybuf->IsRetained()) {
+      // zero-copy vesion.
+      assert(abinfo->offsetPosition == 0);
+      tetras->dvertices = reinterpret_cast<const double *>(arraybuf->GetData());
+      tetras->vertices = NULL;
+    } else {
+      AddData(md->dpositionBuffer, arraybuf, (maxIndex + 1) * 3,
+              abinfo->offsetPosition);
+
+      tetras->dvertices = md->dpositionBuffer.GetBase();
+      tetras->vertices = NULL;
+    }
+
+    tetras->isDoublePrecisionPos = true;
+
+  } else {
+    // @todo { provide zero-copy version. }
+    AddData(md->indexBuffer, elembuf, count, offset,
+            md->positionBuffer.GetCount() / 3, &maxIndex);
+
+    if (arraybuf->IsRetained()) {
+      // zero-copy vesion.
+      assert(abinfo->offsetPosition == 0);
+      tetras->vertices = reinterpret_cast<const float *>(arraybuf->GetData());
+      tetras->dvertices = NULL;
+
+    } else {
+      AddData(md->positionBuffer, arraybuf, (maxIndex + 1) * 3,
+              abinfo->offsetPosition);
+      tetras->vertices = md->positionBuffer.GetBase();
+      tetras->dvertices = NULL;
+    }
+
+    tetras->isDoublePrecisionPos = false;
+  }
+
+  tetras->numTetrahedrons = md->indexBuffer.GetCount() / 4;
+  tetras->faces = md->indexBuffer.GetBase();
+
+  // Take a reference
+  md->mesh.nfaces = tetras->numTetrahedrons;
+  md->mesh.faces = tetras->faces;
+
+  md->mesh.nvertices = 0;
+  md->mesh.vertices = NULL;
+
+  md->type = PRIMITIVE_TETRAHEDRONS;
+
+  TetraBuildOptions options;
+  timerutil t;
+  t.start();
+  TetraAccel *accel = new TetraAccel();
+
+  accel->Build(tetras, options);
+  //accel->Build32(tetras, options); 
+
+  t.end();
+
+  double bmin[3], bmax[3];
+  accel->BoundingBox(bmin, bmax);
+  printf("[LSGL] Tetra accel built time = %d msec\n", (int)t.msec());
+  printf("[LSGL]   bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
+  printf("[LSGL]   bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
+
+  md->accel = reinterpret_cast<unsigned char *>(accel);
+}
+
 void AccelBuilder::DebugDumpMesh(const Mesh *mesh) {
   int t;
 
@@ -686,6 +846,11 @@ void AccelBuilder::FreeMesh(CacheEntry *ce) {
   } else if (ce->meshData.type == PRIMITIVE_LINES) {
     AccelBuilder::LineAccelerator *accel =
         reinterpret_cast<AccelBuilder::LineAccelerator *>(ce->meshData.accel);
+    delete accel;
+  } else if (ce->meshData.type == PRIMITIVE_TETRAHEDRONS) {
+    AccelBuilder::TetraAccelerator *accel =
+        reinterpret_cast<AccelBuilder::TetraAccelerator *>(
+            ce->meshData.accel);
     delete accel;
   } else {
     assert(0 && "Unknown error");

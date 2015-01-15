@@ -25,7 +25,7 @@ void Context::glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     return;
   }
 
-  if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES)) {
+  if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES) && (mode != GL_TETRAHEDRONS_EXT)) {
     return SetGLError(GL_INVALID_ENUM);
   }
 
@@ -56,6 +56,14 @@ void Context::glDrawArrays(GLenum mode, GLint first, GLsizei count) {
       indices.push_back(2 * (i + first) + 0);
       indices.push_back(2 * (i + first) + 1);
     }
+  } else if (mode == GL_TETRAHEDRONS_EXT) {
+    //   tetrahedronss
+    for (GLint i = 0; i < count; i++) {
+      indices.push_back(4 * (i + first) + 0);
+      indices.push_back(4 * (i + first) + 1);
+      indices.push_back(4 * (i + first) + 2);
+      indices.push_back(4 * (i + first) + 3);
+    }
   }
 
   // Cerate index buffer.
@@ -85,7 +93,7 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
   }
 
   // assume triangle or point input.
-  if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES)) {
+  if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES) && (mode != GL_TETRAHEDRONS_EXT)) {
     return SetGLError(GL_INVALID_ENUM);
   }
 
@@ -128,6 +136,8 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     primTy = AccelBuilder::PRIMITIVE_POINTS;
   } else if (mode == GL_LINES) {
     primTy = AccelBuilder::PRIMITIVE_LINES;
+  } else if (mode == GL_TETRAHEDRONS_EXT) {
+    primTy = AccelBuilder::PRIMITIVE_TETRAHEDRONS;
   } else {
     assert(0);
   }
@@ -197,6 +207,14 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
         (GLubyte *)indices - (GLubyte *)NULL, state_.lineWidth);
     lineAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(lineAccel);
+  } else if (mode == GL_TETRAHEDRONS_EXT) {
+    AccelBuilder::TetraAccelerator *tetraAccel =
+        meshBuilder_.BuildTetraAccel(elembuf, posbuf, isDoublePrecisionPos,
+                           &state_.vertexAttributes[k].at(0),
+                           count, (GLubyte *)indices - (GLubyte *)NULL);
+    assert(tetraAccel);
+    tetraAccel->BoundingBox(bmin, bmax);
+    accel = reinterpret_cast<unsigned char *>(tetraAccel);
   } else {
     assert(0 && "Unsupported primitive type");
   }

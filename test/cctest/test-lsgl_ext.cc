@@ -430,3 +430,109 @@ TEST(LSGLExtTest, LSGLPointSizeUniform) {
   assert(glGetError() == GL_NO_ERROR);
 
 }
+
+TEST(LSGLExtTest, DrawTetra) {
+
+  Context &ctx = Context::GetCurrentContext();
+
+  int windowWidth = 512;
+  int windowHeight = 512;
+
+  glViewport(0, 0, windowWidth, windowHeight);
+
+  GLuint prog = 0, fragShader = 0;
+  bool ret = CompileShader(prog, fragShader, fragShaderCode);
+  assert(ret);
+
+  glUseProgram(prog);
+
+  // update shader vertex attribute indices
+  GLint attrNormal = glGetAttribLocation(prog, "normal");
+  printf("attrNormal = %d\n", attrNormal);
+  GLint attrPos = glGetAttribLocation(prog, "position");
+  printf("attrPos = %d\n", attrPos);
+  EXPECT_EQ(0, attrPos);
+
+  printf("GenFramebuffer\n");
+  GLuint framebuffer;
+  glGenFramebuffers(1, &framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+  // create color renderbuffer and attach
+  GLuint colorRenderbuffer;
+  glGenRenderbuffers(1, &colorRenderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8_OES, windowWidth, windowHeight);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorRenderbuffer);
+
+  // create depth renderbuffer and attach
+  GLuint depthRenderbuffer;
+  glGenRenderbuffers(1, &depthRenderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32_OES, windowWidth, windowHeight);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+
+
+  glClearColor(1, 1, 1,1 );
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  const float cube[] = {  -1.0, -1.0, -1.0,
+                          -1.0, -1.0,  1.0,
+                          -1.0,  1.0, -1.0,
+                          -1.0,  1.0,  1.0,
+                           1.0, -1.0, -1.0,
+                           1.0, -1.0,  1.0,
+                           1.0,  1.0, -1.0,
+                           1.0,  1.0,  1.0 };
+
+  const GLuint tetra_indices[] = {
+      0, 2, 1, 3,
+      4, 5, 6, 7 };
+
+  // Create Vertex Buffers.
+  GLuint cubevtx, tetraidx;
+  glGenBuffers(1, &cubevtx);
+  glBindBuffer(GL_ARRAY_BUFFER, cubevtx);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
+
+  glGenBuffers(1, &tetraidx);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tetraidx);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(tetra_indices), tetra_indices, GL_STATIC_DRAW);
+
+  float eye[3] = {2.0f, -2.0f, 5.0f}; 
+  float lookat[3] = {0.0f, 0.0f, 0.0f}; 
+  float up[3] = {0.0f, 1.0f, 0.0f}; 
+  ctx.lsglSetCamera(eye, lookat, up, 45.0f);
+
+  // enable subsampling
+  glEnable(GL_SAMPLE_COVERAGE);
+  glSampleCoverage(1.0f, GL_FALSE);
+
+  //GLfloat scalefactor = 1.0f;
+  //glUniform1f(glGetUniformLocation(prog, "scalefactor"), scalefactor);
+
+  GLfloat resolution[2];
+  resolution[0] = (float)windowWidth;
+  resolution[1] = (float)windowHeight;
+  glUniform2fv(glGetUniformLocation(prog, "resolution"), 1, resolution);
+  EXPECT_EQ(GL_NO_ERROR, glGetError());
+
+  // Use vertex buffers.
+  glBindBuffer(GL_ARRAY_BUFFER, cubevtx);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tetraidx);
+  glVertexAttribPointer(attrPos, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+  glVertexAttribPointer(attrNormal, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+  glEnableVertexAttribArray(attrPos);
+  glEnableVertexAttribArray(attrNormal);
+  glDrawElements(GL_TETRAHEDRONS_EXT, sizeof(tetra_indices) / sizeof(GLuint), GL_UNSIGNED_INT, (void*)0); // 0 = use vertex buffer.
+  EXPECT_EQ(GL_NO_ERROR, glGetError());
+
+  glFinish();
+  EXPECT_EQ(GL_NO_ERROR, glGetError());
+
+  glDeleteRenderbuffers(1, &colorRenderbuffer);
+  glDeleteRenderbuffers(1, &depthRenderbuffer);
+  glDeleteFramebuffers(1, &framebuffer);
+  EXPECT_EQ(GL_NO_ERROR, glGetError());
+
+}

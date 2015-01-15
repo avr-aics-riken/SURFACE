@@ -6,8 +6,8 @@
  *
  */
 
+#include "render_common.h"
 #include "prim_mesh.h"
-#include "vector3.h"
 #include <vector>
 
 #ifndef M_PI
@@ -18,10 +18,10 @@ using namespace lsgl::render;
 
 static float radians(float x) { return x * M_PI / 180.0f; }
 
-static inline vector3 select_normal(const vector3 &nv, const vector3 &nt,
+static inline real3 select_normal(const real3 &nv, const real3 &nt,
                                     float limit_cos) {
-  float lv = nv.sqr_length();
-  float lt = nt.sqr_length();
+  float lv = nv.length()*nv.length();
+  float lt = nt.length()*nt.length();
   int n = 0;
   if (lv != 0)
     n |= 1;
@@ -48,31 +48,32 @@ bool Mesh::CalculateNormals(float limit_angle) {
     return true;
   if (nfaces <= 0)
     return true;
-  std::vector<vector3> nv(nvertices);
-  std::vector<vector3> nt(nfaces);
+  std::vector<real3> nv(nvertices);
+  std::vector<real3> nt(nfaces);
   for (size_t i = 0; i < nvertices; i++) {
-    nv[i] = vector3(0, 0, 0);
+    nv[i] = real3(0, 0, 0);
   }
   for (size_t i = 0; i < nfaces; i++) {
     unsigned int i0 = faces[3 * i + 0];
     unsigned int i1 = faces[3 * i + 1];
     unsigned int i2 = faces[3 * i + 2];
-    vector3 p0(vertices + 3 * i0);
-    vector3 p1(vertices + 3 * i1);
-    vector3 p2(vertices + 3 * i2);
-    vector3 e1 = p1 - p0;
-    vector3 e2 = p2 - p0;
-    vector3 n = cross(e1, e2);
+    real3 p0(vertices[3*i0+0], vertices[3*i0+1], vertices[3*i0+2]);
+    real3 p1(vertices[3*i1+0], vertices[3*i1+1], vertices[3*i1+2]);
+    real3 p2(vertices[3*i2+0], vertices[3*i2+1], vertices[3*i2+2]);
+    real3 e1 = p1 - p0;
+    real3 e2 = p2 - p0;
+    real3 n = cross(e1, e2);
 
-    nv[i0] += n;
-    nv[i1] += n;
-    nv[i2] += n;
+    nv[i0] = nv[i0] + n;
+    nv[i1] = nv[i1] + n;
+    nv[i2] = nv[i2] + n;
 
-    nt[i] = normalize(n);
+	real3 nn = n;
+    nt[i] = nn.normalize();
   }
 
   for (size_t i = 0; i < nvertices; i++) {
-    nv[i] = normalize(nv[i]);
+    nv[i].normalize();
   }
 
   /*
@@ -90,23 +91,23 @@ bool Mesh::CalculateNormals(float limit_angle) {
       normals = new float[3 * 3 * nfaces];
     }
     for (size_t i = 0; i < nfaces; i++) {
-      vector3 n = nt[i];
+      real3 n = nt[i];
       unsigned int i0 = faces[3 * i + 0];
       unsigned int i1 = faces[3 * i + 1];
       unsigned int i2 = faces[3 * i + 1];
 
-      vector3 n0 = nv[i0];
-      vector3 n1 = nv[i1];
-      vector3 n2 = nv[i2];
+      real3 n0 = nv[i0];
+      real3 n1 = nv[i1];
+      real3 n2 = nv[i2];
 
-      vector3 o0 = select_normal(n0, n, limit_cos);
-      vector3 o1 = select_normal(n1, n, limit_cos);
-      vector3 o2 = select_normal(n2, n, limit_cos);
+      real3 o0 = select_normal(n0, n, limit_cos);
+      real3 o1 = select_normal(n1, n, limit_cos);
+      real3 o2 = select_normal(n2, n, limit_cos);
 
       /*
-                                vector3 o0 = n;
-                                vector3 o1 = n;
-                                vector3 o2 = n;
+                                real3 o0 = n;
+                                real3 o1 = n;
+                                real3 o2 = n;
                                 */
 
       normals[9 * i + 0] = o0[0];
@@ -128,7 +129,7 @@ bool Mesh::CalculateNormals(float limit_angle) {
     /*
                         for(size_t i=0;i<nvertices;i++){
                                 nv[i] =
-       normalize(vector3(rand(),rand(),rand()));
+       normalize(real3(rand(),rand(),rand()));
                         }
                         */
     for (size_t i = 0; i < nvertices; i++) {

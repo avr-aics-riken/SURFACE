@@ -60,6 +60,7 @@ typedef khronos_ssize_t  GLsizeiptr;
 #define GL_TRIANGLES                      0x0004
 #define GL_TRIANGLE_STRIP                 0x0005
 #define GL_TRIANGLE_FAN                   0x0006
+#define GL_TETRAHEDRONS_EXT               0x0010  // LSGL
 
 /* AlphaFunction (not supported in ES20) */
 /*      GL_NEVER */

@@ -17,7 +17,6 @@
 #endif
 
 #include "texture.h"
-#include "vector3.h"
 
 #ifndef M_PI
 #define M_PI 3.141592

@@ -237,6 +237,12 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
                 renderElement->GetAccel());
         hit = accel->Traverse(bottomIsect, localRay);
       } break;
+      case AccelBuilder::PRIMITIVE_TETRAHEDRONS: {
+        const AccelBuilder::TetraAccelerator *accel =
+            reinterpret_cast<const AccelBuilder::TetraAccelerator *>(
+                renderElement->GetAccel());
+        hit = accel->Traverse(bottomIsect, localRay);
+      } break;
       default:
         fprintf(stderr, "[LSGL] Unknown primitive type.\n");
         assert(0);
@@ -246,15 +252,15 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
       if (hit) {
 
         // First calulcate distance in world coordiante.
-        vector3 localP;
+        real3 localP;
         localP[0] = localRayOrg[0] + bottomIsect.t * localRayDir[0];
         localP[1] = localRayOrg[1] + bottomIsect.t * localRayDir[1];
         localP[2] = localRayOrg[2] + bottomIsect.t * localRayDir[2];
 
-        vector3 worldP;
+        real3 worldP;
         Matrixd::MultV(worldP, renderElement->T_, localP);
 
-        vector3 po = worldP - ray.origin();
+        real3 po = worldP - ray.origin();
 
         float tWorld = (worldP - ray.origin()).length();
 

@@ -300,9 +300,9 @@ void RaytraceEngine::SetCamera(const GLfloat *eye, const GLfloat *target, const 
     delete camera_;
   }
 
-  vector3 veye(eye[0], eye[1], eye[2]);
-  vector3 vtarget(target[0], target[1], target[2]);
-  vector3 vup(up[0], up[1], up[2]);
+  real3 veye(eye[0], eye[1], eye[2]);
+  real3 vtarget(target[0], target[1], target[2]);
+  real3 vup(up[0], up[1], up[2]);
 
   // If fov <= 0, assume camera is orthographic.
   bool ortho = false;
@@ -320,9 +320,9 @@ void RaytraceEngine::SetStereoEnvCamera(const GLfloat *eye, const GLfloat *targe
     delete camera_;
   }
 
-  vector3 veye(eye[0], eye[1], eye[2]);
-  vector3 vtarget(target[0], target[1], target[2]);
-  vector3 vup(up[0], up[1], up[2]);
+  real3 veye(eye[0], eye[1], eye[2]);
+  real3 vtarget(target[0], target[1], target[2]);
+  real3 vup(up[0], up[1], up[2]);
 
   bool ortho = false;
 
@@ -483,7 +483,7 @@ inline void ViewportConversion(int &xw, int &yw, int x, int y, int width,
 }
 
 bool RaytraceEngine::OnData() {
-  vector3 corner, udir, vdir;
+  real3 corner, udir, vdir;
   const int subSamples = (ctx_->state_.sampleCoverage == true)
                              ? ctx_->state_.sampleCoverageValue
                              : 1;
@@ -571,7 +571,7 @@ bool RaytraceEngine::OnData() {
     // printf("corner = %f, %f, %f\n", corner[0], corner[1], corner[2]);
     // printf("udir  = %f, %f, %f\n", udir[0], udir[1], udir[2]);
     // printf("vdir  = %f, %f, %f\n", vdir[0], vdir[1], vdir[2]);
-    vector3 look = cross(udir, vdir);
+    real3 look = cross(udir, vdir);
     look.normalize();
 
     const float invWidth = 1.0f / width;
@@ -694,8 +694,8 @@ bool RaytraceEngine::OnData() {
             float u = (uu + ju) / (float)subSamples;
             float v = (vv + jv) / (float)subSamples;
 
-            vector3 org;
-            vector3 dir;
+            real3 org;
+            real3 dir;
 
 #if 0 // Flip Y
             if (camera_->isOrtho()) {

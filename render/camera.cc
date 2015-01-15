@@ -13,11 +13,11 @@
 
 using namespace lsgl::render;
 
-void Camera::buildFrame(vector3 &corner, vector3 &u, vector3 &v, int imageWidth,
+void Camera::buildFrame(real3 &corner, real3 &u, real3 &v, int imageWidth,
                         int imageHeight) {
   if (isOrtho()) {
 
-    vector3 look = m_lookat - m_eye;
+    real3 look = m_lookat - m_eye;
     u = cross(look, m_up);
     u.normalize();
 
@@ -33,7 +33,9 @@ void Camera::buildFrame(vector3 &corner, vector3 &u, vector3 &v, int imageWidth,
     v[0] /= (float)imageHeight;
     v[1] /= (float)imageHeight;
     v[2] /= (float)imageHeight;
-    corner = -(u * imageWidth + v * imageHeight);
+    corner[0] = -(u[0] * imageWidth + v[0] * imageHeight);
+    corner[1] = -(u[1] * imageWidth + v[1] * imageHeight);
+    corner[2] = -(u[2] * imageWidth + v[2] * imageHeight);
 
     // @fixme { Is this correct calculation for ortho projection? }
     u = 2.0f * u;
@@ -45,7 +47,7 @@ void Camera::buildFrame(vector3 &corner, vector3 &u, vector3 &v, int imageWidth,
         (0.5f * (float)imageHeight / tan(0.5 * (m_fov * M_PI / 180.0)));
 
     // Assume right-handed coordinate.
-    vector3 look = m_lookat - m_eye;
+    real3 look = m_lookat - m_eye;
     u = cross(look, m_up);
     u.normalize();
 
@@ -60,7 +62,7 @@ void Camera::buildFrame(vector3 &corner, vector3 &u, vector3 &v, int imageWidth,
 
 }
 
-void Camera::generateStereoEnvRay(vector3& org, vector3 &dir, float imageU, float imageV,
+void Camera::generateStereoEnvRay(real3& org, real3 &dir, float imageU, float imageV,
                             int imageWidth, int imageHeight) {
 
   const bool isLeft = imageV < (imageHeight / 2);
@@ -74,12 +76,12 @@ void Camera::generateStereoEnvRay(vector3& org, vector3 &dir, float imageU, floa
   float phi = 2.0 * M_PI * (imageU / imageWidth);
 
   // +Y up
-  vector3 dirO;
+  real3 dirO;
   dirO[0] = sinf(theta) * cosf(phi);
   dirO[1] = cosf(theta);
   dirO[2] = sinf(theta) * sinf(phi);
 
-  vector3 parallax;
+  real3 parallax;
   if (isLeft) {
     // positive rotation
     parallax[0] = -dirO[2];
@@ -103,7 +105,7 @@ void Camera::generateStereoEnvRay(vector3& org, vector3 &dir, float imageU, floa
     psi = -psi; // negative rotataion
   }
 
-  vector3 d;
+  real3 d;
   d[0] = dirO[0] * cos(psi) - dirO[2] * sin(psi);
   d[1] = dirO[1];
   d[2] = dirO[0] * sin(psi) + dirO[2] * cos(psi);

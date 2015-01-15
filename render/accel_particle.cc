@@ -130,7 +130,9 @@ inline double2 vdotd2(double2 ax, double2 ay, double2 az, double2 bx,
 
 typedef __m128d double2;
 
-//#define FORCEINLINE __attribute__((always_inline))
+#ifndef FORCEINLINE
+#define FORCEINLINE __attribute__((always_inline))
+#endif
 
 #define vseld2(a, b, m) _mm_or_pd(_mm_and_pd((m), (a)), _mm_andnot_pd((m), (b)))
 #define vabsd2(a)                                                              \
@@ -1591,7 +1593,7 @@ bool ParticleAccel::Build32(const Particles *particles,
     indices_[i] = i;
   }
   t.end();
-  printf("[1:indexing] %d msec\n", (int)t.msec());
+  trace("[1:indexing] %d msec\n", (int)t.msec());
 
   {
     timerutil t;
@@ -1606,10 +1608,10 @@ bool ParticleAccel::Build32(const Particles *particles,
 #endif
 
     t.end();
-    printf("[2:scene bbox calculation] %d msec\n", (int)t.msec());
+    trace("[2:scene bbox calculation] %d msec\n", (int)t.msec());
 
-    printf(" bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
-    printf(" bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
+    trace(" bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
+    trace(" bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
 
     std::vector<uint32_t> codes(n);
     assert(sizeof(real) == sizeof(float));
@@ -1621,7 +1623,7 @@ bool ParticleAccel::Build32(const Particles *particles,
       CalculateMortonCodes30SIMD(&codes.at(0), particles->positions, bmin, bmax,
                                  0, n);
       t.end();
-      printf("[3:morton calculation] %d msec\n", (int)t.msec());
+      trace("[3:morton calculation] %d msec\n", (int)t.msec());
 
       // for (size_t i = 0; i < n; i++) {
       //  printf("code[%d] = %d\n", i, codes[i]);
@@ -1651,14 +1653,14 @@ bool ParticleAccel::Build32(const Particles *particles,
       RadixSort30OMP(&keys.at(0), &keys.at(0) + n);
 #pragma omp barrier
       t.end();
-      printf("[4:radix sort] %d msec\n", (int)t.msec());
+      trace("[4:radix sort] %d msec\n", (int)t.msec());
 
 #else
 
       RadixSortByMortionCode30LSB(&keys.at(0), &keys.at(0) + n);
 
       t.end();
-      printf("[4:sort by Morton codes LSB] %ld msec\n", t.msec());
+      trace("[4:sort by Morton codes LSB] %ld msec\n", t.msec());
 #endif
 
       //// CHECK
@@ -1687,7 +1689,7 @@ bool ParticleAccel::Build32(const Particles *particles,
       }
 
       t.end();
-      printf("[5:Construct binary radix tree: %d msec\n", (int)t.msec());
+      trace("[5:Construct binary radix tree: %d msec\n", (int)t.msec());
     }
 
     {
@@ -1813,7 +1815,7 @@ bool ParticleAccel::Build32(const Particles *particles,
       // 0, n-1, isLeftLeaf, isRightLeaf);
       // printf("node.total = %d", nodes_.size());
       // printf("[%d] -> (%d, %d)\n", 0, leftChildIndex, rightChildIndex);
-      printf("[6:Construct final AABB tree: %d msec\n", (int)t.msec());
+      trace("[6:Construct final AABB tree: %d msec\n", (int)t.msec());
 
       printf("  bmin = %f, %f, %f\n", rootBMin[0], rootBMin[1], rootBMin[2]);
       printf("  bmax = %f, %f, %f\n", rootBMax[0], rootBMax[1], rootBMax[2]);
@@ -1853,7 +1855,7 @@ bool ParticleAccel::Build32(const Particles *particles,
 
   trace("[ParticleAccel] # of nodes = %lu\n", nodes_.size());
 
-  printf("  ParticleAccel : %llu MB\n",
+  trace("  ParticleAccel : %llu MB\n",
          sizeof(ParticleNode) * nodes_.size() / (1024ULL * 1014ULL));
 
   // Store pointer
