@@ -26,7 +26,7 @@ SET(SURFACE_BUILD_K_CROSS_COMPILE OFF CACHE BOOL "Build for K/FX10 target with c
 SET(SURFACE_BUILD_WITH_MPI OFF CACHE BOOL "Build with MPI support?")
 
 # K/FX10 native environment
-IF(CMAKE_SYSTEM_PROCESSOR MATCHES "s64fx")
+IF (CMAKE_SYSTEM_PROCESSOR MATCHES "s64fx")
 
   # Use native Fujitsu compiler
   SET(CMAKE_C_COMPILER fcc)
@@ -39,6 +39,36 @@ IF(CMAKE_SYSTEM_PROCESSOR MATCHES "s64fx")
   # FindOpenMP.cmake does not try -Kopenmp,but the package will try specific
   # flags based on the compier ID.
   SET(OMP_FLAG_Fujitsu "-Kopenmp")
+ENDIF()
+
+# K cross compiling
+IF (SURFACE_BUILD_K_CROSS_COMPILE)
+
+  # Use Fujitsu cross compiler
+  SET(CMAKE_C_COMPILER fccpx)
+  SET(CMAKE_CXX_COMPILER FCCpx)
+
+  # Prevent CMake from adding GNU-specific linker flags (-rdynamic)
+  SET(CMAKE_C_COMPILER_ID "Fujitsu" CACHE STRING "Fujitsu C cross-compiler" FORCE)
+  SET(CMAKE_CXX_COMPILER_ID "Fujitsu" CACHE STRING "Fujitsu C++ cross-compiler" FORCE)
+
+  # gcc compatible flag(-Xg)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xg")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xg")
+
+  # OpenMP flag(-Kopenmp)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Kopenmp")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Kopenmp")
+
+  IF (CMAKE_BUILD_TYPE MATCHES "Release")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Kfast")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Kfast")
+  ENDIF()
+
+  # FindOpenMP.cmake does not try -Kopenmp,but the package will try specific
+  # flags based on the compier ID.
+  SET(OMP_FLAG_Fujitsu "-Kopenmp")
+  
 ENDIF()
 
 # Modules

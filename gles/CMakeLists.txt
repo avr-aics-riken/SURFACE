@@ -31,6 +31,10 @@ IF (SURFACE_WITH_BUILD_MPI)
   ADD_DEFINITIONS(-DLSGL_ENABLE_MPI=1) 
 ENDIF()
 
+# Enable UINT64_C
+# http://stackoverflow.com/questions/986426/what-do-stdc-limit-macros-and-stdc-constant-macros-mean
+ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)
+
 INCLUDE_DIRECTORIES(../render ../include)
 ADD_LIBRARY(LSGLES STATIC ${GLES_SOURCES})
 SET_TARGET_PROPERTIES(LSGLES 
