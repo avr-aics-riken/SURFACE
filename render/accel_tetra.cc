@@ -47,21 +47,6 @@ using namespace lsgl::render;
 
 namespace {
 
-// @todo { multithread }
-tinymt64_t tinymt64;
-
-void init_random()
-{
-  tinymt64.mat1 = 0xfa051f40;
-  tinymt64.mat2 = 0xffd0fff4;
-  tinymt64.tmat = 0x58d02ffeffbfffbcULL;
-  tinymt64_init(&tinymt64, (uint64_t)1234);
-}
-
-float randomreal() {
-  return (float)tinymt64_generate_double(&tinymt64);
-}
-
 inline real3 vcross(real3 a, real3 b) {
   real3 c;
   c[0] = a[1] * b[2] - a[2] * b[1];
