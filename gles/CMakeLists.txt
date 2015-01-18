@@ -15,6 +15,7 @@ SET(GLES_SOURCES
   gles_shader.cc
   gles_special.cc
   gles_texture.cc
+  gles_vertex.cc
 
   ../render/accel_line.cc
   ../render/accel_particle.cc
@@ -36,8 +37,9 @@ ENDIF()
 ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)
 
 INCLUDE_DIRECTORIES(../render ../include)
-ADD_LIBRARY(LSGLES STATIC ${GLES_SOURCES})
-SET_TARGET_PROPERTIES(LSGLES 
+
+ADD_LIBRARY(LSGLES ${GLES_SOURCES})
+SET_TARGET_PROPERTIES(LSGLES
   PROPERTIES VERSION ${SURFACE_VERSION} SOVERSION ${SURFACE_SOVERSION})
 
 # Install 

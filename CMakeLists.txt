@@ -73,4 +73,7 @@ ENDIF()
 
 # Modules
 ADD_SUBDIRECTORY(gles gles)
-#ADD_SUBDIRECTORY(examples examples)
+
+# examples
+ADD_SUBDIRECTORY(examples)
+

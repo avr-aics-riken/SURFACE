@@ -37,6 +37,7 @@ In the K frontend machine,
 
 ### Compile options
 
+* BUILD_SHARED_LIBS On/Off Build shared libs or static libs(default: shared)
 * SURFACE_BUILD_K_CROSS_COMPILE On/Off Set cross compile environment using Fujitsu cross compiler.
 * SURFACE_BUILD_WITH_MPI On/Off Enable MPI.
 * SURFACE_BUILD_WITH_OPENMP On/Off Enable OpenMP.
