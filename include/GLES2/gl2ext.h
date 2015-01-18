@@ -1515,6 +1515,28 @@ typedef void (GL_APIENTRYP PFNGLENDTILINGQCOMPROC) (GLbitfield preserveMask);
 #define GL_ANGLE_program_binary 1
 #endif
 
+//
+// From OpenGL glext.h.
+// 
+#ifndef GL_ARB_sparse_texture
+#define GL_ARB_sparse_texture 1
+#define GL_TEXTURE_SPARSE_ARB             0x91A6
+#define GL_VIRTUAL_PAGE_SIZE_INDEX_ARB    0x91A7
+#define GL_NUM_SPARSE_LEVELS_ARB          0x91AA
+#define GL_NUM_VIRTUAL_PAGE_SIZES_ARB     0x91A8
+#define GL_VIRTUAL_PAGE_SIZE_X_ARB        0x9195
+#define GL_VIRTUAL_PAGE_SIZE_Y_ARB        0x9196
+#define GL_VIRTUAL_PAGE_SIZE_Z_ARB        0x9197
+#define GL_MAX_SPARSE_TEXTURE_SIZE_ARB    0x9198
+#define GL_MAX_SPARSE_3D_TEXTURE_SIZE_ARB 0x9199
+#define GL_MAX_SPARSE_ARRAY_TEXTURE_LAYERS_ARB 0x919A
+#define GL_SPARSE_TEXTURE_FULL_ARRAY_CUBE_MIPMAPS_ARB 0x91A9
+typedef void (GL_APIENTRYP PFNGLTEXPAGECOMMITMENTARBPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean resident);
+#ifdef GL_GLEXT_PROTOTYPES
+GL_APICALL void GL_APIENTRY glTexPageCommitmentARB (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean resident);
+#endif
+#endif /* GL_ARB_sparse_texture */
+
 #ifdef __cplusplus
 }
 #endif
