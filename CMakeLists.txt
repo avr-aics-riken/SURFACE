@@ -29,8 +29,30 @@ SET(SURFACE_BUILD_WITH_MPI OFF CACHE BOOL "Build with MPI support?")
 IF (CMAKE_SYSTEM_PROCESSOR MATCHES "s64fx")
 
   # Use native Fujitsu compiler
-  SET(CMAKE_C_COMPILER fcc)
-  SET(CMAKE_CXX_COMPILER FCC)
+  IF (SURFACE_BUILD_WITH_MPI)
+    SET(CMAKE_C_COMPILER mpifcc)
+    SET(CMAKE_CXX_COMPILER mpiFCC)
+  ELSE()
+    SET(CMAKE_C_COMPILER fcc)
+    SET(CMAKE_CXX_COMPILER FCC)
+  ENDIF()
+
+  # gcc compatible flag(-Xg)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xg")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xg")
+
+  # PIC flag
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+
+  # OpenMP flag(-Kopenmp)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Kopenmp")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Kopenmp")
+
+  IF (CMAKE_BUILD_TYPE MATCHES "Release")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Kfast")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Kfast")
+  ENDIF()
 
   # Prevent CMake from adding GNU-specific linker flags (-rdynamic)
   SET(CMAKE_C_COMPILER_ID "Fujitsu" CACHE STRING "Fujitsu C cross-compiler" FORCE)
@@ -45,8 +67,13 @@ ENDIF()
 IF (SURFACE_BUILD_K_CROSS_COMPILE)
 
   # Use Fujitsu cross compiler
-  SET(CMAKE_C_COMPILER fccpx)
-  SET(CMAKE_CXX_COMPILER FCCpx)
+  IF (SURFACE_BUILD_WITH_MPI)
+    SET(CMAKE_C_COMPILER mpifccpx)
+    SET(CMAKE_CXX_COMPILER mpiFCCpx)
+  ELSE()
+    SET(CMAKE_C_COMPILER fccpx)
+    SET(CMAKE_CXX_COMPILER FCCpx)
+  ENDIF()
 
   # Prevent CMake from adding GNU-specific linker flags (-rdynamic)
   SET(CMAKE_C_COMPILER_ID "Fujitsu" CACHE STRING "Fujitsu C cross-compiler" FORCE)
@@ -55,6 +82,10 @@ IF (SURFACE_BUILD_K_CROSS_COMPILE)
   # gcc compatible flag(-Xg)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xg")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xg")
+
+  # PIC flag
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
   # OpenMP flag(-Kopenmp)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Kopenmp")
