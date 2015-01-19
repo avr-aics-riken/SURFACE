@@ -24,16 +24,15 @@ See `doc/INSTALL.md` for building/installing SURFACE.
 
 In the K frontend machine,
 
-    $ /opt/local/bin/cmake -DCMAKE_INSTALL_PREFIX=<</path/to/install_dir>> -H. -DCMAKE_BUILD_TYPE=Release -Bbuild -DSURFACE_BUILD_K_CROSS_COMPILE=On
+    $ /opt/local/bin/cmake -DCMAKE_INSTALL_PREFIX=dist -H. -DCMAKE_BUILD_TYPE=Release -Bbuild -DSURFACE_BUILD_K_CROSS_COMPILE=On
     $ make -C build
     $ make install
 
 ### MacOSX/Linux 
 
-    $ cmake -DCMAKE_INSTALL_PREFIX=<</path/to/install_dir>> -H. -DCMAKE_BUILD_TYPE=Release -Bbuild
+    $ cmake -DCMAKE_INSTALL_PREFIX=dist -DBUILD_SHARED_LIBS=Off -H. -DCMAKE_BUILD_TYPE=Release -Bbuild
     $ make -C build
     $ make install
-
 
 ### Compile options
 
@@ -49,6 +48,7 @@ In the K frontend machine,
 * [x] Polygon(triangle)
 * [x] Particle(rendered as sphere)
 * [x] Tetrahedron
+  * [ ] Remove rendering artifact
 * [x] Line(rendered as tube)
 * [ ] Curve primitives(ribbon, subdivision surface, etc)
 
