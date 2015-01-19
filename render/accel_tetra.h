@@ -85,6 +85,10 @@ public:
   /// Traverse into BVH along ray and find closest hit point if found
   bool Traverse(Intersection &isect, Ray &ray) const;
 
+  // @todo
+  /// Traverse into BVH along ray and find all hit points
+  //bool TraverseMultiHit(std::vector<Intersection> &isects, Ray &ray) const;
+
   /// Get the bounding box of BVH. Valid after Build().
   void BoundingBox(double bmin[3], double bmax[3]) const;
 
