@@ -1,6 +1,6 @@
-diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/camerainfo.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/camerainfo.ir
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/camerainfo.ir Mesa-9.0.1/src/glsl/builtins/ir/camerainfo.ir
 *** Mesa-9.0.1.org/src/glsl/builtins/ir/camerainfo.ir	1970-01-01 09:00:00.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/camerainfo.ir	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/ir/camerainfo.ir	2015-01-20 18:31:40.592851800 +0900
 ***************
 *** 0 ****
 --- 1,9 ----
@@ -13,9 +13,9 @@ diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/camerainfo.ir Mesa-9.0.1.lsgl/src/
 +      ((return (constant float (0.0)))))
 + 
 + ))
-diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/isectinfo.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/isectinfo.ir
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/isectinfo.ir Mesa-9.0.1/src/glsl/builtins/ir/isectinfo.ir
 *** Mesa-9.0.1.org/src/glsl/builtins/ir/isectinfo.ir	1970-01-01 09:00:00.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/isectinfo.ir	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/ir/isectinfo.ir	2015-01-20 18:31:40.592851800 +0900
 ***************
 *** 0 ****
 --- 1,8 ----
@@ -27,9 +27,40 @@ diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/isectinfo.ir Mesa-9.0.1.lsgl/src/g
 +        (declare (out) vec3 indir))
 +      ((return (constant float (0.0)))))
 + ))
-diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/random.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/random.ir
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/numIntersects.ir Mesa-9.0.1/src/glsl/builtins/ir/numIntersects.ir
+*** Mesa-9.0.1.org/src/glsl/builtins/ir/numIntersects.ir	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/ir/numIntersects.ir	2015-01-20 18:47:15.567851498 +0900
+***************
+*** 0 ****
+--- 1,6 ----
++ ((function numIntersects
++    (signature int
++      (parameters
++        (declare (out) int num_isects))
++      ((return (expression int + (var_ref num_isects) (var_ref num_isects)))))
++ ))
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/queryIntersect.ir Mesa-9.0.1/src/glsl/builtins/ir/queryIntersect.ir
+*** Mesa-9.0.1.org/src/glsl/builtins/ir/queryIntersect.ir	1970-01-01 09:00:00.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/ir/queryIntersect.ir	2015-01-20 18:49:00.704851614 +0900
+***************
+*** 0 ****
+--- 1,13 ----
++ ((function queryIntersect
++    (signature float
++      (parameters
++        (declare (in) int i)
++        (declare (out) vec3 p)
++        (declare (out) vec3 normal)
++        (declare (out) vec3 geom_normal)
++        (declare (out) vec3 tangent)
++        (declare (out) vec3 binormal)
++        (declare (out) vec3 indir)
++        (declare (out) vec2 barycentric_coord))
++      ((return (constant float (0.0)))))
++ ))
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/random.ir Mesa-9.0.1/src/glsl/builtins/ir/random.ir
 *** Mesa-9.0.1.org/src/glsl/builtins/ir/random.ir	1970-01-01 09:00:00.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/random.ir	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/ir/random.ir	2015-01-20 18:31:40.593851800 +0900
 ***************
 *** 0 ****
 --- 1,6 ----
@@ -39,9 +70,9 @@ diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/random.ir Mesa-9.0.1.lsgl/src/glsl
 +        (declare (out) float value))
 +      ((return (constant float (0.0)))))
 + ))
-diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/rayattrib.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/rayattrib.ir
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/rayattrib.ir Mesa-9.0.1/src/glsl/builtins/ir/rayattrib.ir
 *** Mesa-9.0.1.org/src/glsl/builtins/ir/rayattrib.ir	1970-01-01 09:00:00.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/rayattrib.ir	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/ir/rayattrib.ir	2015-01-20 18:31:40.594851800 +0900
 ***************
 *** 0 ****
 --- 1,6 ----
@@ -51,9 +82,9 @@ diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/rayattrib.ir Mesa-9.0.1.lsgl/src/g
 +        (declare (out) float val))
 +      ((return (expression float + (var_ref val) (var_ref val)))))
 + ))
-diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/raydepth.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/raydepth.ir
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/raydepth.ir Mesa-9.0.1/src/glsl/builtins/ir/raydepth.ir
 *** Mesa-9.0.1.org/src/glsl/builtins/ir/raydepth.ir	1970-01-01 09:00:00.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/raydepth.ir	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/ir/raydepth.ir	2015-01-20 18:31:40.594851800 +0900
 ***************
 *** 0 ****
 --- 1,6 ----
@@ -63,9 +94,9 @@ diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/raydepth.ir Mesa-9.0.1.lsgl/src/gl
 +        (declare (out) int depth))
 +      ((return (expression int + (var_ref depth) (var_ref depth)))))
 + ))
-diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/rayoption.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/rayoption.ir
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/rayoption.ir Mesa-9.0.1/src/glsl/builtins/ir/rayoption.ir
 *** Mesa-9.0.1.org/src/glsl/builtins/ir/rayoption.ir	1970-01-01 09:00:00.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/rayoption.ir	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/ir/rayoption.ir	2015-01-20 18:31:40.594851800 +0900
 ***************
 *** 0 ****
 --- 1,7 ----
@@ -76,9 +107,9 @@ diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/rayoption.ir Mesa-9.0.1.lsgl/src/g
 +        (declare (in) int double_sided))
 +      ((return (constant int (0)))))
 + ))
-diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/trace.ir Mesa-9.0.1.lsgl/src/glsl/builtins/ir/trace.ir
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/trace.ir Mesa-9.0.1/src/glsl/builtins/ir/trace.ir
 *** Mesa-9.0.1.org/src/glsl/builtins/ir/trace.ir	1970-01-01 09:00:00.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/builtins/ir/trace.ir	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/ir/trace.ir	2015-01-20 18:31:40.594851800 +0900
 ***************
 *** 0 ****
 --- 1,22 ----
@@ -104,21 +135,21 @@ diff -crN Mesa-9.0.1.org/src/glsl/builtins/ir/trace.ir Mesa-9.0.1.lsgl/src/glsl/
 +        (declare (in) float userattrib))
 +      ((return (constant float (0.0)))))
 + ))
-diff -crN Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_random.glsl Mesa-9.0.1.lsgl/src/glsl/builtins/profiles/LSGL_random.glsl
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_random.glsl Mesa-9.0.1/src/glsl/builtins/profiles/LSGL_random.glsl
 *** Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_random.glsl	1970-01-01 09:00:00.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/builtins/profiles/LSGL_random.glsl	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/profiles/LSGL_random.glsl	2015-01-20 18:31:40.595851800 +0900
 ***************
 *** 0 ****
 --- 1,3 ----
 + #extension GL_LSGL_random : enable
 + 
 + float random(out float value);
-diff -crN Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_trace.glsl Mesa-9.0.1.lsgl/src/glsl/builtins/profiles/LSGL_trace.glsl
+diff -crN Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_trace.glsl Mesa-9.0.1/src/glsl/builtins/profiles/LSGL_trace.glsl
 *** Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_trace.glsl	1970-01-01 09:00:00.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/builtins/profiles/LSGL_trace.glsl	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/builtins/profiles/LSGL_trace.glsl	2015-01-20 18:50:04.618851294 +0900
 ***************
 *** 0 ****
---- 1,9 ----
+--- 1,11 ----
 + #extension GL_LSGL_trace : enable
 + 
 + float trace (vec3 org, vec3 dir);
@@ -127,10 +158,13 @@ diff -crN Mesa-9.0.1.org/src/glsl/builtins/profiles/LSGL_trace.glsl Mesa-9.0.1.l
 + int   raydepth (out int depth);
 + int   rayoption(out int prev_double_sided, int double_sided);
 + float isectinfo (out vec3 p, out vec3 n, out vec3 indir);
++ int   numIntersects (out int num_isects);
++ float queryIntersect (int i, out vec3 p, out vec3 normal, out vec3 geom_normal, out vec3 tangent, out vec3 binormal, out vec3 indir, out vec2 barycentric_coord);
 + float camerainfo (out vec3 eye, out vec3 lookat, out vec3 up);
-diff -crN Mesa-9.0.1.org/src/glsl/glcpp/glcpp-parse.y Mesa-9.0.1.lsgl/src/glsl/glcpp/glcpp-parse.y
+Binary files Mesa-9.0.1.org/src/glsl/builtins/tools/texture_builtins.pyc and Mesa-9.0.1/src/glsl/builtins/tools/texture_builtins.pyc differ
+diff -crN Mesa-9.0.1.org/src/glsl/glcpp/glcpp-parse.y Mesa-9.0.1/src/glsl/glcpp/glcpp-parse.y
 *** Mesa-9.0.1.org/src/glsl/glcpp/glcpp-parse.y	2012-11-10 03:16:31.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/glcpp/glcpp-parse.y	2014-06-04 12:29:57.000000000 +0900
+--- Mesa-9.0.1/src/glsl/glcpp/glcpp-parse.y	2015-01-20 18:31:40.595851800 +0900
 ***************
 *** 1153,1160 ****
   	add_builtin_define(parser, "GL_ARB_draw_buffers", 1);
@@ -162,9 +196,9 @@ diff -crN Mesa-9.0.1.org/src/glsl/glcpp/glcpp-parse.y Mesa-9.0.1.lsgl/src/glsl/g
   	return parser;
   }
   
-diff -crN Mesa-9.0.1.org/src/glsl/glsl_parser_extras.cpp Mesa-9.0.1.lsgl/src/glsl/glsl_parser_extras.cpp
+diff -crN Mesa-9.0.1.org/src/glsl/glsl_parser_extras.cpp Mesa-9.0.1/src/glsl/glsl_parser_extras.cpp
 *** Mesa-9.0.1.org/src/glsl/glsl_parser_extras.cpp	2012-11-10 03:16:31.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/glsl_parser_extras.cpp	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/glsl_parser_extras.cpp	2015-01-20 18:31:40.596851800 +0900
 ***************
 *** 289,294 ****
 --- 289,298 ----
@@ -178,9 +212,9 @@ diff -crN Mesa-9.0.1.org/src/glsl/glsl_parser_extras.cpp Mesa-9.0.1.lsgl/src/gls
   };
   
   #undef EXT
-diff -crN Mesa-9.0.1.org/src/glsl/glsl_parser_extras.h Mesa-9.0.1.lsgl/src/glsl/glsl_parser_extras.h
+diff -crN Mesa-9.0.1.org/src/glsl/glsl_parser_extras.h Mesa-9.0.1/src/glsl/glsl_parser_extras.h
 *** Mesa-9.0.1.org/src/glsl/glsl_parser_extras.h	2012-11-10 03:16:31.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/glsl_parser_extras.h	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/glsl_parser_extras.h	2015-01-20 18:31:40.596851800 +0900
 ***************
 *** 207,212 ****
 --- 207,218 ----
@@ -196,9 +230,9 @@ diff -crN Mesa-9.0.1.org/src/glsl/glsl_parser_extras.h Mesa-9.0.1.lsgl/src/glsl/
      /** Extensions supported by the OpenGL implementation. */
      const struct gl_extensions *extensions;
   
-diff -crN Mesa-9.0.1.org/src/glsl/ir_print_visitor.cpp Mesa-9.0.1.lsgl/src/glsl/ir_print_visitor.cpp
+diff -crN Mesa-9.0.1.org/src/glsl/ir_print_visitor.cpp Mesa-9.0.1/src/glsl/ir_print_visitor.cpp
 *** Mesa-9.0.1.org/src/glsl/ir_print_visitor.cpp	2012-09-01 08:36:09.000000000 +0900
---- Mesa-9.0.1.lsgl/src/glsl/ir_print_visitor.cpp	2014-06-04 12:27:33.000000000 +0900
+--- Mesa-9.0.1/src/glsl/ir_print_visitor.cpp	2015-01-20 18:31:40.596851800 +0900
 ***************
 *** 55,60 ****
 --- 55,61 ----
@@ -209,3 +243,4 @@ diff -crN Mesa-9.0.1.org/src/glsl/ir_print_visitor.cpp Mesa-9.0.1.lsgl/src/glsl/
         }
      }
   
+Binary files Mesa-9.0.1.org/src/glsl/ralloc.os and Mesa-9.0.1/src/glsl/ralloc.os differ
