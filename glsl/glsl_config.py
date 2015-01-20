@@ -1,6 +1,6 @@
 ## Mac
 
-mesa_glsl_compiler_path = "/Users/syoyo/work/lsgl/glsl/bin/macosx64/glsl_compiler"
+mesa_glsl_compiler_path = "/Users/syoyo/work/SURFACE/glsl/bin/macosx64/glsl_compiler"
 #mesa_glsl_compiler_path = "/home/syoyo/work/mesa/src/glsl/glsl_compiler"
 cxx_compiler_path = "clang++"
 additional_compiler_options = ["-O2"]
