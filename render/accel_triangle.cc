@@ -58,7 +58,9 @@ namespace {
 
 typedef __m128d double2;
 
-//#define FORCEINLINE __attribute__((always_inline))
+#ifndef FORCEINLINE
+#define FORCEINLINE __attribute__((always_inline))
+#endif
 
 #define vseld2(a, b, cond) _fjsp_selmov_v2r8((a), (b), (cond))
 #define vabsd2(a) _fjsp_abs_v2r8((a))
@@ -1638,7 +1640,7 @@ bool BVHAccel::Dump(const char *filename) {
 
   unsigned long long numIndices = indices_.size();
 
-  int r = 0;
+  size_t r = 0;
   r = fwrite(&numNodes, sizeof(unsigned long long), 1, fp);
   assert(r == 1);
 

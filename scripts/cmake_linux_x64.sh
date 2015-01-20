@@ -1,0 +1,3 @@
+#!/bin/sh
+
+cmake28 -H. -DCMAKE_INSTALL_PREFIX=dist -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=Release -Bbuild

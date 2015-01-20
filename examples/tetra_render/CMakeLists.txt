@@ -1,0 +1,19 @@
+SET(SRCS
+  main.cc
+  tinymt64.cpp
+  )
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)
+
+ADD_EXECUTABLE(tetra_render ${SRCS})
+
+IF (WIN32)
+TARGET_LINK_LIBRARIES(tetra_render LSGLES)
+ELSE()
+TARGET_LINK_LIBRARIES(tetra_render LSGLES dl)
+ENDIF()
+
+# --
+INSTALL(TARGETS tetra_render DESTINATION bin)
+# --
