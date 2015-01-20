@@ -530,6 +530,20 @@ static inline float __glsl_isectinfo(Fragment* frag, vec3 &p, vec3& n, vec3& dir
     return frag->hitdist;
 }
 
+static inline int __glsl_numIntersects(Fragment* frag, int& n)
+{
+    assert(0); // @todo
+    //depth = frag->raydepth;
+    return 0;
+}
+
+static inline float __glsl_queryIntersect(Fragment* frag, int i, vec3& p, vec3& normal, vec3& geom_normal, vec3& tangent, vec3& binormal, vec3& indir, vec2& barycentric_coord)
+{
+    assert(0); // @todo
+    //depth = frag->raydepth;
+    return 0;
+}
+
 static inline float __glsl_camerainfo(Fragment* frag, vec3 &eye, vec3& lookat, vec3& up)
 {
     eye.v[0] = frag->cameraFrame[0][0];

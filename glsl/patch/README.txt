@@ -1,6 +1,8 @@
 gen_patch.sh
 
-変更前 dir : ~/src/Mesa-9.0.1.org/src/glsl
-変更後 dir : ~/src/Mesa-9.0.1.lsgl/src/glsl
+パッチを生成するスクリプト.
 
-として patch を生成する.
+setup_patched_mesa.sh
+
+パッチの当てられた Mesa source tree を生成するスクリプト.
+src/glsl で scons -u とすると glsl_compiler(or glsl2) が生成される.
