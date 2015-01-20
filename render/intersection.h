@@ -25,6 +25,8 @@ struct Intersection {
   real3 position;
   real3 geometric;  // geometric_normal
   real3 normal;     // shading normal
+  real3 tangent;
+  real3 binormal;
 
   unsigned int f0;
   unsigned int f1;
