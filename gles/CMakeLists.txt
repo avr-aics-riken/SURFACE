@@ -51,8 +51,7 @@ ENDIF()
 # http://stackoverflow.com/questions/986426/what-do-stdc-limit-macros-and-stdc-constant-macros-mean
 ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)
 
-INCLUDE_DIRECTORIES(../render ../include)
-
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/render ${PROJECT_SOURCE_DIR}/include)
 
 ADD_LIBRARY(LSGLES ${GLES_SOURCES})
 STRING(COMPARE NOTEQUAL "${LSGLES_SUFFIX}" "" suffixresult)
