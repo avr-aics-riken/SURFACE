@@ -26,6 +26,7 @@ SET(GLES_SOURCES
   ../render/prim_mesh.cc
   ../render/texture.cc
   ../render/toplevel_bvh.cc
+  ../render/tinymt64.cpp
   )
 
 SET(LSGLES_SUFFIX "")
