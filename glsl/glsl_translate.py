@@ -155,6 +155,8 @@ def IsBuiltinTraceFunction(fname):
       , "rayoption"             # LSGL ext
       , "isectinfo"             # LSGL ext
       , "camerainfo"            # LSGL ext
+      , "numIntersects"         # LSGL ext
+      , "queryIntersect"        # LSGL ext
     ]
 
     if fname in builtins:
@@ -229,6 +231,8 @@ def IsBuiltinFunction(fname):
       , "isectinfo"             # LSGL ext
       , "camerainfo"            # LSGL ext
       , "random"                # LSGL ext
+      , "numIntersects"         # LSGL ext
+      , "queryIntersect"        # LSGL ext
     ]
 
     if fname in builtins:
