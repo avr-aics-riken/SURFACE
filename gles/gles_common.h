@@ -14,6 +14,7 @@
 #include <string>
 
 #include "../include/GLES2/gl2.h"
+#include "../include/GLES2/gl2ext.h"
 #include "../render/prim_mesh.h"
 #include "../render/timerutil.h"
 #include "../render/camera.h"
@@ -223,6 +224,19 @@ private:
   bool retained_;
 };
 
+namespace local {
+
+// Input range must be [0, 1)
+static inline float remap(float x, const float* table, int n)
+{
+	int idx = x * n;
+	idx = std::max(std::min(n-1, idx), 0);
+
+	return table[idx];
+}
+
+}
+
 /// Base class for GLES texture data provider.
 class Texture {
 public:
@@ -245,20 +259,54 @@ public:
     assert(texture_);
     texture_->fetch(rgba, u, v);
   }
+
   inline void Fetch(float *rgba, float u, float v, float r) const {
     assert(texture3D_);
+
+	float uu = u;
+	float vv = v;
+	float rr = r;
+
+	// Apply coordinate remapping.
+	if (doRemap_[0] && remapTable_[0].size() > 0) {
+		uu = local::remap(uu, &remapTable_[0].at(0), (int)remapTable_[0].size());
+	}
+	if (doRemap_[1] && remapTable_[1].size() > 0) {
+		vv = local::remap(vv, &remapTable_[1].at(0), (int)remapTable_[1].size());
+	}
+	if (doRemap_[2] && remapTable_[2].size() > 0) {
+		rr = local::remap(rr, &remapTable_[2].at(0), (int)remapTable_[2].size());
+	}
+
     if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_DOUBLE) {
-      FilterTexture3DDouble(rgba, texture3D_, u, v, r);
+      FilterTexture3DDouble(rgba, texture3D_, uu, vv, rr);
     } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_FLOAT) {
-      FilterTexture3DFloat(rgba, texture3D_, u, v, r);
+      FilterTexture3DFloat(rgba, texture3D_, uu, vv, rr);
     } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) {
-      FilterTexture3DByte(rgba, texture3D_, u, v, r);
+      FilterTexture3DByte(rgba, texture3D_, uu, vv, rr);
     } else {
       assert(0); // && "Unknown 3D texture format");
     }
   }
 
   Texture3D *GetTexture3D() const { return texture3D_; }
+
+  bool RemoveRemapTable(GLenum coord) {
+    if (coord == GL_COORDINATE_X) {
+	  doRemap_[0] = false;
+	  remapTable_[0].clear();
+	} else if (coord == GL_COORDINATE_Y) {
+	  doRemap_[1] = false;
+	  remapTable_[1].clear();
+	} else if (coord == GL_COORDINATE_Z) {
+	  doRemap_[2] = false;
+	  remapTable_[2].clear();
+	} else {
+	  return false;
+	}
+  }
+
+  bool SetRemapTable(GLenum coord, GLsizei size, const GLfloat* coords);
 
 private:
   void Free();
@@ -269,6 +317,8 @@ private:
   GLsizeiptr size_;
   bool retained_;
   int numCompos_;
+  bool doRemap_[3];	// x, y and z
+  std::vector<GLfloat> remapTable_[3];	// x, y and z
 };
 
 /// GLES renderbuffer.

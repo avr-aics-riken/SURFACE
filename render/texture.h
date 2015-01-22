@@ -101,47 +101,6 @@ private:
   Format m_format;
 };
 
-#if 0
-/// 3D volume texture class.
-class Texture3D {
-public:
-  Texture3D(const float *image, int width, int height, int depth,
-            int components) {
-    m_width = width;
-    m_height = height;
-    m_depth = depth;
-    m_image = image;
-    m_components = components;
-  }
-
-  ~Texture3D() {
-    // Texture image is maintained in application, so don't free it here.
-  }
-
-  int width() const { return m_width; }
-
-  int height() const { return m_height; }
-
-  int depth() const { return m_depth; }
-
-  int components() const { return m_components; }
-
-  const float *image() const { return m_image; }
-
-  // Trilinear textel fetch.
-  void fetch(float *rgba, float u, float v, float r) const;
-
-private:
-
-  int m_width;
-  int m_height;
-  int m_depth;
-  int m_components;
-  const float *m_image;
-
-};
-#endif
-
 } // render
 } // lsgl
 

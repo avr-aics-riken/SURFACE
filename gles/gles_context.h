@@ -269,6 +269,8 @@ public:
                              GLsizei width, GLsizei height, GLsizei depth,
                              GLint border, GLenum format, GLenum type,
                              const GLvoid *pixels);
+  /// Add coordinate remap when looking up texture. remap table is given as 1D array.
+  void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, const GLfloat* coords);
 
 private:
   friend class RaytraceEngine;

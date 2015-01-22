@@ -21,11 +21,13 @@ SET(GLES_SOURCES
   ../render/accel_particle.cc
   ../render/accel_tetra.cc
   ../render/accel_triangle.cc
+  ../render/accel_volume.cc
   ../render/camera.cc
   ../render/prefix_tree_util.cc
   ../render/prim_mesh.cc
   ../render/texture.cc
   ../render/toplevel_bvh.cc
+  ../render/tinymt64.cpp
   )
 
 SET(LSGLES_SUFFIX "")

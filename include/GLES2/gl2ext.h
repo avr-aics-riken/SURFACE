@@ -1537,6 +1537,19 @@ GL_APICALL void GL_APIENTRY glTexPageCommitmentARB (GLenum target, GLint level, 
 #endif
 #endif /* GL_ARB_sparse_texture */
 
+// LSGL Ext
+#ifndef GL_LSGL_texture_coordinate_remap
+#define GL_LSGL_texture_coordinate_remap 1
+#define GL_COORDINATE_X                  0x9200
+#define GL_COORDINATE_Y                  0x9201
+#define GL_COORDINATE_Z                  0x9202
+typedef void (GL_APIENTRYP PFNGLTEXCOORDREMAPLSGLPROC) (GLenum target, GLint level, GLenum coordinate, GLsizei size, GLfloat* coords);
+#ifdef GL_GLEXT_PROTOTYPES
+GL_APICALL void GL_APIENTRY glTexCoordRemapLSGL (GLenum target, GLint level, GLenum coordiante, GLsizei size, GLfloat* coords);
+#endif
+
+#endif /* GL_LSGL_coordinate_remap */
+
 #ifdef __cplusplus
 }
 #endif

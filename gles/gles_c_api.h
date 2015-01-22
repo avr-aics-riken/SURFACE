@@ -706,6 +706,13 @@ void lsglTexImage3DPointer(GLenum target, GLint level, GLint internalformat,
       target, level, internalformat, width, height, depth, border, format, type,
       pixels);
 }
+
+// Add coordinate remapping feature for non-uniform volume data
+void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, GLfloat* coords) {
+  Context::GetCurrentContext().lsglTexCoordRemap(
+      target, coord, size, coords);
+}
+
 }
 
 #endif // __LSGL_GLES_C_API_H__

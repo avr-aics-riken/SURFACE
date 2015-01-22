@@ -18,7 +18,7 @@ __declspec(dllimport) void lsglSetCamera(float eye[3], float lookat[3], float up
 #include <string>
 #include <vector>
 
-#include "./SimpleTGA.h"
+#include "../common/SimpleTGA.h"
 //#include "particle_loader.h"
 #include "timerutil.h"
 #include "tinymt64.h"

@@ -354,6 +354,23 @@ void Context::lsglTexImage3DPointer(GLenum target, GLint level,
   tex->Retain3D(pixels, width, height, depth, compos, type);
 }
 
+void Context::lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, const GLfloat* coords)
+{
+  // lookup texture pointer
+  Texture *tex = HandleToTexture(target);
+  if (tex == NULL) {
+    return SetGLError(GL_INVALID_ENUM);
+  }
+
+  if (size == 0) {
+	// Reset remap table
+	tex->RemoveRemapTable(coord);
+  } else {
+	tex->SetRemapTable(coord, size, coords);
+  }
+	
+}
+
 void Context::glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
   TRACE_EVENT("(GLenum target = %d, GLenum pname = %d, GLfloat param = %f\n",
               target, pname, param);

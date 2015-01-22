@@ -1018,7 +1018,11 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
 //
 // Texture(X)
 //
-Texture::Texture() : texture_(NULL), texture3D_(NULL), retained_(false) {}
+Texture::Texture() : texture_(NULL), texture3D_(NULL), retained_(false) {
+  doRemap_[0] = false;
+  doRemap_[1] = false;
+  doRemap_[2] = false;
+}
 
 Texture::~Texture() { Free(); }
 
@@ -1146,6 +1150,28 @@ void Texture::Free() {
   // then free our internal copy of the texture data
   // note: it is also safe to call swap() for retained texture.
   std::vector<GLubyte>().swap(data_);
+}
+
+bool Texture::SetRemapTable(GLenum coord, GLsizei size, const GLfloat *coords) {
+  int idx = -1;
+  if (coord == GL_COORDINATE_X) {
+    idx = 0;
+  } else if (coord == GL_COORDINATE_Y) {
+    idx = 1;
+  } else if (coord == GL_COORDINATE_Z) {
+    idx = 2;
+  } else {
+    // ???
+    return false;
+  }
+
+  remapTable_[idx].resize(size);
+  for (size_t i = 0; i < size; i++) {
+    remapTable_[idx][i] = coords[i];
+  }
+  doRemap_[idx] = true;
+
+  return true;
 }
 
 //
