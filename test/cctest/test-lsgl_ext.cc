@@ -536,3 +536,20 @@ TEST(LSGLExtTest, DrawTetra) {
   EXPECT_EQ(GL_NO_ERROR, glGetError());
 
 }
+
+TEST(LSGLExtTest, CoordRemap) {
+
+  Context &ctx = Context::GetCurrentContext();
+
+  std::vector<float> table(4);
+
+  std::vector<unsigned char> data(4*4*4);
+  GLuint texid;
+  ctx.glGenTextures(1, &texid);
+  ctx.glActiveTexture(GL_TEXTURE0);
+  ctx.glBindTexture(GL_TEXTURE_3D, texid);
+  ctx.lsglTexCoordRemap(GL_TEXTURE_3D, GL_COORDINATE_X, 4, &table.at(0));
+  ctx.lsglTexImage3DPointer(GL_TEXTURE_3D, 0, GL_LUMINANCE, 4, 4, 4, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, &data.at(0));
+  EXPECT_EQ(GL_NO_ERROR, glGetError());
+
+}

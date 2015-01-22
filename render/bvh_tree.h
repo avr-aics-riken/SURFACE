@@ -6,15 +6,15 @@
  *
  */
 
-#ifndef __RENDER_TOPLEVEL_BVH_H__
-#define __RENDER_TOPLEVEL_BVH_H__
+#ifndef __LSGL_RENDER_BVH_TREE_H__
+#define __LSGL_RENDER_BVH_TREE_H__
 
 #include "render_common.h"
 #include "matrix.h"
 
 //
-// Top level BVH is a BVH of bottom level BVH nodes.
-// This class is vital to represent scene graph of input scene primitives.
+// Generic BVH tree class.
+// This class is used for scene graph and sparse volume.
 //
 
 #include <ctime>
@@ -23,7 +23,7 @@
 namespace lsgl {
 namespace render {
 
-struct ToplevelBVHNode {
+struct BVHNode {
 
   // local bbox
   double bmin[3];
@@ -40,7 +40,7 @@ struct ToplevelBVHNode {
   unsigned int nodeID;
 };
 
-struct ToplevelBVHData {
+struct BVHData {
   // local bbox
   double bmin[3];
   double bmax[3];
@@ -48,19 +48,19 @@ struct ToplevelBVHData {
   unsigned int nodeID; ///< Node ID
 };
 
-struct ToplevelBVHNodeIntersection {
+struct BVHNodeIntersection {
   double tMin, tMax;   ///< Enter and exit distance.
   unsigned int nodeID; ///< BVH node id
   unsigned int rayID;
 };
 
-class ToplevelBVHTree {
+class BVHTree {
 public:
-  ToplevelBVHTree() : isBuiltTree(false) {}
-  ~ToplevelBVHTree() {}
+  BVHTree() : isBuiltTree(false) {}
+  ~BVHTree() {}
 
   // Add node to the list.
-  void AddNode(ToplevelBVHData &node) {
+  void AddNode(BVHData &node) {
     m_nodes.push_back(node);
     m_orgnodes.push_back(node);
   }
@@ -69,12 +69,12 @@ public:
   void BuildTree();
 
   // Trace ray into toplevel BVH tree and list up possible intersection list.
-  bool Trace(std::vector<ToplevelBVHNodeIntersection> &isects, double rayorg[3],
+  bool Trace(std::vector<BVHNodeIntersection> &isects, double rayorg[3],
              double raydir[3], double maxdist);
 
-  std::vector<ToplevelBVHNode> &GetNodesTree() { return m_nodesTree; }
+  std::vector<BVHNode> &GetNodesTree() { return m_nodesTree; }
 
-  void SetNodesTree(std::vector<ToplevelBVHNode> &nodesTree) {
+  void SetNodesTree(std::vector<BVHNode> &nodesTree) {
     m_nodesTree = nodesTree;
   }
 
@@ -82,16 +82,16 @@ public:
   void BoundingBox(double bmin[3], double bmax[3]);
 
   // for testing. @fixme { remove. }
-  std::vector<ToplevelBVHData> m_orgnodes;
+  std::vector<BVHData> m_orgnodes;
 
 private:
   void ConstructTree(size_t indexRoot, size_t indexLeft, size_t indexRight);
 
-  // Tree reprenstation of ToplevelBVH
-  std::vector<ToplevelBVHNode> m_nodesTree;
+  // Tree reprenstation of BVH
+  std::vector<BVHNode> m_nodesTree;
 
-  // Input ToplevelBVH list.
-  std::vector<ToplevelBVHData> m_nodes;
+  // Input BVH list.
+  std::vector<BVHData> m_nodes;
 
   bool isBuiltTree;
 };
@@ -99,4 +99,4 @@ private:
 } // namespace render
 } // namespace lsgl
 
-#endif // __RENDER_TOPLEVEL_BVH_H__
+#endif // __LSGL_RENDER_BVH_TREE_H__

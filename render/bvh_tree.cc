@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <stdint.h>
 
-#include "toplevel_bvh.h"
+#include "bvh_tree.h"
 #include "matrix.h"
 
 using namespace lsgl::render;
@@ -32,8 +32,8 @@ typedef struct {
 } Ray;
 
 // Sorter
-static bool sorter_isect(const ToplevelBVHNodeIntersection &a,
-                         const ToplevelBVHNodeIntersection &b) {
+static bool sorter_isect(const BVHNodeIntersection &a,
+                         const BVHNodeIntersection &b) {
   return a.tMin < b.tMin;
 }
 
@@ -70,9 +70,9 @@ static void SetupRay(Ray &ray) {
   }
 }
 
-static inline void SwapNode(std::vector<ToplevelBVHData> &nodes, uint64_t i,
+static inline void SwapNode(std::vector<BVHData> &nodes, uint64_t i,
                             uint64_t j) {
-  ToplevelBVHData tmp;
+  BVHData tmp;
 
   tmp = nodes[i];
   nodes[i] = nodes[j];
@@ -229,8 +229,8 @@ static int TestRayAABB(double &tMinOut, double &tMaxOut, double bmin[3],
 static inline int
 TestRayNodeIntersection(double *tMinOut, // [2]
                         double *tMaxOut, // [2]
-                        std::vector<ToplevelBVHNode> &nodesTree,
-                        ToplevelBVHNode *bboxNode, Ray &ray) {
+                        std::vector<BVHNode> &nodesTree,
+                        BVHNode *bboxNode, Ray &ray) {
   int hitLeft = 0;
   int hitRight = 0;
 
@@ -279,7 +279,7 @@ TestRayNodeIntersection(double *tMinOut, // [2]
   return (hitRight << 1) | hitLeft;
 }
 
-void ToplevelBVHTree::ConstructTree(size_t indexRoot, size_t indexLeft,
+void BVHTree::ConstructTree(size_t indexRoot, size_t indexLeft,
                                     size_t indexRight) {
   int axisList[3][3] = {{0, 1, 2}, {1, 2, 0}, {2, 0, 1}};
   size_t n = indexRight - indexLeft;
@@ -364,7 +364,7 @@ void ToplevelBVHTree::ConstructTree(size_t indexRoot, size_t indexLeft,
 
     // left
     if (nLeft > 0) {
-      ToplevelBVHNode nodeLeft;
+      BVHNode nodeLeft;
 
       double bminLeft[3], bmaxLeft[3];
       CalculateBoundingBox(bminLeft, bmaxLeft, m_nodes, indexLeft, splitIndex);
@@ -398,7 +398,7 @@ void ToplevelBVHTree::ConstructTree(size_t indexRoot, size_t indexLeft,
 
     // right
     if (nRight > 0) {
-      ToplevelBVHNode nodeRight;
+      BVHNode nodeRight;
 
       double bminRight[3], bmaxRight[3];
       CalculateBoundingBox(bminRight, bmaxRight, m_nodes, splitIndex,
@@ -438,7 +438,7 @@ void ToplevelBVHTree::ConstructTree(size_t indexRoot, size_t indexLeft,
 //
 //
 
-void ToplevelBVHTree::BuildTree() {
+void BVHTree::BuildTree() {
   double sceneBMin[3], sceneBMax[3];
 
   if (m_nodes.size() == 0) { // empty tree
@@ -451,7 +451,7 @@ void ToplevelBVHTree::BuildTree() {
     //    sceneBMax[0], sceneBMax[1], sceneBMax[2]);
 
     // create root node.
-    ToplevelBVHNode rootNode;
+    BVHNode rootNode;
     rootNode.bmin[0] = sceneBMin[0];
     rootNode.bmin[1] = sceneBMin[1];
     rootNode.bmin[2] = sceneBMin[2];
@@ -470,7 +470,7 @@ void ToplevelBVHTree::BuildTree() {
   isBuiltTree = true;
 }
 
-bool ToplevelBVHTree::Trace(std::vector<ToplevelBVHNodeIntersection> &isects,
+bool BVHTree::Trace(std::vector<BVHNodeIntersection> &isects,
                             double rayorg[3], double raydir[3],
                             double maxdist) {
   uint64_t nodeStack[TREE_MAXDEPTH];
@@ -492,7 +492,7 @@ bool ToplevelBVHTree::Trace(std::vector<ToplevelBVHNodeIntersection> &isects,
   ray.dir[2] = raydir[2];
   SetupRay(ray);
 
-  ToplevelBVHNode *root = &m_nodesTree[0];
+  BVHNode *root = &m_nodesTree[0];
 
   while (1) {
 
@@ -503,7 +503,7 @@ bool ToplevelBVHTree::Trace(std::vector<ToplevelBVHNodeIntersection> &isects,
       bool hit = TestRayAABB(tMin, tMax, root->bmin, root->bmax, ray);
       if (hit && (tMin <= maxdist)) {
 
-        ToplevelBVHNodeIntersection isect;
+        BVHNodeIntersection isect;
         isect.nodeID = root->nodeID;
         isect.tMin = tMin;
         isect.tMax = tMax;
@@ -555,12 +555,12 @@ bool ToplevelBVHTree::Trace(std::vector<ToplevelBVHNodeIntersection> &isects,
   return (isects.size() > 0);
 }
 
-void ToplevelBVHTree::BoundingBox(double bmin[3], double bmax[3]) {
+void BVHTree::BoundingBox(double bmin[3], double bmax[3]) {
   if (m_nodesTree.size() < 1) {
     bmin[0] = bmin[1] = bmin[2] = 1.0e+30;
     bmax[0] = bmax[1] = bmax[2] = -1.0e+30;
   } else {
-    const ToplevelBVHNode *root = &m_nodesTree[0];
+    const BVHNode *root = &m_nodesTree[0];
     bmin[0] = root->bmin[0];
     bmin[1] = root->bmin[1];
     bmin[2] = root->bmin[2];

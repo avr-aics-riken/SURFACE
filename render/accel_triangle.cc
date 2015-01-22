@@ -859,7 +859,7 @@ int GetSplitAxis(uint32_t key) {
 }
 
 template <typename T>
-void MakeLeaf32(BVHNode &leaf, const T *vertices, const uint32_t *faces,
+void MakeLeaf32(TriangleNode &leaf, const T *vertices, const uint32_t *faces,
                 real3 &bmin, real3 &bmax, const std::vector<IndexKey30> &keys,
                 uint32_t leftIndex, uint32_t rightIndex) {
 
@@ -886,10 +886,10 @@ void MakeLeaf32(BVHNode &leaf, const T *vertices, const uint32_t *faces,
 }
 
 //
-// Build BVH tree from bottom to up manner
+// Build Triangle tree from bottom to up manner
 //
 template <typename T>
-size_t BuildTreeRecursive32(std::vector<BVHNode> &nodes, real3 &bmin,
+size_t BuildTreeRecursive32(std::vector<TriangleNode> &nodes, real3 &bmin,
                             real3 &bmax, const std::vector<IndexKey30> &keys,
                             const std::vector<NodeInfo32> &nodeInfos,
                             const T *vertices, const uint32_t *faces,
@@ -910,7 +910,7 @@ size_t BuildTreeRecursive32(std::vector<BVHNode> &nodes, real3 &bmin,
     //  endIndex++;
     //}
 
-    BVHNode leaf;
+    TriangleNode leaf;
     MakeLeaf32(leaf, vertices, faces, bmin, bmax, keys, leftIndex, endIndex);
 
     size_t offset = nodes.size();
@@ -929,7 +929,7 @@ size_t BuildTreeRecursive32(std::vector<BVHNode> &nodes, real3 &bmin,
   bool isRightLeaf =
       (nodeInfos[rootIndex].rightType == NODE_TYPE_LEAF) ? true : false;
 
-  BVHNode node;
+  TriangleNode node;
   node.axis = GetSplitAxis(keys[rootIndex].code);
   node.flag = 0; // 0 = branch
 
@@ -989,7 +989,7 @@ size_t BuildTreeRecursive32(std::vector<BVHNode> &nodes, real3 &bmin,
 
 #ifdef _OPENMP
 template <typename T>
-size_t BuildTreeRecursive32OMP(std::vector<BVHNode> &nodes, real3 &bmin,
+size_t BuildTreeRecursive32OMP(std::vector<TriangleNode> &nodes, real3 &bmin,
                                real3 &bmax, const std::vector<IndexKey30> &keys,
                                const std::vector<NodeInfo32> &nodeInfos,
                                const T *vertices, const uint32_t *faces,
@@ -1008,7 +1008,7 @@ size_t BuildTreeRecursive32OMP(std::vector<BVHNode> &nodes, real3 &bmin,
 
     uint32_t endIndex = rightIndex + 1;
 
-    BVHNode leaf;
+    TriangleNode leaf;
     MakeLeaf32(leaf, vertices, faces, bmin, bmax, keys, leftIndex, endIndex);
 
     // @{ critical section }
@@ -1031,7 +1031,7 @@ size_t BuildTreeRecursive32OMP(std::vector<BVHNode> &nodes, real3 &bmin,
   bool isRightLeaf =
       (nodeInfos[rootIndex].rightType == NODE_TYPE_LEAF) ? true : false;
 
-  BVHNode node;
+  TriangleNode node;
   node.axis = GetSplitAxis(keys[rootIndex].code);
   node.flag = 0; // 0 = branch
 
@@ -1046,7 +1046,7 @@ size_t BuildTreeRecursive32OMP(std::vector<BVHNode> &nodes, real3 &bmin,
   if (depth > 6) {
 
     // Enough number of tasks was launched. Switch to sequential code.
-    std::vector<BVHNode> sub_nodes;
+    std::vector<TriangleNode> sub_nodes;
 
     leftChildIndex = BuildTreeRecursive32(
         sub_nodes, leftBMin, leftBMax, keys, nodeInfos, vertices, faces,
@@ -1148,7 +1148,7 @@ size_t BuildTreeRecursive32OMP(std::vector<BVHNode> &nodes, real3 &bmin,
 // --
 //
 
-size_t BVHAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
+size_t TriangleAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
                            unsigned int leftIdx, unsigned int rightIdx,
                            int depth) {
   assert(leftIdx <= rightIdx);
@@ -1175,7 +1175,7 @@ size_t BVHAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
   size_t n = rightIdx - leftIdx;
   if ((n < options_.minLeafPrimitives) || (depth >= options_.maxTreeDepth)) {
     // Create leaf node.
-    BVHNode leaf;
+    TriangleNode leaf;
 
     leaf.bmin[0][0] = bmin[0];
     leaf.bmin[0][1] = bmin[1];
@@ -1256,7 +1256,7 @@ size_t BVHAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
     }
   }
 
-  BVHNode node;
+  TriangleNode node;
   node.axis = cutAxis;
   node.flag = 0; // 0 = branch
   nodes_.push_back(node);
@@ -1293,17 +1293,17 @@ size_t BVHAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
   return offset;
 }
 
-bool BVHAccel::Build(const Mesh *mesh, const BVHBuildOptions &options) {
+bool TriangleAccel::Build(const Mesh *mesh, const TriangleBuildOptions &options) {
   options_ = options;
-  stats_ = BVHBuildStatistics();
+  stats_ = TriangleBuildStatistics();
 
   assert(options_.binSize > 1);
 
   assert(mesh);
 
   size_t n = mesh->nfaces;
-  trace("[BVHAccel] Input # of vertices = %lu\n", mesh->nvertices);
-  trace("[BVHAccel] Input # of faces    = %lu\n", mesh->nfaces);
+  trace("[TriangleAccel] Input # of vertices = %lu\n", mesh->nvertices);
+  trace("[TriangleAccel] Input # of faces    = %lu\n", mesh->nfaces);
 
   //
   // 1. Create triangle indices(this will be permutated in BuildTree)
@@ -1322,13 +1322,13 @@ bool BVHAccel::Build(const Mesh *mesh, const BVHBuildOptions &options) {
   // Tree will be null if input triangle count == 0.
   if (!nodes_.empty()) {
     // 0 = root node.
-    trace("[BVHAccel] bound min = (%f, %f, %f)\n", rootBMin[0], rootBMin[1],
+    trace("[TriangleAccel] bound min = (%f, %f, %f)\n", rootBMin[0], rootBMin[1],
           rootBMin[2]);
-    trace("[BVHAccel] bound max = (%f, %f, %f)\n", rootBMax[0], rootBMax[1],
+    trace("[TriangleAccel] bound max = (%f, %f, %f)\n", rootBMax[0], rootBMax[1],
           rootBMax[2]);
   }
 
-  trace("[BVHAccel] # of nodes = %lu\n", nodes_.size());
+  trace("[TriangleAccel] # of nodes = %lu\n", nodes_.size());
 
   // Store root bbox.
   bmin_[0] = rootBMin[0];
@@ -1345,17 +1345,17 @@ bool BVHAccel::Build(const Mesh *mesh, const BVHBuildOptions &options) {
   return true;
 }
 
-bool BVHAccel::Build32(const Mesh *mesh, const BVHBuildOptions &options) {
+bool TriangleAccel::Build32(const Mesh *mesh, const TriangleBuildOptions &options) {
 
   assert(mesh);
 
   if (mesh->nfaces < 1024) {
-    // Use non-optimized BVH builder.
+    // Use non-optimized Triangle builder.
     return Build(mesh, options);
   }
 
   options_ = options;
-  stats_ = BVHBuildStatistics();
+  stats_ = TriangleBuildStatistics();
 
   assert(options_.binSize > 1);
   assert(mesh->isDoublePrecisionPos == false); // @todo
@@ -1364,8 +1364,8 @@ bool BVHAccel::Build32(const Mesh *mesh, const BVHBuildOptions &options) {
 
   size_t n = mesh->nfaces;
 
-  trace("[BVHAccel2] Input # of vertices = %lu\n", mesh->nvertices);
-  trace("[BVHAccel2] Input # of faces    = %lu\n", mesh->nfaces);
+  trace("[TriangleAccel2] Input # of vertices = %lu\n", mesh->nvertices);
+  trace("[TriangleAccel2] Input # of faces    = %lu\n", mesh->nfaces);
 
   real3 rootBMin, rootBMax;
 
@@ -1492,7 +1492,7 @@ bool BVHAccel::Build32(const Mesh *mesh, const BVHBuildOptions &options) {
       nodes_.clear();
 
       // Explicitly create root node and reserve storage here.
-      BVHNode rootNode;
+      TriangleNode rootNode;
       nodes_.push_back(rootNode);
 
       bool isLeftLeaf =
@@ -1605,13 +1605,13 @@ bool BVHAccel::Build32(const Mesh *mesh, const BVHBuildOptions &options) {
   // Tree will be null if input triangle count == 0.
   if (!nodes_.empty()) {
     // 0 = root node.
-    trace("[BVHAccel] bound min = (%f, %f, %f)\n", rootBMin[0], rootBMin[1],
+    trace("[TriangleAccel] bound min = (%f, %f, %f)\n", rootBMin[0], rootBMin[1],
           rootBMin[2]);
-    trace("[BVHAccel] bound max = (%f, %f, %f)\n", rootBMax[0], rootBMax[1],
+    trace("[TriangleAccel] bound max = (%f, %f, %f)\n", rootBMax[0], rootBMax[1],
           rootBMax[2]);
   }
 
-  trace("[BVHAccel] # of nodes = %lu\n", nodes_.size());
+  trace("[TriangleAccel] # of nodes = %lu\n", nodes_.size());
 
   // Store bbox
   bmin_[0] = rootBMin[0];
@@ -1628,10 +1628,10 @@ bool BVHAccel::Build32(const Mesh *mesh, const BVHBuildOptions &options) {
   return true;
 }
 
-bool BVHAccel::Dump(const char *filename) {
+bool TriangleAccel::Dump(const char *filename) {
   FILE *fp = fopen(filename, "wb");
   if (!fp) {
-    fprintf(stderr, "[BVHAccel] Cannot write a file: %s\n", filename);
+    fprintf(stderr, "[TriangleAccel] Cannot write a file: %s\n", filename);
     return false;
   }
 
@@ -1644,7 +1644,7 @@ bool BVHAccel::Dump(const char *filename) {
   r = fwrite(&numNodes, sizeof(unsigned long long), 1, fp);
   assert(r == 1);
 
-  r = fwrite(&nodes_.at(0), sizeof(BVHNode), numNodes, fp);
+  r = fwrite(&nodes_.at(0), sizeof(TriangleNode), numNodes, fp);
   assert(r == numNodes);
 
   r = fwrite(&numIndices, sizeof(unsigned long long), 1, fp);
@@ -1931,7 +1931,7 @@ inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
 }
 
 static bool FORCEINLINE TestLeafNode(Intersection &isect, // [inout]
-                                     const BVHNode &node,
+                                     const TriangleNode &node,
                                      const std::vector<unsigned int> &indices,
                                      const Mesh *mesh, const Ray &ray) {
 
@@ -2447,7 +2447,7 @@ void BuildIntersection(Intersection &isect, const Mesh *mesh, Ray &ray) {
 
 } // namespace
 
-bool BVHAccel::Traverse(Intersection &isect, Ray &ray) const {
+bool TriangleAccel::Traverse(Intersection &isect, Ray &ray) const {
   real hitT = std::numeric_limits<real>::max(); // far = no hit.
 
   int nodeStackIndex = 0;
@@ -2497,7 +2497,7 @@ bool BVHAccel::Traverse(Intersection &isect, Ray &ray) const {
   real minT, maxT;
   while (nodeStackIndex >= 0) {
     int index = nodeStack[nodeStackIndex];
-    const BVHNode &node = nodes_[index];
+    const TriangleNode &node = nodes_[index];
 
     nodeStackIndex--;
 
@@ -2607,7 +2607,7 @@ bool BVHAccel::Traverse(Intersection &isect, Ray &ray) const {
   return false;
 }
 
-void BVHAccel::BoundingBox(double bmin[3], double bmax[3]) const {
+void TriangleAccel::BoundingBox(double bmin[3], double bmax[3]) const {
   if (nodes_.empty()) {
     bmin[0] = std::numeric_limits<double>::max();
     bmin[1] = std::numeric_limits<double>::max();

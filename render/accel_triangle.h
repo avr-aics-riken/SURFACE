@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef __ACCEL_TRIANGLE_H__
-#define __ACCEL_TRIANGLE_H__
+#ifndef __LSGL_RENDER_ACCEL_TRIANGLE_H__
+#define __LSGL_RENDER_ACCEL_TRIANGLE_H__
 
 #include <vector>
 
@@ -18,11 +18,11 @@
 namespace lsgl {
 namespace render {
 
-/// BVH node
-class BVHNode {
+/// Triangle BVH node
+class TriangleNode {
 public:
-  BVHNode() {};
-  ~BVHNode() {};
+  TriangleNode() {};
+  ~TriangleNode() {};
 
   real bmin[2][3];
   real bmax[2][3];
@@ -40,8 +40,8 @@ public:
   unsigned int data[2];
 };
 
-/// BVH build option.
-struct BVHBuildOptions {
+/// Triangle BVH build option.
+struct TriangleBuildOptions {
   bool debugPrint;
   real costTaabb;
   int minLeafPrimitives;
@@ -49,53 +49,53 @@ struct BVHBuildOptions {
   int binSize;
 
   // Set default value: Taabb = 0.2
-  BVHBuildOptions()
+  TriangleBuildOptions()
       : costTaabb(0.2), minLeafPrimitives(16), maxTreeDepth(256), binSize(64) {}
 };
 
-/// BVH build statistics.
-struct BVHBuildStatistics {
+/// Triangle BVH build statistics.
+struct TriangleBuildStatistics {
   int maxTreeDepth;
   int numLeafNodes;
   int numBranchNodes;
 
   // Set default value: Taabb = 0.2
-  BVHBuildStatistics() : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
+  TriangleBuildStatistics() : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
 };
 
-/// BVH acceleration class
-class BVHAccel {
+/// Triangle BVH acceleration class
+class TriangleAccel {
 public:
-  BVHAccel() {};
-  ~BVHAccel() {};
+  TriangleAccel() {};
+  ~TriangleAccel() {};
 
-  /// Build BVH for input mesh.
-  bool Build(const Mesh *mesh, const BVHBuildOptions &options);
+  /// Build Triangle BVH for input mesh.
+  bool Build(const Mesh *mesh, const TriangleBuildOptions &options);
 
-  /// Build BVH for input mesh. Optimied for ~2G input
-  bool Build32(const Mesh *mesh, const BVHBuildOptions &options);
+  /// Build Triangle BVH for input mesh. Optimied for ~2G input
+  bool Build32(const Mesh *mesh, const TriangleBuildOptions &options);
 
-  /// Get statistics of built BVH tree. Valid after Build()
-  BVHBuildStatistics GetStatistics() const { return stats_; }
+  /// Get statistics of built Triangle BVH tree. Valid after Build()
+  TriangleBuildStatistics GetStatistics() const { return stats_; }
 
-  /// Dump built BVH to the file.
+  /// Dump built Triangle BVH to the file.
   bool Dump(const char *filename);
 
-  /// Traverse into BVH along ray and find closest hit point if found
+  /// Traverse into Triangle BVH along ray and find closest hit point if found
   bool Traverse(Intersection &isect, Ray &ray) const;
 
-  /// Get the bounding box of BVH. Valid after Build().
+  /// Get the bounding box of Triangle BVH. Valid after Build().
   void BoundingBox(double bmin[3], double bmax[3]) const;
 
 private:
-  /// Builds BVH tree recursively.
+  /// Builds Triangle BVH tree recursively.
   size_t BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
                    unsigned int leftIdx, unsigned int rightIdx, int depth);
 
-  BVHBuildOptions options_;
-  std::vector<BVHNode> nodes_;
+  TriangleBuildOptions options_;
+  std::vector<TriangleNode> nodes_;
   std::vector<unsigned int> indices_; // max 4G triangles.
-  BVHBuildStatistics stats_;
+  TriangleBuildStatistics stats_;
   const Mesh *mesh_;
 
   double bmin_[3], bmax_[3]; // Bounding box of whole tree
@@ -104,4 +104,4 @@ private:
 } // namespace render
 } // namespace lsgl
 
-#endif // __BVH_ACCEL_H__
+#endif // __LSGL_RENDER_ACCEL_TRIANGLE_H__

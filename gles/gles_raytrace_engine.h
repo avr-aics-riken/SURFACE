@@ -18,7 +18,7 @@
 #include "gles_accel_builder.h"
 #include "gles_render_graph.h"
 
-#include "../render/toplevel_bvh.h"
+#include "../render/bvh_tree.h"
 
 namespace lsgl {
 
