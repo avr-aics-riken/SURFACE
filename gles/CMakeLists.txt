@@ -26,7 +26,7 @@ SET(GLES_SOURCES
   ../render/prefix_tree_util.cc
   ../render/prim_mesh.cc
   ../render/texture.cc
-  ../render/toplevel_bvh.cc
+  ../render/bvh_tree.cc
   ../render/tinymt64.cpp
   )
 

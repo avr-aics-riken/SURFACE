@@ -304,6 +304,8 @@ public:
 	} else {
 	  return false;
 	}
+
+    return true;
   }
 
   bool SetRemapTable(GLenum coord, GLsizei size, const GLfloat* coords);

@@ -113,7 +113,7 @@ render_sources = {
    "../render/prim_mesh.cc",
    "../render/texture.cc",
    "../render/tinymt64.cpp",
-   "../render/toplevel_bvh.cc",
+   "../render/bvh_tree.cc",
    -- "../render/logutil.cc",
    "../render/prefix_tree_util.cc",
    }

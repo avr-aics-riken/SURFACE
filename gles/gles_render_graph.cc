@@ -102,11 +102,11 @@ bool RenderGraph::Build() {
   isBuiltGraph_ = true;
 
   delete tree_;
-  tree_ = new render::ToplevelBVHTree();
+  tree_ = new render::BVHTree();
 
   // Add node info to toplevel bvh tree.
   for (size_t i = 0; i < renderElements_.size(); i++) {
-    render::ToplevelBVHData node;
+    render::BVHData node;
 
     // Use world space bbox.
     node.bmin[0] = renderElements_[i].xbmin_[0];
@@ -140,7 +140,7 @@ bool RenderGraph::Build() {
 }
 
 bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
-  std::vector<render::ToplevelBVHNodeIntersection> isects;
+  std::vector<render::BVHNodeIntersection> isects;
 
   if (!tree_ || !isBuiltGraph_) {
     return false;

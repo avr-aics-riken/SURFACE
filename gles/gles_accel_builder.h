@@ -32,7 +32,7 @@ public:
   typedef ParticleAccel ParticleAccelerator;
   typedef LineAccel LineAccelerator;
   typedef TetraAccel TetraAccelerator;
-  typedef BVHAccel MeshAccelerator;
+  typedef TriangleAccel MeshAccelerator;
 
   typedef enum {
     PRIMITIVE_INVALID,

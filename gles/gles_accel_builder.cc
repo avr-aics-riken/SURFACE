@@ -492,12 +492,12 @@ void AccelBuilder::AddMeshData(MeshData *md, const Buffer *elembuf,
 
   md->type = PRIMITIVE_TRIANGLES;
 
-  BVHBuildOptions options;
+  TriangleBuildOptions options;
   printf("[LSGL] Double precision position = %d\n",
          md->mesh.isDoublePrecisionPos);
   timerutil t;
   t.start();
-  BVHAccel *accel = new BVHAccel();
+  TriangleAccel *accel = new TriangleAccel();
   accel->Build32(&md->mesh, options);
   t.end();
   printf("[LSGL] accel built time = %d msec\n", (int)t.msec());
@@ -836,7 +836,7 @@ void AccelBuilder::FreeMesh(CacheEntry *ce) {
   // Remove accel
   //
   if (ce->meshData.type == PRIMITIVE_TRIANGLES) {
-    BVHAccel *accel = reinterpret_cast<BVHAccel *>(ce->meshData.accel);
+    TriangleAccel *accel = reinterpret_cast<TriangleAccel *>(ce->meshData.accel);
     delete accel;
   } else if (ce->meshData.type == PRIMITIVE_POINTS) {
     AccelBuilder::ParticleAccelerator *accel =

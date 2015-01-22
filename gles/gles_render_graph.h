@@ -13,7 +13,7 @@
 #include <cstring>
 
 #include "gles_accel_builder.h"
-#include "../render/toplevel_bvh.h"
+#include "../render/bvh_tree.h"
 #include "../render/intersection.h"
 
 namespace lsgl {
@@ -138,7 +138,7 @@ public:
 
 private:
   std::vector<RenderElement> renderElements_;
-  render::ToplevelBVHTree *tree_;
+  render::BVHTree *tree_;
 
   bool isBuiltGraph_;
 };

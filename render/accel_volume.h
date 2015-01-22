@@ -14,6 +14,16 @@
 namespace lsgl {
 namespace render {
 
+//
+// We use BVH approach to look up volume data for sparse volume.
+// `BlockNode` represents non-empty region.
+// It is possible that `BlockNode` can be overlap each other, but
+// we generally assume each `BlockNode` does not overlap.
+//
+// @todo { Consider LoD sparse volume(e.g. Octree) }
+// @todo { Consider DDA style ray traversal }
+//
+
 class BlockNode {
 public:
   BlockNode() {};
