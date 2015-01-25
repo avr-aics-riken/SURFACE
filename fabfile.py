@@ -16,11 +16,12 @@
 #   $ sudo ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future pip install fabric
 #
 #
+import os, sys
 from fabric.api import (env, sudo, put, get, cd, local)
 from fabric.utils import puts
 from fabric.colors import green
 from fabric.decorators import task
-from cuisine import (run, dir_ensure, dir_exists)
+from cuisine import (run, dir_ensure, dir_exists, file_exists)
 
 # ----- config --------------------------------------------
 env.hosts = ['localhost', 'k', 'linuxbox']
@@ -33,12 +34,29 @@ host_type = {
   , 'localhost' : 'darwin64'
 }
 
+# absolute path to remote build dir.
 remote_build_dir = {
     'k' : '/path/to/dir'
   , 'linuxbox' : '/tmp'
   , 'localhost' : '/tmp'
 }
+
 # ---------------------------------------------------------
+
+@task
+def prepare():
+    puts(green('Prepare tools'))
+    dir_ensure('deploy')
+
+    if not os.path.exists('./deploy/cmake-2.8.12.2.tar.gz'):
+        local('curl http://www.cmake.org/files/v2.8/cmake-2.8.12.2.tar.gz -o deploy/cmake-2.8.12.2.tar.gz')
+
+    put('deploy/cmake-2.8.12.2.tar.gz', remote_build_dir[env.host_string] + '/cmake-2.8.12.2.tar.gz')
+    with cd(remote_build_dir[env.host_string]):
+        dest_dir = os.path.join(remote_build_dir[env.host_string], 'tools')
+        run('tar -zxvf cmake-2.8.12.2.tar.gz')
+        run('cd cmake-2.8.12.2; ./configure --prefix=' + dest_dir + ' && make && make install')
+
 
 @task
 def setup():
