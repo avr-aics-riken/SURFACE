@@ -2,7 +2,7 @@
 precision mediump float;
 #endif
 
-uniform mat4 mymat;
+uniform mat2 mymat;
 
 void main()
 {

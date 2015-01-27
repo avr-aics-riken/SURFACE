@@ -602,6 +602,36 @@ static inline vec4 __make_vec4(float x, float y, float z, float w) {
     return v;
 }
 
+static inline mat2 __make_mat2(
+  float x0, float y0,
+  float x1, float y1)
+{
+    mat2 m;
+    m.v[0][0] = x0; 
+    m.v[0][1] = y0; 
+    m.v[1][0] = x1; 
+    m.v[1][1] = y1; 
+    return m;
+}
+
+static inline mat3 __make_mat3(
+  float x0, float y0, float z0,
+  float x1, float y1, float z1,
+  float x2, float y2, float z2)
+{
+    mat3 m;
+    m.v[0][0] = x0; 
+    m.v[0][1] = y0; 
+    m.v[0][2] = z0; 
+    m.v[1][0] = x1; 
+    m.v[1][1] = y1; 
+    m.v[1][2] = z1; 
+    m.v[2][0] = x2; 
+    m.v[2][1] = y2; 
+    m.v[2][2] = z2; 
+    return m;
+}
+
 static inline mat4 __make_mat4(
   float x0, float y0, float z0, float w0,
   float x1, float y1, float z1, float w1,
