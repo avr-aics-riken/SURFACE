@@ -272,6 +272,9 @@ public:
   /// Add coordinate remap when looking up texture. remap table is given as 1D array.
   void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, const GLfloat* coords);
 
+  /// Set an resident memory region(works as in glTexPageCommitmentARB) for sparse volume texture.
+  void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
+
 private:
   friend class RaytraceEngine;
 

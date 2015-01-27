@@ -189,6 +189,13 @@ struct State {
   GLint pixelStep;
 };
 
+// Used in sparse texture.
+struct Region {
+  GLint      offset[3];
+  GLsizei    extent[3];  
+  GLboolean  commit;
+};
+
 /// Base class for GLES vertex buffer.
 class Buffer {
 public:
@@ -310,6 +317,10 @@ public:
 
   bool SetRemapTable(GLenum coord, GLsizei size, const GLfloat* coords);
 
+  bool IsSparse() {
+	  return isSparse_;
+  }
+
 private:
   void Free();
 
@@ -321,6 +332,9 @@ private:
   int numCompos_;
   bool doRemap_[3];	// x, y and z
   std::vector<GLfloat> remapTable_[3];	// x, y and z
+
+  bool isSparse_;
+  std::vector<Region> regionList_;	// page table
 };
 
 /// GLES renderbuffer.
