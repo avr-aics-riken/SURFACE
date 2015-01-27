@@ -371,6 +371,64 @@ void Context::lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, const
 	
 }
 
+void Context::lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit) {
+  // lookup texture pointer
+  Texture *tex = HandleToTexture(target);
+  if (tex == NULL) {
+    return SetGLError(GL_INVALID_ENUM);
+  }
+
+  // level must be 0 at this time.
+  if (level != 0) {
+    return SetGLError(GL_INVALID_VALUE);
+  }
+
+  if (xoffset < 0 || yoffset < 0 || zoffset < 0) {
+    return SetGLError(GL_INVALID_VALUE);
+  }
+
+  // @todo { more flexible support of texture page management. }
+	  Region region;
+	  region.offset[0] = xoffset;
+	  region.offset[1] = xoffset;
+	  region.offset[2] = xoffset;
+	  region.extent[0] = width;
+	  region.extent[1] = height;
+	  region.extent[2] = depth;
+	  region.commit    = commit;
+
+  if (commit) {
+
+	  regionList_.push_back(region);
+
+      isSparse_ = true;
+  } else {
+
+	bool found = false;
+	size_t idx = 0;
+
+	for (idx = 0; idx < regionList_.size(); idx++) {
+		if (region.offset[0] == regionList_[i].offset[0] &&
+	     	region.offset[1] == regionList_[i].offset[1] &&
+	     	region.offset[2] == regionList_[i].offset[2] &&
+	     	region.extent[0] == regionList_[i].extent[0] &&
+	     	region.extent[1] == regionList_[i].extent[1] &&
+	     	region.extent[2] == regionList_[i].extent[2] &&
+	     	region.commit == true) {
+			found = true;
+			break;
+		}
+
+		if (found) {
+			// remove page table.
+			regionList_[i].commit = false;
+		}
+	}
+
+  }
+
+}
+
 void Context::glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
   TRACE_EVENT("(GLenum target = %d, GLenum pname = %d, GLfloat param = %f\n",
               target, pname, param);

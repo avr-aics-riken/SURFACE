@@ -713,6 +713,12 @@ void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, GLfloat* coord
       target, coord, size, coords);
 }
 
+// Alias for glTexPageCommitmentARB
+void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit) {
+  Context::GetCurrentContext().lsglTexPageCommitment(
+      target, level, xoffset, yoffset, zoffset, width, height, depth, commit);
+}
+
 }
 
 #endif // __LSGL_GLES_C_API_H__
