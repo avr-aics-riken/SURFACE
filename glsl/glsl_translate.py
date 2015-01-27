@@ -388,6 +388,7 @@ def GetTypeOfSymbol(varname):
 
     elif IsTemporary(varname):
         temp = GetSymbol(varname)
+
         # print varname
         assert temp is not False
         return temp['type']
@@ -1163,37 +1164,59 @@ def EvalExpr(expr):
 
 def eAssign(exp):
     slots = exp[1]
-    assert len(slots) == 1
-
-    # Don't emit code for redundant assignment 
-    #
-    # e.g. assign to `assignment_tmp` in global scope.
-    # (assign  (xyz) (var_ref assignment_tmp)  (var_ref normalize_retval) )
-    if GetScopeLevel() ==1:
-        if len(exp[2]) == 2 and exp[2][0] == 'var_ref' and exp[2][1] == 'assignment_tmp':
-            return "// killed redundant assign to 'assignment_tmp'\n"
-
-    # @fixme. Supports first elem only at this time.
-    slot = slots[0]
-
-    lhs = constructExpr(exp[2])
-    rhs = constructExpr(exp[3])
 
     ss = ""
 
-    # declare temp value if exist
-    ss += lhs.getDeclareString() + "\n"
-    ss += rhs.getDeclareString() + "\n"
+    if len(slots) == 0:
+        # maybe assignment of matrix type.
 
-    # emit intermediate expr
-    ss += lhs.getIntermExprString();
-    ss += rhs.getIntermExprString();
+        lhs = constructExpr(exp[2])
+        rhs = constructExpr(exp[3])
 
-    # body
-    for (i, s) in enumerate(slot):
-        #print "lhs:" + lhs
-        #print "rhs:" + str(rhs)
-        ss += Indent() + lhs.getExprString(s, i) + " = " + rhs.getExprString(s, i) + ";\n"
+
+        if isinstance(lhs, VarRef):
+            (ty, n) = GetTypeOfSymbol(lhs.orgname)
+            if IsMatrixType(ty):
+                for j in range(n):
+                    for i in range(n):
+                        ss += Indent() + "%s.v[%d][%d] = %s.v[%d][%d];\n" % (lhs, j, i, rhs, j, i)
+
+            else:
+                print "Assume matrix type but got: " + ty
+                raise
+        else:
+            print "Unknown assign op"
+            raise
+
+    else:
+
+        # Don't emit code for redundant assignment 
+        #
+        # e.g. assign to `assignment_tmp` in global scope.
+        # (assign  (xyz) (var_ref assignment_tmp)  (var_ref normalize_retval) )
+        if GetScopeLevel() ==1:
+            if len(exp[2]) == 2 and exp[2][0] == 'var_ref' and exp[2][1] == 'assignment_tmp':
+                return "// killed redundant assign to 'assignment_tmp'\n"
+
+        # @fixme. Supports first elem only at this time.
+        slot = slots[0]
+
+        lhs = constructExpr(exp[2])
+        rhs = constructExpr(exp[3])
+
+        # declare temp value if exist
+        ss += lhs.getDeclareString() + "\n"
+        ss += rhs.getDeclareString() + "\n"
+
+        # emit intermediate expr
+        ss += lhs.getIntermExprString();
+        ss += rhs.getIntermExprString();
+
+        # body
+        for (i, s) in enumerate(slot):
+            #print "lhs:" + lhs
+            #print "rhs:" + str(rhs)
+            ss += Indent() + lhs.getExprString(s, i) + " = " + rhs.getExprString(s, i) + ";\n"
 
     # print ss
     return ss
