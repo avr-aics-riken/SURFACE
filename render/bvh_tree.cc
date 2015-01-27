@@ -170,8 +170,46 @@ static void CalcSceneBBox(double *bmin, double *bmax, std::vector<T> &nodes) {
   }
 }
 
-static int TestRayAABB(double &tMinOut, double &tMaxOut, double bmin[3],
-                       double bmax[3], Ray &ray) {
+static inline bool TestPointAABB(const double bmin[3], const double bmax[3],
+                                 const double position[3]) {
+
+  if ((position[0] >= bmin[0]) && (position[0] <= bmax[0]) &&
+      (position[1] >= bmin[1]) && (position[1] <= bmax[1]) &&
+      (position[2] >= bmin[2]) && (position[2] <= bmax[2])) {
+    return true;
+  }
+
+  return false;
+}
+
+static inline int TestPointBVHNode(const std::vector<BVHNode> &nodesTree,
+                                   const BVHNode *node,
+                                   const double position[3]) {
+
+  int hitLeft = 0;
+  int hitRight = 0;
+
+  if (node->child[0] > 0) {
+
+    if (TestPointAABB(nodesTree[node->child[0]].bmin,
+                      nodesTree[node->child[0]].bmax, position)) {
+      hitLeft = 1;
+    }
+  }
+
+  if (node->child[1] > 0) {
+
+    if (TestPointAABB(nodesTree[node->child[1]].bmin,
+                      nodesTree[node->child[1]].bmax, position)) {
+      hitRight = 1;
+    }
+  }
+
+  return (hitRight << 1) | hitLeft;
+}
+
+static int TestRayAABB(double &tMinOut, double &tMaxOut, const double bmin[3],
+                       const double bmax[3], Ray &ray) {
   const double minX = ray.sign[0] ? bmax[0] : bmin[0]; // 1 op
   const double minY = ray.sign[1] ? bmax[1] : bmin[1]; // 1 op
   const double minZ = ray.sign[2] ? bmax[2] : bmin[2]; // 1 op
@@ -226,11 +264,10 @@ static int TestRayAABB(double &tMinOut, double &tMaxOut, double bmin[3],
   return 0;
 }
 
-static inline int
-TestRayNodeIntersection(double *tMinOut, // [2]
-                        double *tMaxOut, // [2]
-                        std::vector<BVHNode> &nodesTree,
-                        BVHNode *bboxNode, Ray &ray) {
+static inline int TestRayNodeIntersection(double *tMinOut, // [2]
+                                          double *tMaxOut, // [2]
+                                          const std::vector<BVHNode> &nodesTree,
+                                          const BVHNode *bboxNode, Ray &ray) {
   int hitLeft = 0;
   int hitRight = 0;
 
@@ -280,7 +317,7 @@ TestRayNodeIntersection(double *tMinOut, // [2]
 }
 
 void BVHTree::ConstructTree(size_t indexRoot, size_t indexLeft,
-                                    size_t indexRight) {
+                            size_t indexRight) {
   int axisList[3][3] = {{0, 1, 2}, {1, 2, 0}, {2, 0, 1}};
   size_t n = indexRight - indexLeft;
 
@@ -446,10 +483,6 @@ void BVHTree::BuildTree() {
 
     CalcSceneBBox(sceneBMin, sceneBMax, m_nodes);
 
-    // printf("scene bbox = (%f, %f, %f) - (%f, %f, %f)\n",
-    //    sceneBMin[0], sceneBMin[1], sceneBMin[2],
-    //    sceneBMax[0], sceneBMax[1], sceneBMax[2]);
-
     // create root node.
     BVHNode rootNode;
     rootNode.bmin[0] = sceneBMin[0];
@@ -463,16 +496,13 @@ void BVHTree::BuildTree() {
     m_nodesTree.push_back(rootNode);
 
     ConstructTree(0, 0, m_nodes.size());
-
-    // printf("nodesTree.size = %d\n", (int)m_nodesTree.size());
   }
 
   isBuiltTree = true;
 }
 
-bool BVHTree::Trace(std::vector<BVHNodeIntersection> &isects,
-                            double rayorg[3], double raydir[3],
-                            double maxdist) {
+bool BVHTree::Trace(std::vector<BVHNodeIntersection> &isects, double rayorg[3],
+                    double raydir[3], double maxdist) const {
   uint64_t nodeStack[TREE_MAXDEPTH];
   uint64_t nodeStackIndex = 0;
 
@@ -492,7 +522,7 @@ bool BVHTree::Trace(std::vector<BVHNodeIntersection> &isects,
   ray.dir[2] = raydir[2];
   SetupRay(ray);
 
-  BVHNode *root = &m_nodesTree[0];
+  const BVHNode *root = &m_nodesTree[0];
 
   while (1) {
 
@@ -555,7 +585,75 @@ bool BVHTree::Trace(std::vector<BVHNodeIntersection> &isects,
   return (isects.size() > 0);
 }
 
-void BVHTree::BoundingBox(double bmin[3], double bmax[3]) {
+bool BVHTree::Locate(std::vector<BVHNodeLocator> &locators,
+                     const double position[3]) const {
+  uint64_t nodeStack[TREE_MAXDEPTH];
+  uint64_t nodeStackIndex = 0;
+
+  assert(isBuiltTree);
+
+  locators.clear();
+
+  if (m_nodes.size() == 0) { // empty tree
+    return false;
+  }
+
+  const BVHNode *root = &m_nodesTree[0];
+
+  while (1) {
+
+    if (root->isLeaf) {
+
+      // Use node's bbox(this is tighter than BBoxNode's bbox)
+      bool hit = TestPointAABB(root->bmin, root->bmax, position);
+      if (hit) {
+
+        BVHNodeLocator locator;
+        locator.nodeID = root->nodeID;
+        locators.push_back(locator);
+      }
+
+      if (nodeStackIndex < 1) {
+        break;
+      }
+      nodeStackIndex--;
+      root = &m_nodesTree[nodeStack[nodeStackIndex]];
+
+    } else {
+
+      int ret = TestPointBVHNode(m_nodesTree, root, position);
+
+      if (ret == 0) { // no hit
+
+        if (nodeStackIndex < 1)
+          break;
+        nodeStackIndex--;
+        root = &m_nodesTree[nodeStack[nodeStackIndex]];
+
+      } else if (ret == 1) { // left
+
+        root = &m_nodesTree[root->child[0]];
+
+      } else if (ret == 2) { // right
+
+        root = &m_nodesTree[root->child[1]];
+
+      } else { // both
+
+        int order = 0;
+
+        nodeStack[nodeStackIndex] = root->child[1 - order];
+        nodeStackIndex++;
+
+        root = &m_nodesTree[root->child[order]];
+      }
+    }
+  }
+
+  return (locators.size() > 0);
+}
+
+void BVHTree::BoundingBox(double bmin[3], double bmax[3]) const {
   if (m_nodesTree.size() < 1) {
     bmin[0] = bmin[1] = bmin[2] = 1.0e+30;
     bmax[0] = bmax[1] = bmax[2] = -1.0e+30;

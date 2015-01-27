@@ -1,2 +1,3 @@
 ADD_SUBDIRECTORY(tetra_render)
 ADD_SUBDIRECTORY(nonuniform_volume_render)
+ADD_SUBDIRECTORY(sparse_volume_render)

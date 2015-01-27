@@ -507,6 +507,13 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
       target, level, xoffset, yoffset, width, height, format, type, pixels);
 }
 
+void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+                     GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type,
+                     const GLvoid *pixels) {
+  Context::GetCurrentContext().glTexSubImage3D(
+      target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+}
+
 void glUniform1f(GLint location, GLfloat x) {
   Context::GetCurrentContext().glUniform1f(location, x);
 }

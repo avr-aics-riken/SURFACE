@@ -211,6 +211,9 @@ public:
   void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
                        GLsizei width, GLsizei height, GLenum format,
                        GLenum type, const GLvoid *pixels);
+  void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                       GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
+                       GLenum format, GLenum type, const GLvoid *pixels);
   void glUniform1f(GLint location, GLfloat x);
   void glUniform1fv(GLint location, GLsizei count, const GLfloat *v);
   void glUniform1i(GLint location, GLint x);

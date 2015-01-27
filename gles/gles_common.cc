@@ -1018,7 +1018,8 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
 //
 // Texture(X)
 //
-Texture::Texture() : texture_(NULL), texture3D_(NULL), retained_(false) {
+Texture::Texture() : texture_(NULL), texture3D_(NULL), retained_(false),
+  sparseVolumeAccel_(NULL), sparseVolume_(NULL) {
   doRemap_[0] = false;
   doRemap_[1] = false;
   doRemap_[2] = false;
@@ -1152,6 +1153,55 @@ void Texture::Free() {
   std::vector<GLubyte>().swap(data_);
 }
 
+void Texture::SubImage3D(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, int compos, GLenum type, const GLvoid* data) {
+
+  if (isSparse_) {
+
+    if (regionList_.size() == 1) {
+      compos_ = compos;
+      type_ = type; 
+    } else {
+      if (compos_ != compos) {
+        return;
+      }
+
+      if (type_ != type) {
+        return;
+      }
+    }
+
+    int dataSize = -1;
+    if (type_ == GL_UNSIGNED_BYTE) {
+      dataSize = 1;
+    } else if (type_ == GL_FLOAT) {
+      dataSize = 4;
+    } else if (type_ == GL_DOUBLE) {
+      dataSize = 8;
+    } else {
+      assert(0 && "Unsupported data type.");
+    }
+
+    // Find region.
+    // @todo { optimize region search. }
+    for (size_t i = 0; i < regionList_.size(); i++) {
+      if ((xoffset == regionList_[i].offset[0]) &&      
+          (yoffset == regionList_[i].offset[1]) &&      
+          (zoffset == regionList_[i].offset[2]) &&      
+          (width   == regionList_[i].extent[0]) &&      
+          (height  == regionList_[i].extent[1]) &&      
+          (depth   == regionList_[i].extent[2])) {
+        // Gotcha!
+        delete [] regionList_[i].data;
+        regionList_[i].data = new unsigned char[width*height*depth*dataSize*compos];
+        memcpy(reinterpret_cast<void *>(regionList_[i].data), data, width*height*depth*dataSize*compos);
+      }
+    }
+  } else {
+    // SubImage3D for non-sparse texture is not supported at this time.
+    return;
+  }
+}
+
 bool Texture::SetRemapTable(GLenum coord, GLsizei size, const GLfloat *coords) {
   int idx = -1;
   if (coord == GL_COORDINATE_X) {
@@ -1172,6 +1222,65 @@ bool Texture::SetRemapTable(GLenum coord, GLsizei size, const GLfloat *coords) {
   doRemap_[idx] = true;
 
   return true;
+}
+
+void Texture::BuildSparseTexture()
+{
+  if (!isSparse_) {
+    return;
+  }
+
+  if (sparseVolumeAccel_) {
+    return;
+  }
+
+  if (sparseVolume_) {
+    return;
+  }
+  
+  sparseVolume_ = new SparseVolume();
+  sparseVolume_->components = 1; // @fixme
+  sparseVolume_->type = 0; // @fixme
+
+  // Find largest extent and make it global dim.
+  int dim[3] = {0, 0, 0};
+  for (size_t i = 0; i < regionList_.size(); i++) {
+    dim[0] = std::max(dim[0], regionList_[i].offset[0] + regionList_[i].extent[0]);
+    dim[1] = std::max(dim[1], regionList_[i].offset[1] + regionList_[i].extent[1]);
+    dim[2] = std::max(dim[2], regionList_[i].offset[2] + regionList_[i].extent[2]);
+  }
+
+  sparseVolume_->globalDim[0] = dim[0];
+  sparseVolume_->globalDim[1] = dim[1];
+  sparseVolume_->globalDim[2] = dim[2];
+
+  printf("[SparseTexture] Global dim: %d x %d x %d\n", dim[0], dim[1], dim[2]);
+
+  for (size_t i = 0; i < regionList_.size(); i++) {
+    VolumeBlock block;
+    block.offset[0] = regionList_[i].offset[0];
+    block.offset[1] = regionList_[i].offset[1];
+    block.offset[2] = regionList_[i].offset[2];
+
+    block.extent[0] = regionList_[i].extent[0];
+    block.extent[1] = regionList_[i].extent[1];
+    block.extent[2] = regionList_[i].extent[2];
+
+    block.id = i;
+    block.data = 0; // @fixme.
+
+    sparseVolume_->blocks.push_back(block);
+  }
+
+  sparseVolumeAccel_ = new SparseVolumeAccel();
+  sparseVolumeAccel_->Build(sparseVolume_);
+
+  double bmin[3], bmax[3];
+  sparseVolumeAccel_->BoundingBox(bmin, bmax);
+  printf("[SparseTexture] bbox: (%f, %f, %f) - (%f, %f, %f)\n",
+    bmin[0], bmin[1], bmin[2],
+    bmax[0], bmax[1], bmax[2]);
+
 }
 
 //
