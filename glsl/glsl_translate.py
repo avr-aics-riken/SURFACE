@@ -1165,6 +1165,14 @@ def eAssign(exp):
     slots = exp[1]
     assert len(slots) == 1
 
+    # Don't emit code for redundant assignment 
+    #
+    # e.g. assign to `assignment_tmp` in global scope.
+    # (assign  (xyz) (var_ref assignment_tmp)  (var_ref normalize_retval) )
+    if GetScopeLevel() ==1:
+        if len(exp[2]) == 2 and exp[2][0] == 'var_ref' and exp[2][1] == 'assignment_tmp':
+            return "// killed redundant assign to 'assignment_tmp'\n"
+
     # @fixme. Supports first elem only at this time.
     slot = slots[0]
 
