@@ -1,0 +1,13 @@
+{
+  "hosts" : ["myhost"],
+  "comment0" : "Add your host config in the 'config' section.",
+  "comment1" : "# type: possible values are 'k_cross', 'linux64' or 'darwin64'",
+  "comment2" : "# remote_build_dir: remote build directory",
+  "comment3" : "# build_cmake: build cmake 2.8 in the remote host(default:false)",
+  "config" : {
+     "myhost" : { "type": "linux64"
+               , "remote_build_dir": "/tmp"
+               , "build_cmake": true
+               }
+  } 
+}
