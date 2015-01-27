@@ -19,6 +19,7 @@
 #include "../render/timerutil.h"
 #include "../render/camera.h"
 #include "../render/texture.h"
+#include "../render/accel_volume.h"
 #include "../glsl/glsl_runtime.h"
 
 #ifdef LSGL_DEBUG_TRACE
@@ -191,9 +192,10 @@ struct State {
 
 // Used in sparse texture.
 struct Region {
-  GLint      offset[3];
-  GLsizei    extent[3];  
-  GLboolean  commit;
+  GLint offset[3];
+  GLsizei extent[3];
+  unsigned char *data;
+  GLboolean commit;
 };
 
 /// Base class for GLES vertex buffer.
@@ -234,14 +236,12 @@ private:
 namespace local {
 
 // Input range must be [0, 1)
-static inline float remap(float x, const float* table, int n)
-{
-	int idx = x * n;
-	idx = std::max(std::min(n-1, idx), 0);
+static inline float remap(float x, const float *table, int n) {
+  int idx = x * n;
+  idx = std::max(std::min(n - 1, idx), 0);
 
-	return table[idx];
+  return table[idx];
 }
-
 }
 
 /// Base class for GLES texture data provider.
@@ -262,37 +262,72 @@ public:
   void Retain3D(const void *data, GLuint width, GLuint height, GLuint depth,
                 int compos, GLenum type);
 
+  void SubImage3D(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
+                  GLsizei height, GLsizei depth, int compos, GLenum type,
+                  const GLvoid *data);
+
   inline void Fetch(float *rgba, float u, float v) const {
     assert(texture_);
     texture_->fetch(rgba, u, v);
   }
 
-  inline void Fetch(float *rgba, float u, float v, float r) const {
-    assert(texture3D_);
+  inline void Fetch(float *rgba, float u, float v, float r) {
 
-	float uu = u;
-	float vv = v;
-	float rr = r;
+    if (isSparse_) {
 
-	// Apply coordinate remapping.
-	if (doRemap_[0] && remapTable_[0].size() > 0) {
-		uu = local::remap(uu, &remapTable_[0].at(0), (int)remapTable_[0].size());
-	}
-	if (doRemap_[1] && remapTable_[1].size() > 0) {
-		vv = local::remap(vv, &remapTable_[1].at(0), (int)remapTable_[1].size());
-	}
-	if (doRemap_[2] && remapTable_[2].size() > 0) {
-		rr = local::remap(rr, &remapTable_[2].at(0), (int)remapTable_[2].size());
-	}
+      // @todo { atomic lock }
+      if (!sparseVolumeAccel_) {
+        // Delayed build of the accel strucure for sparse texture.
+        BuildSparseTexture();
+      }
 
-    if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_DOUBLE) {
-      FilterTexture3DDouble(rgba, texture3D_, uu, vv, rr);
-    } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_FLOAT) {
-      FilterTexture3DFloat(rgba, texture3D_, uu, vv, rr);
-    } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) {
-      FilterTexture3DByte(rgba, texture3D_, uu, vv, rr);
+      if (sparseVolumeAccel_ && sparseVolume_) {  // this shuld be always true.
+        double value[4];
+        double position[3];
+
+        // Asume u, v, r is in [0, 1) range. 
+        position[0] = u * sparseVolume_->globalDim[0];
+        position[1] = v * sparseVolume_->globalDim[1];
+        position[2] = r * sparseVolume_->globalDim[2];
+        std::vector<BVHNodeLocator> locators;
+        sparseVolumeAccel_->Sample(value, position);
+        rgba[0] = value[0];
+        rgba[1] = value[1];
+        rgba[2] = value[2];
+        rgba[3] = value[3];
+      }
+
     } else {
-      assert(0); // && "Unknown 3D texture format");
+
+      assert(texture3D_);
+
+      float uu = u;
+      float vv = v;
+      float rr = r;
+
+      // Apply coordinate remapping.
+      if (doRemap_[0] && remapTable_[0].size() > 0) {
+        uu =
+            local::remap(uu, &remapTable_[0].at(0), (int)remapTable_[0].size());
+      }
+      if (doRemap_[1] && remapTable_[1].size() > 0) {
+        vv =
+            local::remap(vv, &remapTable_[1].at(0), (int)remapTable_[1].size());
+      }
+      if (doRemap_[2] && remapTable_[2].size() > 0) {
+        rr =
+            local::remap(rr, &remapTable_[2].at(0), (int)remapTable_[2].size());
+      }
+
+      if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_DOUBLE) {
+        FilterTexture3DDouble(rgba, texture3D_, uu, vv, rr);
+      } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_FLOAT) {
+        FilterTexture3DFloat(rgba, texture3D_, uu, vv, rr);
+      } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) {
+        FilterTexture3DByte(rgba, texture3D_, uu, vv, rr);
+      } else {
+        assert(0); // && "Unknown 3D texture format");
+      }
     }
   }
 
@@ -300,41 +335,56 @@ public:
 
   bool RemoveRemapTable(GLenum coord) {
     if (coord == GL_COORDINATE_X) {
-	  doRemap_[0] = false;
-	  remapTable_[0].clear();
-	} else if (coord == GL_COORDINATE_Y) {
-	  doRemap_[1] = false;
-	  remapTable_[1].clear();
-	} else if (coord == GL_COORDINATE_Z) {
-	  doRemap_[2] = false;
-	  remapTable_[2].clear();
-	} else {
-	  return false;
-	}
+      doRemap_[0] = false;
+      remapTable_[0].clear();
+    } else if (coord == GL_COORDINATE_Y) {
+      doRemap_[1] = false;
+      remapTable_[1].clear();
+    } else if (coord == GL_COORDINATE_Z) {
+      doRemap_[2] = false;
+      remapTable_[2].clear();
+    } else {
+      return false;
+    }
 
     return true;
   }
 
-  bool SetRemapTable(GLenum coord, GLsizei size, const GLfloat* coords);
+  bool SetRemapTable(GLenum coord, GLsizei size, const GLfloat *coords);
 
-  bool IsSparse() {
-	  return isSparse_;
-  }
+  bool IsSparse() { return isSparse_; }
+
+  // Builds internal state of sparse texture.
+  void BuildSparseTexture();
+
+  void SetSparsity(bool isSparse) { isSparse_ = isSparse; }
+
+  std::vector<Region> &GetRegionList() { return regionList_; }
+
+  int GetCompos() { return compos_; }
+
+  GLenum GetType() { return type_; }
 
 private:
   void Free();
+
+  int compos_;
+  GLenum type_;
 
   render::Texture2D *texture_;
   Texture3D *texture3D_;
   std::vector<GLubyte> data_;
   GLsizeiptr size_;
   bool retained_;
-  int numCompos_;
-  bool doRemap_[3];	// x, y and z
-  std::vector<GLfloat> remapTable_[3];	// x, y and z
+  bool doRemap_[3];                    // x, y and z
+  std::vector<GLfloat> remapTable_[3]; // x, y and z
 
+  // For spase texture.
+  // @todo { Refactor. }
   bool isSparse_;
-  std::vector<Region> regionList_;	// page table
+  std::vector<Region> regionList_;
+  SparseVolumeAccel *sparseVolumeAccel_;
+  SparseVolume *sparseVolume_;
 };
 
 /// GLES renderbuffer.
@@ -604,8 +654,8 @@ public:
             ShadingState &shadingState,
             const std::vector<VertexAttribute> &vertexAttributes,
             const GLfloat fragCoord[4], const real3 &position,
-            const real3 &normal, const real3 &raydir, int raydepth,
-            float px, float py, int doubleSided, float rayattrib,
+            const real3 &normal, const real3 &raydir, int raydepth, float px,
+            float py, int doubleSided, float rayattrib,
             const unsigned char *prev_node, unsigned int prev_prim_id, float u,
             float v, unsigned int f0, unsigned f1, unsigned f2,
             const CameraInfo &cameraInfo, int threadID) const;

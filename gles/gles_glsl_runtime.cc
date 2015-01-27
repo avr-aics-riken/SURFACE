@@ -52,13 +52,13 @@ vec4 texture2D(unsigned long long samplerID, vec2 *coords) {
 }
 
 vec4 texture3D(unsigned long long samplerID, vec3 *coords) {
-  const Context &ctx = Context::GetCurrentContext();
+  Context &ctx = Context::GetCurrentContext();
 
   vec4 col = {0.0f, 0.0f, 0.0f, 0.0f};
 #ifdef LSGL_OPTIMIZE_GLSL
   if (samplerID != 0) {
     float rgba[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    const Texture *tex = reinterpret_cast<const Texture *>(samplerID);
+    Texture *tex = reinterpret_cast<Texture *>(samplerID);
     if (tex) {
       tex->Fetch(rgba, coords->v[0], coords->v[1], coords->v[2]);
       col.v[0] = rgba[0];
@@ -70,7 +70,7 @@ vec4 texture3D(unsigned long long samplerID, vec3 *coords) {
 #else
   if (ctx.resourceManager_.IsValidTexture(samplerID) == true) {
     float rgba[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    const Texture *tex = ctx.resourceManager_.GetTexture(samplerID);
+    Texture *tex = ctx.resourceManager_.GetTexture(samplerID);
     if (tex) {
       tex->Fetch(rgba, coords->v[0], coords->v[1], coords->v[2]);
       col.v[0] = rgba[0];
@@ -100,7 +100,7 @@ float trace(void *fragptr, vec3 *org, vec3 *dir, vec4 *shadecol,
     userval = (*userattrib);
   }
 
-  if (frag->raydepth > 31) {
+  if (frag->raydepth > 60) {
     // too many reflection
     fprintf(stderr, "[LSGL] Too many ray reflections: %d\n", frag->raydepth);
     assert(0);

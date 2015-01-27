@@ -9,17 +9,18 @@ namespace render {
 
 // offset + extent must be less than Volume.size
 typedef struct {
-	int offset[3];
-	int extent[3];
-	int id;
+  int offset[3];
+  int extent[3];
+  int id;
+  const float *data; // Pointer to actual volume data(voxel data)
 } VolumeBlock;
 
 typedef struct {
   std::vector<VolumeBlock> blocks;
-  int size[3];
-  int components;
-  int type;
-  unsigned char* data;	// Opaque pointer representation of volume data.
+  int globalDim[3]; // global dim.
+  int components;   // # of components in each voxel. Assume all volume blocks
+                    // have same # of components.
+  int type;         // Voxel type(GL_FLOAT, GL_UNSIGNED_BYTE, ...)
 } SparseVolume;
 
 // NonUniformVolume.spacing.size() must be equal to NonUniformVolume.size.
@@ -30,7 +31,7 @@ typedef struct {
   int size[3];
   int components;
   int type;
-  unsigned char* data;	// Opaque pointer representation of volume data.
+  unsigned char *data; // Opaque pointer representation of volume data.
 } NonUniformVolume;
 
 } // namespace render

@@ -217,7 +217,8 @@ void Context::glTexImage3D(GLenum target, GLint level, GLint internalformat,
   }
 
   // only 1, 3 or 4 component format are supported at this time.
-  if ((internalformat == GL_LUMINANCE) || (internalformat == GL_RGB) || (internalformat == GL_RGBA)) {
+  if ((internalformat == GL_LUMINANCE) || (internalformat == GL_RGB) ||
+      (internalformat == GL_RGBA)) {
     // OK
   } else {
     fprintf(stderr, "[LSGL] Unsupported internalformat for 3D texture.\n");
@@ -299,7 +300,8 @@ void Context::lsglTexImage3DPointer(GLenum target, GLint level,
   }
 
   // only 1, 3 or 4 component format are supported at this time.
-  if ((internalformat == GL_LUMINANCE) || (internalformat == GL_RGB) || (internalformat == GL_RGBA)) {
+  if ((internalformat == GL_LUMINANCE) || (internalformat == GL_RGB) ||
+      (internalformat == GL_RGBA)) {
     // OK
   } else {
     fprintf(stderr, "[LSGL] Unsupported internalformat for 3D texture.\n");
@@ -354,8 +356,8 @@ void Context::lsglTexImage3DPointer(GLenum target, GLint level,
   tex->Retain3D(pixels, width, height, depth, compos, type);
 }
 
-void Context::lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, const GLfloat* coords)
-{
+void Context::lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size,
+                                const GLfloat *coords) {
   // lookup texture pointer
   Texture *tex = HandleToTexture(target);
   if (tex == NULL) {
@@ -363,15 +365,17 @@ void Context::lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, const
   }
 
   if (size == 0) {
-	// Reset remap table
-	tex->RemoveRemapTable(coord);
+    // Reset remap table
+    tex->RemoveRemapTable(coord);
   } else {
-	tex->SetRemapTable(coord, size, coords);
+    tex->SetRemapTable(coord, size, coords);
   }
-	
 }
 
-void Context::lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit) {
+void Context::lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset,
+                                    GLint yoffset, GLint zoffset, GLsizei width,
+                                    GLsizei height, GLsizei depth,
+                                    GLboolean commit) {
   // lookup texture pointer
   Texture *tex = HandleToTexture(target);
   if (tex == NULL) {
@@ -388,45 +392,44 @@ void Context::lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset, G
   }
 
   // @todo { more flexible support of texture page management. }
-	  Region region;
-	  region.offset[0] = xoffset;
-	  region.offset[1] = xoffset;
-	  region.offset[2] = xoffset;
-	  region.extent[0] = width;
-	  region.extent[1] = height;
-	  region.extent[2] = depth;
-	  region.commit    = commit;
+  Region region;
+  region.offset[0] = xoffset;
+  region.offset[1] = yoffset;
+  region.offset[2] = zoffset;
+  region.extent[0] = width;
+  region.extent[1] = height;
+  region.extent[2] = depth;
+  region.data = NULL;
+  region.commit = commit;
 
   if (commit) {
 
-	  regionList_.push_back(region);
+    tex->GetRegionList().push_back(region);
+    tex->SetSparsity(true);
 
-      isSparse_ = true;
   } else {
 
-	bool found = false;
-	size_t idx = 0;
+    bool found = false;
+    size_t idx = 0;
 
-	for (idx = 0; idx < regionList_.size(); idx++) {
-		if (region.offset[0] == regionList_[i].offset[0] &&
-	     	region.offset[1] == regionList_[i].offset[1] &&
-	     	region.offset[2] == regionList_[i].offset[2] &&
-	     	region.extent[0] == regionList_[i].extent[0] &&
-	     	region.extent[1] == regionList_[i].extent[1] &&
-	     	region.extent[2] == regionList_[i].extent[2] &&
-	     	region.commit == true) {
-			found = true;
-			break;
-		}
+    for (idx = 0; idx < tex->GetRegionList().size(); idx++) {
+      if (region.offset[0] == tex->GetRegionList()[idx].offset[0] &&
+          region.offset[1] == tex->GetRegionList()[idx].offset[1] &&
+          region.offset[2] == tex->GetRegionList()[idx].offset[2] &&
+          region.extent[0] == tex->GetRegionList()[idx].extent[0] &&
+          region.extent[1] == tex->GetRegionList()[idx].extent[1] &&
+          region.extent[2] == tex->GetRegionList()[idx].extent[2] &&
+          region.commit == true) {
+        found = true;
+        break;
+      }
 
-		if (found) {
-			// remove page table.
-			regionList_[i].commit = false;
-		}
-	}
-
+      if (found) {
+        // remove page table.
+        tex->GetRegionList()[idx].commit = false;
+      }
+    }
   }
-
 }
 
 void Context::glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
@@ -495,6 +498,65 @@ void Context::glTexSubImage2D(GLenum target, GLint level, GLint xoffset,
               pixels);
 
   assert(0 && "glTexSubImage2D is not supported yet");
+}
+
+void Context::glTexSubImage3D(GLenum target, GLint level, GLint xoffset,
+                              GLint yoffset, GLint zoffset, GLsizei width,
+                              GLsizei height, GLsizei depth, GLenum format,
+                              GLenum type, const GLvoid *pixels) {
+  TRACE_EVENT("(GLenum target = %d, GLint level = %d, GLint xoffiset = %d, "
+              "GLint yoffset = %d, GLint zoffset= %d, GLsizei width = %d, "
+              "GLsizei height = %d, GLsizei depth = %d, "
+              "GLenum format = %d, GLenum type = %d, const GLvoid* pixels= %p)",
+              target, level, xoffset, yoffset, zoffset, width, height, depth,
+              format, type, pixels);
+
+  // lookup texture pointer
+  Texture *tex = HandleToTexture(target);
+  if (tex == NULL) {
+    return SetGLError(GL_INVALID_ENUM);
+  }
+
+  // only support level zero (no mipmaps) for now
+  if (level != 0) {
+    return SetGLError(GL_INVALID_VALUE);
+  }
+
+  // ensure width and height are valid
+  if ((width < 0) || (height < 0) || (depth < 0)) {
+    assert(0);
+    return SetGLError(GL_INVALID_VALUE);
+  }
+
+  // only support reading 1 or 3 component uchar or fp data for now
+  if (((format == GL_LUMINANCE) && (type == GL_UNSIGNED_BYTE)) ||
+      ((format == GL_RGB) && (type == GL_UNSIGNED_BYTE))) {
+    // OK. uchar format
+  } else if (((format == GL_LUMINANCE) && (type == GL_FLOAT)) ||
+             ((format == GL_RGB) && (type == GL_FLOAT)) ||
+             ((format == GL_RGBA) && (type == GL_FLOAT))) {
+    // OK. float format
+  } else if (((format == GL_LUMINANCE) && (type == GL_DOUBLE)) ||
+             ((format == GL_RGB) && (type == GL_DOUBLE))) {
+    // OK. double format
+  } else {
+    fprintf(stderr, "[LSGL] Unsupported format/type pair for 3D texture.\n");
+    assert(0);
+    return SetGLError(GL_INVALID_ENUM);
+  }
+
+  // just retain a pointer of texture data.
+  int compos = -1;
+  if (format == GL_LUMINANCE) {
+    compos = 1;
+  } else if (format == GL_RGB) {
+    compos = 3;
+  } else if (format == GL_RGBA) {
+    compos = 4;
+  }
+
+  tex->SubImage3D(xoffset, yoffset, zoffset, width, height, depth, compos, type,
+                  pixels);
 }
 
 void Context::glDeleteTextures(GLsizei n, const GLuint *textures) {
