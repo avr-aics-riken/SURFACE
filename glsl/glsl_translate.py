@@ -48,7 +48,18 @@ def DefineStruct(struct):
     gStructDefs[struct['name']] = struct
 
 def FindStruct(name):
-    if gStructDefs.has_key(name):
+    if isinstance(name, list) and name[0] == 'array':
+        # maybe array of struct
+        # ['array', 'Sphere__0x7fdac1c11eb0', '3']
+        p = name[1].split('__')
+        if len(p) > 1:
+            sname = p[0] + '__' 
+        else:
+            sname = p[0] 
+        if gStructDefs.has_key(sname):
+            return gStructDefs[sname]
+        raise
+    elif gStructDefs.has_key(name):
         return gStructDefs[name]
 
     return False
@@ -501,7 +512,16 @@ class VarDecl:
     def getDeclareString(self):
         s = ""
 
-        if IsVectorType(self.ty):
+        if isinstance(self.ty, list) and self.ty[0] == 'array':
+            # array def
+            # ['array', 'Sphere__0x7fe31ac11eb0', '3']
+            p = self.ty[1].split('__')
+            if len(p) > 1:
+                sname = p[0] + '__'
+            else:
+                sname = p[0]
+            s += "%s %s[%s];\n" % (sname, self.varname, self.ty[2])
+        elif IsVectorType(self.ty):
             s += "%s%d %s;\n" % (self.ty, self.n, self.varname)
         elif IsMatrixType(self.ty):
             s += "%s%d %s;\n" % (self.ty, self.n, self.varname)
@@ -590,15 +610,23 @@ class VarRef:
             
 class RecordRef:
     def __init__(self, varname, membername):
-        assert len(varname) == 2;   # should be ['var_ref', 'str']
-        assert varname[0] == 'var_ref';
 
-        self.var = VarRef(varname[1])
-        self.recordname = varname[1]
-        self.membername = membername
-
+        if (len(varname) == 2 and varname[0] == 'var_ref'):
+            # should be ['var_ref', 'str']
+            self.var = VarRef(varname[1])
+            self.recordname = varname[1]
+            self.membername = membername
+            self.is_array = False
+        elif (len(varname) == 3 and varname[0] == 'array_ref'):
+            # ['array_ref', ['var_ref', 'sphere'], ['constant', 'int', ['0']]]
+            self.var = ArrayRef(varname[1], varname[2])
+            self.recordname = varname[1][1]
+            self.membername = membername
+            self.is_array = True
+        else:
+            raise
     def __str__(self):
-        return self.recordname + "." + self.membername
+        return str(self.var) + "." + self.membername
 
     def getDeclareString(self):
         return ""
@@ -624,9 +652,7 @@ class RecordRef:
 
         (ty, n) = ParseTy(member['ty'])
 
-        # return "/*record_ref*/%s" % struct['name']
-
-        return "/*record_ref*/" + "(" + self.recordname + "." + self.membername + ")" 
+        return "/*record_ref*/" + "(" + str(self.var) + "." + self.membername + ")" 
 
     def getExprString(self, slot, i):
 
@@ -636,6 +662,7 @@ class RecordRef:
 
         (sty, sn) = sym['type']
 
+        # print((sty, sn))
         struct = FindStruct(sty)
         assert struct is not False
 
@@ -654,9 +681,9 @@ class RecordRef:
             prefix = ".v"
 
         if IsVectorType(ty):
-            return "/*record_ref*/" + "(" + self.recordname + "." + self.membername + ")" + prefix + ("[%d]" % gSlotToN[slot])
+            return "/*record_ref*/" + "(" + str(self.var) + "." + self.membername + ")" + prefix + ("[%d]" % gSlotToN[slot])
         else:
-            return "/*record_ref*/" + "(" + self.recordname + "." + self.membername + ")"
+            return "/*record_ref*/" + "(" + str(self.var) + "." + self.membername + ")"
 
 class ArrayRef:
     def __init__(self, varname, indexname):
@@ -680,27 +707,16 @@ class ArrayRef:
 
     def getCExpr(self):
 
-        raise # TODO
-
         # Look up struct definition
         sym = GetSymbol(self.recordname)
         assert sym is not False
 
-        (sty, sn) = sym['type']
+        #(sty, sn) = sym['type']
 
-        struct = FindStruct(sty)
-        assert struct is not False
+        #structinfo = FindStruct(sty)
+        #assert structinfo is not False
 
-
-        # Look up type of member variable
-        member = struct['members'][self.membername]
-        assert member is not False
-
-        (ty, n) = ParseTy(member['ty'])
-
-        # return "/*record_ref*/%s" % struct['name']
-
-        return "/*array_ref*/" + "(" + self.recordname + "." + self.indexrname + ")" 
+        return "/*array_ref*/" + self.recordname + "[%s]" % self.indexname
 
     def getExprString(self, slot, i):
 
@@ -899,8 +915,6 @@ class Assign:
         s = ""
         nn = len(self.slots)
         if (nn == 1):
-            #print "val = ", self.values
-            #print "val = ", self.values.__class__
             s = str(self.values)
             s += "[%d]" % i
             assert isinstance(s, str)
@@ -1004,13 +1018,11 @@ class UnaryExpression:
         self.op     = op
         self.src    = src
         self.dst    = NewTempVar()
-        # print "Unary: dst = ", self.dst
 
     def __str__(self):
         return "TODO(uexpr)"
 
     def getDeclareString(self):
-        # print "UnaryDecl\n"
         s = ""
         s += self.src.getDeclareString()
 
@@ -1072,7 +1084,6 @@ class UnaryExpression:
         return s
 
     def getExprString(self, slot, i):
-        # print "UnaryExpr\n"
 
         s = ""
         if self.n == 1:
@@ -1088,7 +1099,6 @@ class UnaryExpression:
 def constructExpr(expr):
 
     name = expr[0]
-    # print name
 
     if name == "var_ref":
         return VarRef(expr[1])
@@ -1107,9 +1117,6 @@ def constructExpr(expr):
         e = constructExpr(expr[2])
         return Swizzle(slots, e)
     elif name == "expression":
-        # print "exp:", expr
-        #ty = expr[1]
-        #n = 1
         (ty, n) = ParseTy(expr[1])
 
         op = expr[2]
@@ -1794,25 +1801,7 @@ def ir_to_c(input_sexp_string, opts):
     s += emitEntryPoint()
 
     #
-    # pass1.1: emit global variable definition
-    #
-    # add global scope
-    gSymbolTable.append(dict())
-
-    s += "// --> global variables\n"
-    for e in ir_exp:
-        if isinstance(e, list):
-            name = e[0]
-        else:
-            name = e
-
-        if name == 'declare':
-            s += eDeclare(e)
-
-    s += "// <-- global variables\n"
-
-    #
-    # pass1.2: emit struct definition
+    # pass1.1: emit struct definition
     #
     # add global scope
 
@@ -1849,6 +1838,25 @@ def ir_to_c(input_sexp_string, opts):
             DefineStruct(struct)
 
     s += "// <-- struct definition\n"
+
+    #
+    # pass1.2: emit global variable definition
+    #
+    # add global scope
+    gSymbolTable.append(dict())
+
+    s += "// --> global variables\n"
+    for e in ir_exp:
+        if isinstance(e, list):
+            name = e[0]
+        else:
+            name = e
+
+        if name == 'declare':
+            s += eDeclare(e)
+
+    s += "// <-- global variables\n"
+
 
     #
     # pass2: emit global variable initializer
