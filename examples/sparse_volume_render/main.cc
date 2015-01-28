@@ -50,7 +50,6 @@ static bool GenSparseVolumeTexture(GLuint &tex, const unsigned char *voldata,
     for (size_t y = 0; y < ndivs; y++) {
       for (size_t x = 0; x < ndivs; x++) {
         if (((x + y + z) % 2) == 0) {
-          // printf("added: %d %d %d\n", x, y, z);
           lsglTexPageCommitment(GL_TEXTURE_3D, /* lv= */ 0, x * dim[0],
                                 y * dim[1], z * dim[2], dim[0], dim[1], dim[2],
                                 GL_TRUE);
