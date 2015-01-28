@@ -553,3 +553,20 @@ TEST(LSGLExtTest, CoordRemap) {
   EXPECT_EQ(GL_NO_ERROR, glGetError());
 
 }
+
+TEST(LSGLExtTest, TexPageCommitment) {
+
+  Context &ctx = Context::GetCurrentContext();
+
+  std::vector<float> table(4);
+
+  std::vector<unsigned char> data(4*4*4);
+  GLuint texid;
+  ctx.glGenTextures(1, &texid);
+  ctx.glActiveTexture(GL_TEXTURE0);
+  ctx.glBindTexture(GL_TEXTURE_3D, texid);
+  ctx.lsglTexPageCommitment(GL_TEXTURE_3D, 0, 0, 0, 0, 4, 4, 4, GL_TRUE);
+  ctx.glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, 4, 4, 4, GL_LUMINANCE, GL_UNSIGNED_BYTE, &data.at(0));
+  EXPECT_EQ(GL_NO_ERROR, glGetError());
+
+}

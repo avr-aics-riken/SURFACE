@@ -182,6 +182,12 @@ void Context::lsglEvalFragmentShader() {
   // Use current porgram
   Program *program = resourceManager_.GetProgram(state_.currentProgram);
 
+  // Build sparse texture if necessary.
+  for (size_t i = 0; i < sparseTextureList_.size(); i++) {
+    Texture* tex = sparseTextureList_[i];
+    tex->BuildSparseTexture();
+  }
+
   // Render quad.
   const int width = state_.viewportWidth;
   const int height = state_.viewportHeight;

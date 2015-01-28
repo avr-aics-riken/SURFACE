@@ -18,109 +18,122 @@
 int windowWidth = 512;
 int windowHeight = 512;
 
-
-bool SaveColorBufferRGBA(const char* savename)
-{
-  void* tgabuffer;
-  unsigned char* imgBuf = new unsigned char[windowWidth * windowHeight * 4];
-  glReadPixels(0, 0, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, imgBuf);
-  int tgasize = SimpleTGASaverRGBA(&tgabuffer, windowWidth, windowHeight, imgBuf);
-  delete [] imgBuf;
-  if (!tgasize){
+bool SaveColorBufferRGBA(const char *savename) {
+  void *tgabuffer;
+  unsigned char *imgBuf = new unsigned char[windowWidth * windowHeight * 4];
+  glReadPixels(0, 0, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE,
+               imgBuf);
+  int tgasize =
+      SimpleTGASaverRGBA(&tgabuffer, windowWidth, windowHeight, imgBuf);
+  delete[] imgBuf;
+  if (!tgasize) {
     printf("Failed save.\n");
     return false;
   }
- 
-  FILE* fp = fopen(savename, "wb");
+
+  FILE *fp = fopen(savename, "wb");
   fwrite(tgabuffer, 1, tgasize, fp);
   fclose(fp);
   free(tgabuffer);
   return true;
 }
 
-static bool
-GenSparseVolumeTexture(
-  GLuint& tex,
-  const unsigned char* voldata,
-  int dim[3])
-{
+static bool GenSparseVolumeTexture(GLuint &tex, const unsigned char *voldata,
+                                   int dim[3]) {
+  int ndivs = 2;
 
-  int localDim[3];
-  localDim[0] = dim[0] / 2;
-  localDim[1] = dim[1] / 2;
-  localDim[2] = dim[2] / 2;
-
-  float* buf = new float[localDim[0] * localDim[1] * localDim[2]];
-
-  // uchar -> float
-  for (size_t z = 0; z < localDim[2]; z++) {
-  	for (size_t y = 0; y < localDim[1]; y++) {
-  		for (size_t x = 0; x < localDim[0]; x++) {
-    		buf[z*localDim[0]*localDim[1]+y*localDim[0]+x] = 0.5;
-		  }
-	  }
-  }
-  
   glGenTextures(1, &tex);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_3D, tex);
 
-  for (size_t z = 0; z < 2; z++) {
-  	for (size_t y = 0; y < 2; y++) {
-  		for (size_t x = 0; x < 2; x++) {
+  for (size_t z = 0; z < ndivs; z++) {
+    for (size_t y = 0; y < ndivs; y++) {
+      for (size_t x = 0; x < ndivs; x++) {
         if (((x + y + z) % 2) == 0) {
-        //if (1) {
-          printf("added: %d %d %d\n", x, y, z);
-          lsglTexPageCommitment(GL_TEXTURE_3D, /* lv= */0, x * localDim[0], y * localDim[1], z * localDim[2], localDim[0], localDim[1], localDim[2], GL_TRUE);
-          glTexSubImage3D(GL_TEXTURE_3D, 0, x * localDim[0], y * localDim[1], z * localDim[2], localDim[0], localDim[1], localDim[2], GL_LUMINANCE, GL_FLOAT, buf);
+          // printf("added: %d %d %d\n", x, y, z);
+          lsglTexPageCommitment(GL_TEXTURE_3D, /* lv= */ 0, x * dim[0],
+                                y * dim[1], z * dim[2], dim[0], dim[1], dim[2],
+                                GL_TRUE);
+          glTexSubImage3D(GL_TEXTURE_3D, 0, x * dim[0], y * dim[1], z * dim[2],
+                          dim[0], dim[1], dim[2], GL_LUMINANCE,
+                          GL_UNSIGNED_BYTE, voldata);
         }
-		  }
-	  }
+      }
+    }
   }
 
   return true;
 }
 
-static bool
-LoadVolumeTexture(
-  GLuint& tex,
-  const unsigned char* voldata,
-  int dim[3])
-{
+static bool GenSparseVolumeFloatTexture(GLuint &tex,
+                                        const unsigned char *voldata,
+                                        int dim[3]) {
+  int ndivs = 2;
 
-  float* buf = new float[dim[0] * dim[1] * dim[2]];
+  float *buf = new float[dim[0] * dim[1] * dim[2]];
 
   // uchar -> float
   for (size_t i = 0; i < dim[0] * dim[1] * dim[2]; i++) {
     buf[i] = voldata[i] / 255.0f;
   }
-  
+
   glGenTextures(1, &tex);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_3D, tex);
-  glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, dim[0], dim[1], dim[2], 0, GL_LUMINANCE, GL_FLOAT, buf);
+
+  for (size_t z = 0; z < ndivs; z++) {
+    for (size_t y = 0; y < ndivs; y++) {
+      for (size_t x = 0; x < ndivs; x++) {
+        if (((x + y + z) % 2) == 0) {
+          // printf("added: %d %d %d\n", x, y, z);
+          lsglTexPageCommitment(GL_TEXTURE_3D, /* lv= */ 0, x * dim[0],
+                                y * dim[1], z * dim[2], dim[0], dim[1], dim[2],
+                                GL_TRUE);
+          glTexSubImage3D(GL_TEXTURE_3D, 0, x * dim[0], y * dim[1], z * dim[2],
+                          dim[0], dim[1], dim[2], GL_LUMINANCE, GL_FLOAT, buf);
+        }
+      }
+    }
+  }
 
   return true;
 }
 
-static bool
-LoadShader(
-  GLuint& prog,
-  GLuint& fragShader,
-  const char* fragShaderFilename)
-{
+static bool LoadVolumeTexture(GLuint &tex, const unsigned char *voldata,
+                              int dim[3]) {
+
+  float *buf = new float[dim[0] * dim[1] * dim[2]];
+
+  // uchar -> float
+  for (size_t i = 0; i < dim[0] * dim[1] * dim[2]; i++) {
+    buf[i] = voldata[i] / 255.0f;
+  }
+
+  glGenTextures(1, &tex);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_3D, tex);
+  glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, dim[0], dim[1], dim[2], 0,
+               GL_LUMINANCE, GL_FLOAT, buf);
+
+  return true;
+}
+
+static bool LoadShader(GLuint &prog, GLuint &fragShader,
+                       const char *fragShaderFilename) {
   GLint val = 0;
 
   // free old shader/program
-  if (prog != 0)   glDeleteProgram(prog);
-  if (fragShader != 0) glDeleteShader(fragShader);
+  if (prog != 0)
+    glDeleteProgram(prog);
+  if (fragShader != 0)
+    glDeleteShader(fragShader);
 
   static GLchar srcbuf[16384];
   FILE *fp = fopen(fragShaderFilename, "rb");
   if (!fp) {
     return false;
   }
-  
+
   fseek(fp, 0, SEEK_END);
   size_t len = ftell(fp);
   rewind(fp);
@@ -145,17 +158,15 @@ LoadShader(
   return true;
 }
 
-static bool
-LoadBinaryShader(
-  GLuint& prog,
-  GLuint& fragShader,
-  const char* fragShaderBinaryFilename)
-{
+static bool LoadBinaryShader(GLuint &prog, GLuint &fragShader,
+                             const char *fragShaderBinaryFilename) {
   GLint val = 0;
 
   // free old shader/program
-  if (prog != 0)   glDeleteProgram(prog);
-  if (fragShader != 0) glDeleteShader(fragShader);
+  if (prog != 0)
+    glDeleteProgram(prog);
+  if (fragShader != 0)
+    glDeleteShader(fragShader);
 
   std::vector<unsigned char> data;
   FILE *fp = fopen(fragShaderBinaryFilename, "rb");
@@ -171,7 +182,7 @@ LoadBinaryShader(
   len = fread(&data.at(0), 1, len, fp);
   fclose(fp);
 
-  const void* binary = &data.at(0);
+  const void *binary = &data.at(0);
   GLenum format = 0; // format is arbitrary at this time.
 
   fragShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -187,38 +198,33 @@ LoadBinaryShader(
   return true;
 }
 
-static float* GenCoordMap(int n)
-{
-	assert(n > 0);
+static float *GenCoordMap(int n) {
+  assert(n > 0);
 
-	float *m = new float[n];
+  float *m = new float[n];
 
-	for (int i = 0; i < n; i++) {
-		m[i] = exp(4.0 * ((float)i / (float)n));
-	}
+  for (int i = 0; i < n; i++) {
+    m[i] = exp(4.0 * ((float)i / (float)n));
+  }
 
-	float minval = m[0];
-	float maxval = m[n-1];
-	float r = maxval - minval;
+  float minval = m[0];
+  float maxval = m[n - 1];
+  float r = maxval - minval;
 
-	// normalize
-	for (int i = 0; i < n; i++) {
-		m[i] = (m[i] - minval) / r;
-		printf("m[%d] = %f\n", i, m[i]);
-	}
+  // normalize
+  for (int i = 0; i < n; i++) {
+    m[i] = (m[i] - minval) / r;
+    printf("m[%d] = %f\n", i, m[i]);
+  }
 
-	return m;
+  return m;
 }
 
-static unsigned char*
-LoadRawVolumeTexture(
-  const char* filename,
-  size_t size)
-{
-  FILE* fp = fopen(filename, "rb");
+static unsigned char *LoadRawVolumeTexture(const char *filename, size_t size) {
+  FILE *fp = fopen(filename, "rb");
   assert(fp);
 
-  unsigned char* data = new unsigned char[size];
+  unsigned char *data = new unsigned char[size];
   size_t sz = fread(data, 1, size, fp);
   assert(sz == size);
   assert(data);
@@ -228,36 +234,32 @@ LoadRawVolumeTexture(
   return data;
 }
 
-int
-main(
-  int argc,
-  char **argv)
-{
+int main(int argc, char **argv) {
 #ifdef ENABLE_MPI
   int rank;
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
-  const char* fragShaderFile = "input.frag";
-  const char* fragShaderBinFile = "shader.so";
-  const char* textureFile = "Bucky.raw";
+  const char *fragShaderFile = "input.frag";
+  const char *fragShaderBinFile = "shader.so";
+  const char *textureFile = "Bucky.raw";
   int dim[3] = {32, 32, 32};
 
   size_t sz = dim[0] * dim[1] * dim[2] * sizeof(unsigned char);
-  unsigned char* voldata = LoadRawVolumeTexture(textureFile, sz);
+  unsigned char *voldata = LoadRawVolumeTexture(textureFile, sz);
 
   GLuint prog = 0, fragShader = 0;
   bool ret = LoadShader(prog, fragShader, fragShaderFile);
-  //bool ret = LoadBinaryShader(prog, fragShader, fragShaderBinFile);
+  // bool ret = LoadBinaryShader(prog, fragShader, fragShaderBinFile);
   assert(ret);
 
   printf("LoadTex\n");
   GLuint tex0;
-  //ret = LoadVolumeTexture(tex0, voldata, dim);
-  ret = GenSparseVolumeTexture(tex0, voldata, dim);
+  // ret = GenSparseVolumeTexture(tex0, voldata, dim);
+  ret = GenSparseVolumeFloatTexture(tex0, voldata, dim);
   assert(ret);
 
-  GLfloat* remapTable = GenCoordMap(dim[1]);
+  GLfloat *remapTable = GenCoordMap(dim[1]);
 
   glActiveTexture(GL_TEXTURE0);
   lsglTexCoordRemap(GL_TEXTURE_3D, GL_COORDINATE_Y, dim[1], remapTable);
@@ -272,15 +274,17 @@ main(
   glGenRenderbuffers(1, &colorRenderbuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, windowWidth, windowHeight);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorRenderbuffer);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                            GL_RENDERBUFFER, colorRenderbuffer);
 
   // create depth renderbuffer and attach
   GLuint depthRenderbuffer;
   glGenRenderbuffers(1, &depthRenderbuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
-
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth,
+                        windowHeight);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                            GL_RENDERBUFFER, depthRenderbuffer);
 
   glViewport(0, 0, windowWidth, windowHeight);
 
@@ -294,7 +298,7 @@ main(
   GLint texture0Loc = glGetUniformLocation(prog, "tex0");
   printf("texture0Loc: %d\n", texture0Loc);
   glUseProgram(prog);
-  glUniform1i(texture0Loc, 0); //Texture unit 0 is for base images.
+  glUniform1i(texture0Loc, 0); // Texture unit 0 is for base images.
 
   GLfloat eye[3] = {3.0, 3.0, 3.0};
   GLfloat lookat[3] = {0.0, 0.0, 0.0};

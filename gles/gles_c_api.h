@@ -726,6 +726,14 @@ void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset, GLint yoff
       target, level, xoffset, yoffset, zoffset, width, height, depth, commit);
 }
 
+// Zero-copy version of glTexSubImage3D(for saving memory)
+void lsglTexSubImage3DPointer(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+                     GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type,
+                     const GLvoid *pixels) {
+  Context::GetCurrentContext().lsglTexSubImage3DPointer(
+      target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+}
+
 }
 
 #endif // __LSGL_GLES_C_API_H__

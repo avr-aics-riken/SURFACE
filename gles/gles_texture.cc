@@ -356,6 +356,68 @@ void Context::lsglTexImage3DPointer(GLenum target, GLint level,
   tex->Retain3D(pixels, width, height, depth, compos, type);
 }
 
+// Zero-copy version. User must retain texture memory until rendering finishes.
+void Context::lsglTexSubImage3DPointer(GLenum target, GLint level,
+                                       GLint xoffset, GLint yoffset,
+                                       GLint zoffset, GLsizei width,
+                                       GLsizei height, GLsizei depth,
+                                       GLenum format, GLenum type,
+                                       const GLvoid *pixels) {
+  TRACE_EVENT("(GLenum target = %d, GLint level = %d, GLint xoffiset = %d, "
+              "GLint yoffset = %d, GLint zoffset= %d, GLsizei width = %d, "
+              "GLsizei height = %d, GLsizei depth = %d, "
+              "GLenum format = %d, GLenum type = %d, const GLvoid* pixels= %p)",
+              target, level, xoffset, yoffset, zoffset, width, height, depth,
+              format, type, pixels);
+
+  // lookup texture pointer
+  Texture *tex = HandleToTexture(target);
+  if (tex == NULL) {
+    return SetGLError(GL_INVALID_ENUM);
+  }
+
+  // only support level zero (no mipmaps) for now
+  if (level != 0) {
+    return SetGLError(GL_INVALID_VALUE);
+  }
+
+  // ensure width and height are valid
+  if ((width < 0) || (height < 0) || (depth < 0)) {
+    assert(0);
+    return SetGLError(GL_INVALID_VALUE);
+  }
+
+  // only support reading 1 or 3 component uchar or fp data for now
+  if (((format == GL_LUMINANCE) && (type == GL_UNSIGNED_BYTE)) ||
+      ((format == GL_RGB) && (type == GL_UNSIGNED_BYTE))) {
+    // OK. uchar format
+  } else if (((format == GL_LUMINANCE) && (type == GL_FLOAT)) ||
+             ((format == GL_RGB) && (type == GL_FLOAT)) ||
+             ((format == GL_RGBA) && (type == GL_FLOAT))) {
+    // OK. float format
+  } else if (((format == GL_LUMINANCE) && (type == GL_DOUBLE)) ||
+             ((format == GL_RGB) && (type == GL_DOUBLE))) {
+    // OK. double format
+  } else {
+    fprintf(stderr, "[LSGL] Unsupported format/type pair for 3D texture.\n");
+    assert(0);
+    return SetGLError(GL_INVALID_ENUM);
+  }
+
+  // just retain a pointer of texture data.
+  int compos = -1;
+  if (format == GL_LUMINANCE) {
+    compos = 1;
+  } else if (format == GL_RGB) {
+    compos = 3;
+  } else if (format == GL_RGBA) {
+    compos = 4;
+  }
+
+  tex->SubImage3DRetain(xoffset, yoffset, zoffset, width, height, depth, compos,
+                        type, pixels);
+}
+
 void Context::lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size,
                                 const GLfloat *coords) {
   // lookup texture pointer
@@ -403,6 +465,12 @@ void Context::lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset,
   region.commit = commit;
 
   if (commit) {
+
+    if (tex->GetRegionList().size() == 0) {
+      // first time of commit.
+      sparseTextureList_.push_back(
+          tex); // Add this texture to sparseTextureList_
+    }
 
     tex->GetRegionList().push_back(region);
     tex->SetSparsity(true);

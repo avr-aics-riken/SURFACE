@@ -1018,8 +1018,9 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
 //
 // Texture(X)
 //
-Texture::Texture() : texture_(NULL), texture3D_(NULL), retained_(false),
-  sparseVolumeAccel_(NULL), sparseVolume_(NULL) {
+Texture::Texture()
+    : texture_(NULL), texture3D_(NULL), retained_(false),
+      sparseVolumeAccel_(NULL), sparseVolume_(NULL) {
   doRemap_[0] = false;
   doRemap_[1] = false;
   doRemap_[2] = false;
@@ -1153,13 +1154,15 @@ void Texture::Free() {
   std::vector<GLubyte>().swap(data_);
 }
 
-void Texture::SubImage3D(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, int compos, GLenum type, const GLvoid* data) {
+void Texture::SubImage3D(GLint xoffset, GLint yoffset, GLint zoffset,
+                         GLsizei width, GLsizei height, GLsizei depth,
+                         int compos, GLenum type, const GLvoid *data) {
 
   if (isSparse_) {
 
     if (regionList_.size() == 1) {
       compos_ = compos;
-      type_ = type; 
+      type_ = type;
     } else {
       if (compos_ != compos) {
         return;
@@ -1184,16 +1187,18 @@ void Texture::SubImage3D(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei wi
     // Find region.
     // @todo { optimize region search. }
     for (size_t i = 0; i < regionList_.size(); i++) {
-      if ((xoffset == regionList_[i].offset[0]) &&      
-          (yoffset == regionList_[i].offset[1]) &&      
-          (zoffset == regionList_[i].offset[2]) &&      
-          (width   == regionList_[i].extent[0]) &&      
-          (height  == regionList_[i].extent[1]) &&      
-          (depth   == regionList_[i].extent[2])) {
+      if ((xoffset == regionList_[i].offset[0]) &&
+          (yoffset == regionList_[i].offset[1]) &&
+          (zoffset == regionList_[i].offset[2]) &&
+          (width == regionList_[i].extent[0]) &&
+          (height == regionList_[i].extent[1]) &&
+          (depth == regionList_[i].extent[2])) {
         // Gotcha!
-        delete [] regionList_[i].data;
-        regionList_[i].data = new unsigned char[width*height*depth*dataSize*compos];
-        memcpy(reinterpret_cast<void *>(regionList_[i].data), data, width*height*depth*dataSize*compos);
+        delete[] regionList_[i].data;
+        regionList_[i].data =
+            new unsigned char[width * height * depth * dataSize * compos];
+        memcpy(reinterpret_cast<void *>(regionList_[i].data), data,
+               width * height * depth * dataSize * compos);
       }
     }
   } else {
@@ -1224,8 +1229,57 @@ bool Texture::SetRemapTable(GLenum coord, GLsizei size, const GLfloat *coords) {
   return true;
 }
 
-void Texture::BuildSparseTexture()
-{
+void Texture::SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
+                               GLsizei width, GLsizei height, GLsizei depth,
+                               int compos, GLenum type, const GLvoid *data) {
+
+  if (isSparse_) {
+
+    if (regionList_.size() == 1) {
+      compos_ = compos;
+      type_ = type;
+    } else {
+      if (compos_ != compos) {
+        return;
+      }
+
+      if (type_ != type) {
+        return;
+      }
+    }
+
+    int dataSize = -1;
+    if (type_ == GL_UNSIGNED_BYTE) {
+      dataSize = 1;
+    } else if (type_ == GL_FLOAT) {
+      dataSize = 4;
+    } else if (type_ == GL_DOUBLE) {
+      dataSize = 8;
+    } else {
+      assert(0 && "Unsupported data type.");
+    }
+
+    // Find region.
+    // @todo { optimize region search. }
+    for (size_t i = 0; i < regionList_.size(); i++) {
+      if ((xoffset == regionList_[i].offset[0]) &&
+          (yoffset == regionList_[i].offset[1]) &&
+          (zoffset == regionList_[i].offset[2]) &&
+          (width == regionList_[i].extent[0]) &&
+          (height == regionList_[i].extent[1]) &&
+          (depth == regionList_[i].extent[2])) {
+        // Just save an poineter(no local copy)
+        regionList_[i].data =
+            reinterpret_cast<unsigned char *>(const_cast<GLvoid *>(data));
+      }
+    }
+  } else {
+    // SubImage3DRetain for non-sparse texture is not supported at this time.
+    return;
+  }
+}
+
+void Texture::BuildSparseTexture() {
   if (!isSparse_) {
     return;
   }
@@ -1237,17 +1291,30 @@ void Texture::BuildSparseTexture()
   if (sparseVolume_) {
     return;
   }
-  
+
   sparseVolume_ = new SparseVolume();
   sparseVolume_->components = 1; // @fixme
-  sparseVolume_->type = 0; // @fixme
+
+  if (type_ == GL_UNSIGNED_BYTE) {
+    sparseVolume_->format = LSGL_RENDER_TEXTURE3D_FORMAT_BYTE;
+  } else if (type_ == GL_FLOAT) {
+    sparseVolume_->format = LSGL_RENDER_TEXTURE3D_FORMAT_FLOAT;
+  } else if (type_ == GL_DOUBLE) {
+    sparseVolume_->format = LSGL_RENDER_TEXTURE3D_FORMAT_DOUBLE;
+  } else { // ???
+    assert(0);
+    sparseVolume_->format = 0;
+  }
 
   // Find largest extent and make it global dim.
   int dim[3] = {0, 0, 0};
   for (size_t i = 0; i < regionList_.size(); i++) {
-    dim[0] = std::max(dim[0], regionList_[i].offset[0] + regionList_[i].extent[0]);
-    dim[1] = std::max(dim[1], regionList_[i].offset[1] + regionList_[i].extent[1]);
-    dim[2] = std::max(dim[2], regionList_[i].offset[2] + regionList_[i].extent[2]);
+    dim[0] =
+        std::max(dim[0], regionList_[i].offset[0] + regionList_[i].extent[0]);
+    dim[1] =
+        std::max(dim[1], regionList_[i].offset[1] + regionList_[i].extent[1]);
+    dim[2] =
+        std::max(dim[2], regionList_[i].offset[2] + regionList_[i].extent[2]);
   }
 
   sparseVolume_->globalDim[0] = dim[0];
@@ -1267,7 +1334,7 @@ void Texture::BuildSparseTexture()
     block.extent[2] = regionList_[i].extent[2];
 
     block.id = i;
-    block.data = 0; // @fixme.
+    block.data = regionList_[i].data;
 
     sparseVolume_->blocks.push_back(block);
   }
@@ -1277,10 +1344,8 @@ void Texture::BuildSparseTexture()
 
   double bmin[3], bmax[3];
   sparseVolumeAccel_->BoundingBox(bmin, bmax);
-  printf("[SparseTexture] bbox: (%f, %f, %f) - (%f, %f, %f)\n",
-    bmin[0], bmin[1], bmin[2],
-    bmax[0], bmax[1], bmax[2]);
-
+  printf("[SparseTexture] bbox: (%f, %f, %f) - (%f, %f, %f)\n", bmin[0],
+         bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]);
 }
 
 //

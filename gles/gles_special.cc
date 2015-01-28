@@ -34,6 +34,12 @@ void Context::glFinish() {
   assert(renderGraph_);
   renderGraph_->Build();
 
+  // build sparse volume texture.
+  for (size_t i = 0; i < sparseTextureList_.size(); i++) {
+    Texture* tex = sparseTextureList_[i];
+    tex->BuildSparseTexture();
+  }
+
   // render setup!
   bool ret = engine_.OnStart(GetCurrentFrameBuffer(), renderGraph_);
 

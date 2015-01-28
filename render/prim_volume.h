@@ -12,7 +12,7 @@ typedef struct {
   int offset[3];
   int extent[3];
   int id;
-  const float *data; // Pointer to actual volume data(voxel data)
+  const unsigned char *data; // Pointer to actual volume data(voxel data)
 } VolumeBlock;
 
 typedef struct {
@@ -20,7 +20,7 @@ typedef struct {
   int globalDim[3]; // global dim.
   int components;   // # of components in each voxel. Assume all volume blocks
                     // have same # of components.
-  int type;         // Voxel type(GL_FLOAT, GL_UNSIGNED_BYTE, ...)
+  int format;       // Voxel format(LSGL_RENDER_TEXTURE3D_FORMAT_BYTE, ...)
 } SparseVolume;
 
 // NonUniformVolume.spacing.size() must be equal to NonUniformVolume.size.
