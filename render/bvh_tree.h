@@ -10,7 +10,7 @@
 #define __LSGL_RENDER_BVH_TREE_H__
 
 #include "render_common.h"
-#include "matrix.h"
+//#include "matrix.h"
 
 //
 // Generic BVH tree class.

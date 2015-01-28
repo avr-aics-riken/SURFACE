@@ -272,6 +272,11 @@ public:
                              GLsizei width, GLsizei height, GLsizei depth,
                              GLint border, GLenum format, GLenum type,
                              const GLvoid *pixels);
+  void lsglTexSubImage3DPointer(GLenum target, GLint level,
+                             GLint xoffset, GLint yoffset, GLint zoffset,
+                             GLsizei width, GLsizei height, GLsizei depth,
+                             GLenum format, GLenum type,
+                             const GLvoid *pixels);
   /// Add coordinate remap when looking up texture. remap table is given as 1D array.
   void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, const GLfloat* coords);
 
@@ -297,6 +302,9 @@ private:
   AccelBuilder meshBuilder_;
 
   RenderGraph *renderGraph_;
+
+  // Required to ensure building sparse volume texture before rendering begins.
+  std::vector<Texture*> sparseTextureList_;
 
   std::vector<GLuint> bufferFreeList_; // For property free memories used in
                                        // glDrawElements.

@@ -11,6 +11,7 @@
 #include <functional>
 #include <algorithm>
 
+#include "texture.h" // LSGL_RENDER_TEXTURE3D_FORMAT_XXXX
 #include "accel_volume.h"
 
 using namespace lsgl::render;
@@ -63,20 +64,53 @@ bool SparseVolumeAccel::Sample(double value[4],
   std::vector<BVHNodeLocator> locaters;
   bool hit = tree_.Locate(locaters, position);
 
+  value[0] = 0.0f;
+  value[1] = 0.0f;
+  value[2] = 0.0f;
+  value[3] = 1.0f; // In OpenGL, alpha is 1.0 by default.
+
   if (hit) {
     // @note { We don't allow overlapping of volume block. }
     BVHNodeLocator locator = locaters[0];
 
-    // @fixme
-    value[0] = 1.0f;
-    value[1] = 1.0f;
-    value[2] = 1.0f;
-    value[3] = 1.0f;
-  } else {
-    value[0] = 0.0f;
-    value[1] = 0.0f;
-    value[2] = 0.0f;
-    value[3] = 0.0f;
+    // fetch texel color
+    int blockID = locator.nodeID;
+    int components = (sparseVolume_->components >= 4) ? 4 : sparseVolume_->components;
+    int type = (sparseVolume_->components >= 4) ? 4 : sparseVolume_->components;
+    const VolumeBlock& block = sparseVolume_->blocks[blockID];
+
+    // find local offset.
+    double x = position[0] - block.offset[0];
+    double y = position[1] - block.offset[1];
+    double z = position[2] - block.offset[2];
+    int ix = std::max(std::min(block.offset[0] + block.extent[0] - 1, (int)x), 0);
+    int iy = std::max(std::min(block.offset[1] + block.extent[1] - 1, (int)y), 1);
+    int iz = std::max(std::min(block.offset[2] + block.extent[2] - 1, (int)z), 2);
+
+    if (sparseVolume_->format == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) { // uint8
+      const unsigned char* voxel = block.data;
+      assert(voxel);
+
+      size_t idx = iz * block.extent[0] * block.extent[1] + iy * block.extent[0] + ix;    
+      for (int c = 0; c < components; c++) {
+        value[c] = voxel[components * idx+ c] / 255.0f;
+      }
+    } else if (sparseVolume_->format == LSGL_RENDER_TEXTURE3D_FORMAT_FLOAT) {
+      const float *voxel = reinterpret_cast<const float *>(block.data);
+      assert(voxel);
+      size_t idx = iz * block.extent[0] * block.extent[1] + iy * block.extent[0] + ix;    
+      for (int c = 0; c < components; c++) {
+        value[c] = voxel[components * idx+ c];
+      }
+    } else if (sparseVolume_->format == LSGL_RENDER_TEXTURE3D_FORMAT_DOUBLE) {
+      const double *voxel = reinterpret_cast<const double *>(block.data);
+      assert(voxel);
+      size_t idx = iz * block.extent[0] * block.extent[1] + iy * block.extent[0] + ix;    
+      for (int c = 0; c < components; c++) {
+        value[c] = (float)voxel[components * idx+ c];
+      }
+    }
+
   }
 
   return hit;

@@ -266,19 +266,25 @@ public:
                   GLsizei height, GLsizei depth, int compos, GLenum type,
                   const GLvoid *data);
 
+  // Just retain a pointer to the texture data(no internal copy happens).
+  void SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
+                  GLsizei height, GLsizei depth, int compos, GLenum type,
+                  const GLvoid *data);
+
   inline void Fetch(float *rgba, float u, float v) const {
     assert(texture_);
     texture_->fetch(rgba, u, v);
   }
 
-  inline void Fetch(float *rgba, float u, float v, float r) {
+  inline void Fetch(float *rgba, float u, float v, float r) const {
 
     if (isSparse_) {
 
-      // @todo { atomic lock }
+      rgba[0] = rgba[1] = rgba[2] = 0.0f;
+      rgba[3] = 1.0f; 
+
       if (!sparseVolumeAccel_) {
-        // Delayed build of the accel strucure for sparse texture.
-        BuildSparseTexture();
+        return;
       }
 
       if (sparseVolumeAccel_ && sparseVolume_) {  // this shuld be always true.
