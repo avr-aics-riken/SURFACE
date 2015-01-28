@@ -1020,7 +1020,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
 //
 Texture::Texture()
     : texture_(NULL), texture3D_(NULL), retained_(false),
-      sparseVolumeAccel_(NULL), sparseVolume_(NULL) {
+      sparseVolumeAccel_(NULL), sparseVolume_(NULL), isSparse_(false) {
   doRemap_[0] = false;
   doRemap_[1] = false;
   doRemap_[2] = false;
