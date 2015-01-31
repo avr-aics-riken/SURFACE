@@ -735,7 +735,7 @@ bool RaytraceEngine::OnData() {
 
             // Store pixel position to the ray for the use in the shader.
             ray.px = px + u;
-            ray.py = py + v;
+            ray.py = height - py - 1 + v;
             ray.depth = 0; // eye ray has depth 0.
             ray.user_attrib = 0.0f;
             ray.double_sided = 1; // eye ray is always do intersect testing with
