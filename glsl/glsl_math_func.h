@@ -943,8 +943,8 @@ inline float __glsl_smoothstep(float edge0, float edge1, float x)
 {
     float t,ct;
     ct = (x-edge0)/(edge1-edge0);  
-    t = ct < 0 ? 1 : ct > 1 ? 1 : ct;
-    return t * t* (3-2*t);
+    t = ct < 0.0 ? 0.0 : ct > 1.0 ? 1.0 : ct; // clamp to [0, 1]
+    return t * t* (3.0-2.0*t);
 }
 
 inline vec2 __glsl_smoothstep(vec2 edge0, vec2 edge1, vec4 x)
