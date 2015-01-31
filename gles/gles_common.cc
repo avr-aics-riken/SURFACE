@@ -435,10 +435,11 @@ bool Shader::LoadShaderBinary(std::string &filename) {
 #else
   std::string filepath = filename;
   handle = dlopen(filepath.c_str(), RTLD_NOW);
-  // Will be safe to delete .so file after dlopen().
-  unlink(filename.c_str());
 
-  if (handle == NULL) {
+  if (handle != NULL) {
+    // Will be safe to delete .so file after dlopen().
+    unlink(filename.c_str());
+  } else {
     if ((filename.size() > 1) &&
         ((filename[0] != '/') || (filename[0] != '.'))) {
       // try to load from current path(this might have security risk?).
