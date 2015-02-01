@@ -173,7 +173,7 @@ def showHelp():
 
 def main():
 
-    print "GLSL Compiler. version 0.2"
+    print "GLSL Compiler. version 0.2.1"
     if (len(sys.argv) < 2):
         showHelp()
         sys.exit(1)
