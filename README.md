@@ -37,6 +37,7 @@ In the K frontend machine,
 * BUILD_SHARED_LIBS On/Off Build shared libs or static libs(default: shared)
 * SURFACE_BUILD_K_CROSS_COMPILE On/Off Set cross compile environment using Fujitsu cross compiler.
 * SURFACE_BUILD_WITH_MPI On/Off Enable MPI.
+* SURFACE_BUILD_SCREEN_PARALLEL On/Off Build with screen parallel support?(Also need to enable SURFACE_BUILD_WITH_MPI option)
 * SURFACE_BUILD_WITH_OPENMP On/Off Enable OpenMP.
 
 ## Setup GLSL compiler
@@ -68,6 +69,6 @@ Then run GLSL compiler to check it can produce shader module(`shader.so`)
   * [ ] Remove rendering artifact
 * [x] Line(rendered as tube)
 * [x] Volume
-  * [ ] Uniform volume
-  * [ ] Non-uniform volume
-  * [ ] Hierarchical volume
+  * [x] Uniform volume
+  * [x] Non-uniform volume
+  * [x] Hierarchical volume
