@@ -28,8 +28,8 @@
 
 #include "accel_line.h"
 
-#define ENABLE_TRACE_PRINT (1)
-#define ENABLE_DEBUG_PRINT (1)
+#define ENABLE_TRACE_PRINT (0)
+#define ENABLE_DEBUG_PRINT (0)
 
 #define trace(f, ...)                                                          \
   {                                                                            \
@@ -70,7 +70,6 @@ inline void GetBoundingBoxOfLine(real3 &bmin, real3 &bmax, const Lines *lines,
 
   real3 p0 = GetPosition(lines, 2 * index + 0);
   real3 p1 = GetPosition(lines, 2 * index + 1);
-  printf("idx[%d] p = %f, %f, %f\n", 2 * index + 0, p0[0], p0[1], p0[2]);
 
   real r0 = GetRadius(lines, 2 * index + 0);
   real r1 = GetRadius(lines, 2 * index + 1);
