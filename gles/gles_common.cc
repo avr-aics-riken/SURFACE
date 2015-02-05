@@ -547,7 +547,7 @@ void Shader::BuildVaryingInfo(std::vector<Varying> &varyings,
   // printf("num varyings = %d\n", config.numVaryings);
 
   // location 0 is reserved for position
-  VaryingLocation varyingLocation("***[pos:reserved]***", 0, -1);
+  VaryingLocation varyingLocation("***[pos:reserved]***", 0, (unsigned int)-1);
   varyingLocations.push_back(varyingLocation);
 
   for (int i = 0; i < config.numVaryings; i++) {
@@ -773,7 +773,7 @@ bool FragmentShader::PrepareEval(
   for (size_t i = 1; i < varyingLocations.size(); i++) {
     const VaryingLocation &varyingLocation = varyingLocations[i];
     // printf("[%ld] varying.idx = %d\n", i, varyingLocation.index);
-    if (varyingLocation.index == -1) {
+    if (varyingLocation.index == (unsigned int)-1) {
       // ??? -1 is reserved for position.
       continue;
     }
