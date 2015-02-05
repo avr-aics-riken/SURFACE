@@ -97,10 +97,10 @@ inline int Clamp(int v, int low, int high) {
   return std::min(std::max(v, low), high);
 }
 
-inline bool myisnan(float a) {
-  volatile float d = a;
-  return d != d;
-}
+//inline bool myisnan(float a) {
+//  volatile float d = a;
+//  return d != d;
+//}
 
 inline int fasterfloorf(const float x) {
   if (x >= 0) {

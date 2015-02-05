@@ -49,6 +49,15 @@ ELSE()
   SET(LSGLES_SUFFIX "${DEBUG_PREFIX}")
 ENDIF()
 
+STRING(COMPARE NOTEQUAL "${LSGLES_SUFFIX}" "" hassuffix)
+IF (hassuffix)
+  IF (BUILD_SHARED_LIBS)
+    SET(LSGLES_SUFFIX "${LSGLES_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  ELSE()
+    SET(LSGLES_SUFFIX "${LSGLES_SUFFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  ENDIF()
+ENDIF()
+
 # Enable UINT64_C
 # http://stackoverflow.com/questions/986426/what-do-stdc-limit-macros-and-stdc-constant-macros-mean
 ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)

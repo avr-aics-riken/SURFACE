@@ -1640,8 +1640,7 @@ bool TriangleAccel::Dump(const char *filename) {
 
   unsigned long long numIndices = indices_.size();
 
-  size_t r = 0;
-  r = fwrite(&numNodes, sizeof(unsigned long long), 1, fp);
+  size_t r = fwrite(&numNodes, sizeof(unsigned long long), 1, fp);
   assert(r == 1);
 
   r = fwrite(&nodes_.at(0), sizeof(TriangleNode), numNodes, fp);
