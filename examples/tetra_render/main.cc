@@ -74,10 +74,10 @@ void GenerateRandomTetrasFloat(
     double py = (bmax[1] - bmin[1]) * u1 + bmin[1];
     double pz = (bmax[2] - bmin[2]) * u2 + bmin[2];
 
-    double scale = 0.025;
     for (size_t j = 0; j < 4; j++) {
 
 #if 0
+      double scale = 0.025;
       // random offset. [-0.025, 0.025)
       double v0 = scale * (bmax[0] - bmin[0]) * tinymt64_generate_double(&rng);
       double v1 = scale * (bmax[1] - bmin[1]) * tinymt64_generate_double(&rng);
@@ -118,47 +118,47 @@ bool SaveColorBufferRGBA(const char* savename)
   return true;
 }
 
-static bool
-LoadBinaryShader(
-  GLuint& prog,
-  GLuint& fragShader,
-  const char* fragShaderBinaryFilename)
-{
-  GLint val = 0;
-
-  // free old shader/program
-  if (prog != 0)   glDeleteProgram(prog);
-  if (fragShader != 0) glDeleteShader(fragShader);
-
-  std::vector<unsigned char> data;
-  FILE *fp = fopen(fragShaderBinaryFilename, "rb");
-  if (!fp) {
-    fprintf(stderr, "Failed to open file: %s\n", fragShaderBinaryFilename);
-    return false;
-  }
-  fseek(fp, 0, SEEK_END);
-  size_t len = ftell(fp);
-  rewind(fp);
-
-  data.resize(len);
-  len = fread(&data.at(0), 1, len, fp);
-  fclose(fp);
-
-  const void* binary = &data.at(0);
-  GLenum format = 0; // format is arbitrary at this time.
-
-  fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderBinary(1, &fragShader, format, binary, len);
-
-  prog = glCreateProgram();
-  glAttachShader(prog, fragShader);
-  glLinkProgram(prog);
-
-  glGetShaderiv(fragShader, GL_COMPILE_STATUS, &val);
-  assert(val == GL_TRUE && "failed to compile shader");
-
-  return true;
-}
+//static bool
+//LoadBinaryShader(
+//  GLuint& prog,
+//  GLuint& fragShader,
+//  const char* fragShaderBinaryFilename)
+//{
+//  GLint val = 0;
+//
+//  // free old shader/program
+//  if (prog != 0)   glDeleteProgram(prog);
+//  if (fragShader != 0) glDeleteShader(fragShader);
+//
+//  std::vector<unsigned char> data;
+//  FILE *fp = fopen(fragShaderBinaryFilename, "rb");
+//  if (!fp) {
+//    fprintf(stderr, "Failed to open file: %s\n", fragShaderBinaryFilename);
+//    return false;
+//  }
+//  fseek(fp, 0, SEEK_END);
+//  size_t len = ftell(fp);
+//  rewind(fp);
+//
+//  data.resize(len);
+//  len = fread(&data.at(0), 1, len, fp);
+//  fclose(fp);
+//
+//  const void* binary = &data.at(0);
+//  GLenum format = 0; // format is arbitrary at this time.
+//
+//  fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+//  glShaderBinary(1, &fragShader, format, binary, len);
+//
+//  prog = glCreateProgram();
+//  glAttachShader(prog, fragShader);
+//  glLinkProgram(prog);
+//
+//  glGetShaderiv(fragShader, GL_COMPILE_STATUS, &val);
+//  assert(val == GL_TRUE && "failed to compile shader");
+//
+//  return true;
+//}
 
 static bool
 LoadShader(
@@ -289,7 +289,7 @@ main(
   }
 
   // 1. Create Vertex Buffers.
-  GLuint ptvtx, ptidx;
+  GLuint ptvtx;
 
   glGenBuffers(1, &ptvtx);
   glBindBuffer(GL_ARRAY_BUFFER, ptvtx);
