@@ -267,9 +267,9 @@ public:
                   const GLvoid *data);
 
   // Just retain a pointer to the texture data(no internal copy happens).
-  void SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
-                  GLsizei height, GLsizei depth, int compos, GLenum type,
-                  const GLvoid *data);
+  void SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
+                        GLsizei width, GLsizei height, GLsizei depth,
+                        int compos, GLenum type, const GLvoid *data);
 
   inline void Fetch(float *rgba, float u, float v) const {
     assert(texture_);
@@ -281,17 +281,17 @@ public:
     if (isSparse_) {
 
       rgba[0] = rgba[1] = rgba[2] = 0.0f;
-      rgba[3] = 1.0f; 
+      rgba[3] = 1.0f;
 
       if (!sparseVolumeAccel_) {
         return;
       }
 
-      if (sparseVolumeAccel_ && sparseVolume_) {  // this shuld be always true.
+      if (sparseVolumeAccel_ && sparseVolume_) { // this shuld be always true.
         double value[4];
         double position[3];
 
-        // Asume u, v, r is in [0, 1) range. 
+        // Asume u, v, r is in [0, 1) range.
         position[0] = u * sparseVolume_->globalDim[0];
         position[1] = v * sparseVolume_->globalDim[1];
         position[2] = r * sparseVolume_->globalDim[2];

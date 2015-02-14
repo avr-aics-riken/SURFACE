@@ -17,10 +17,10 @@ namespace render {
 
 typedef struct {
   size_t numLines;
-  float *positions;   /// float precision. [xyz] * numLines * 2
-  double *dpositions; /// double precision. [xyz] * numLines * 2.
+  const float *positions;   /// float precision. [xyz] * numLines * 2
+  const double *dpositions; /// double precision. [xyz] * numLines * 2.
   bool isDoublePrecisionPos;
-  real *radius;        /// particle radius
+  const real *radius;        /// particle radius
   real constantRadius; /// Valid if radius == NULL
 } Lines;
 

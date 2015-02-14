@@ -22,8 +22,8 @@ namespace lsgl {
 
 class ResourceManager {
 public:
-  ResourceManager() {};
-  ~ResourceManager() {};
+  ResourceManager(){};
+  ~ResourceManager(){};
 
   GLuint CreateBuffer();
   GLuint CreateShader(GLenum type);

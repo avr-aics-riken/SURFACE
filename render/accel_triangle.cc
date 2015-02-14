@@ -1149,8 +1149,8 @@ size_t BuildTreeRecursive32OMP(std::vector<TriangleNode> &nodes, real3 &bmin,
 //
 
 size_t TriangleAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
-                           unsigned int leftIdx, unsigned int rightIdx,
-                           int depth) {
+                                unsigned int leftIdx, unsigned int rightIdx,
+                                int depth) {
   assert(leftIdx <= rightIdx);
 
   debug("d: %d, l: %d, r: %d\n", depth, leftIdx, rightIdx);
@@ -1293,7 +1293,8 @@ size_t TriangleAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
   return offset;
 }
 
-bool TriangleAccel::Build(const Mesh *mesh, const TriangleBuildOptions &options) {
+bool TriangleAccel::Build(const Mesh *mesh,
+                          const TriangleBuildOptions &options) {
   options_ = options;
   stats_ = TriangleBuildStatistics();
 
@@ -1322,10 +1323,10 @@ bool TriangleAccel::Build(const Mesh *mesh, const TriangleBuildOptions &options)
   // Tree will be null if input triangle count == 0.
   if (!nodes_.empty()) {
     // 0 = root node.
-    trace("[TriangleAccel] bound min = (%f, %f, %f)\n", rootBMin[0], rootBMin[1],
-          rootBMin[2]);
-    trace("[TriangleAccel] bound max = (%f, %f, %f)\n", rootBMax[0], rootBMax[1],
-          rootBMax[2]);
+    trace("[TriangleAccel] bound min = (%f, %f, %f)\n", rootBMin[0],
+          rootBMin[1], rootBMin[2]);
+    trace("[TriangleAccel] bound max = (%f, %f, %f)\n", rootBMax[0],
+          rootBMax[1], rootBMax[2]);
   }
 
   trace("[TriangleAccel] # of nodes = %lu\n", nodes_.size());
@@ -1345,7 +1346,8 @@ bool TriangleAccel::Build(const Mesh *mesh, const TriangleBuildOptions &options)
   return true;
 }
 
-bool TriangleAccel::Build32(const Mesh *mesh, const TriangleBuildOptions &options) {
+bool TriangleAccel::Build32(const Mesh *mesh,
+                            const TriangleBuildOptions &options) {
 
   assert(mesh);
 
@@ -1605,10 +1607,10 @@ bool TriangleAccel::Build32(const Mesh *mesh, const TriangleBuildOptions &option
   // Tree will be null if input triangle count == 0.
   if (!nodes_.empty()) {
     // 0 = root node.
-    trace("[TriangleAccel] bound min = (%f, %f, %f)\n", rootBMin[0], rootBMin[1],
-          rootBMin[2]);
-    trace("[TriangleAccel] bound max = (%f, %f, %f)\n", rootBMax[0], rootBMax[1],
-          rootBMax[2]);
+    trace("[TriangleAccel] bound min = (%f, %f, %f)\n", rootBMin[0],
+          rootBMin[1], rootBMin[2]);
+    trace("[TriangleAccel] bound max = (%f, %f, %f)\n", rootBMax[0],
+          rootBMax[1], rootBMax[2]);
   }
 
   trace("[TriangleAccel] # of nodes = %lu\n", nodes_.size());
@@ -1824,9 +1826,8 @@ inline double vdotd(double3 a, double3 b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut,
-                          const real3 &v0, const real3 &v1,
-                          const real3 &v2, const real3 &rayOrg,
+inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut, const real3 &v0,
+                          const real3 &v1, const real3 &v2, const real3 &rayOrg,
                           const real3 &rayDir, bool doubleSided) {
   const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
 
@@ -2402,14 +2403,14 @@ void BuildIntersection(Intersection &isect, const Mesh *mesh, Ray &ray) {
 
     // calc geometric normal.
     real3 p10;
-   	p10[0] = p1[0] - p0[0];
-   	p10[1] = p1[1] - p0[1];
-   	p10[2] = p1[2] - p0[2];
+    p10[0] = p1[0] - p0[0];
+    p10[1] = p1[1] - p0[1];
+    p10[2] = p1[2] - p0[2];
 
     real3 p20;
-   	p20[0] = p2[0] - p0[0];
-   	p20[1] = p2[1] - p0[1];
-   	p20[2] = p2[2] - p0[2];
+    p20[0] = p2[0] - p0[0];
+    p20[1] = p2[1] - p0[1];
+    p20[2] = p2[2] - p0[2];
 
     real3 n = cross(p10, p20);
     n.normalize();
@@ -2541,7 +2542,7 @@ bool TriangleAccel::Traverse(Intersection &isect, Ray &ray) const {
 
       if (hitmask) {
 
-        int mask[2] = {(hitmask >> 1) & 0x1, (hitmask) & 0x1};
+        int mask[2] = {(hitmask >> 1) & 0x1, (hitmask)&0x1};
 
         int orderNear = dirSign[node.axis];
         int orderFar = 1 - orderNear;

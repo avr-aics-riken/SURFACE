@@ -59,11 +59,11 @@ void Camera::buildFrame(real3 &corner, real3 &u, real3 &v, int imageWidth,
 
     corner = look - 0.5 * (imageWidth * u + imageHeight * v);
   }
-
 }
 
-void Camera::generateStereoEnvRay(real3& org, real3 &dir, float imageU, float imageV,
-                            int imageWidth, int imageHeight) {
+void Camera::generateStereoEnvRay(real3 &org, real3 &dir, float imageU,
+                                  float imageV, int imageWidth,
+                                  int imageHeight) {
 
   const bool isLeft = imageV < (imageHeight / 2);
   const float focalLength = m_zeroParallax;
@@ -110,10 +110,8 @@ void Camera::generateStereoEnvRay(real3& org, real3 &dir, float imageU, float im
   d[1] = dirO[1];
   d[2] = dirO[0] * sin(psi) + dirO[2] * cos(psi);
 
-
   // local -> world
   dir[0] = m_uvw[0][0] * d[0] + m_uvw[1][0] * d[1] + m_uvw[2][0] * d[2];
   dir[1] = m_uvw[0][1] * d[0] + m_uvw[1][1] * d[1] + m_uvw[2][1] * d[2];
   dir[2] = m_uvw[0][2] * d[0] + m_uvw[1][2] * d[1] + m_uvw[2][2] * d[2];
-
 }

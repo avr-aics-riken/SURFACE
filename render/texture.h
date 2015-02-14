@@ -60,7 +60,11 @@ namespace render {
 class Texture2D {
 
 public:
-  typedef enum { FORMAT_BYTE, FORMAT_FLOAT32, FORMAT_FLOAT64, } Format;
+  typedef enum {
+    FORMAT_BYTE,
+    FORMAT_FLOAT32,
+    FORMAT_FLOAT64,
+  } Format;
 
   Texture2D(const unsigned char *image, int width, int height, int components,
             Format format) {

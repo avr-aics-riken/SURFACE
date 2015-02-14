@@ -1804,9 +1804,8 @@ inline bool IntersectRayAABB(real &tminOut, // [out]
   return false; // no hit
 }
 
-inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut,
-                          const real3 &v0, const real3 &v1,
-                          const real3 &v2, const real3 &rayOrg,
+inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut, const real3 &v0,
+                          const real3 &v1, const real3 &v2, const real3 &rayOrg,
                           const real3 &rayDir, bool doubleSided) {
   const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
 
@@ -2015,16 +2014,16 @@ bool TestLeafNode(Intersection &isect, // [inout]
       vtx[3][1] = tetras->vertices[3 * f3 + 1];
       vtx[3][2] = tetras->vertices[3 * f3 + 2];
 
-
-      int    enterF, leaveF;
-      real3  enterP, leaveP;
+      int enterF, leaveF;
+      real3 enterP, leaveP;
       double enterU, leaveU;
       double enterV, leaveV;
       double enterT, leaveT;
-      if (RayTetraPluecker(rayOrg, rayDir, vtx, enterF, leaveF, enterP, leaveP, enterU, leaveU, enterV, leaveV, enterT, leaveT)) {
+      if (RayTetraPluecker(rayOrg, rayDir, vtx, enterF, leaveF, enterP, leaveP,
+                           enterU, leaveU, enterV, leaveV, enterT, leaveT)) {
 
         if ((enterT >= 0.0) && (enterT < t)) {
-          // Update isect state. 
+          // Update isect state.
           // @todo { Record leaving point. }
           isect.t = enterT;
           isect.u = enterU;
@@ -2104,11 +2103,7 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
     real3 p0, p1, p2;
 
     // @fixme { Validation required! }
-    int face_table[4][3] = {
-      { 0, 1, 3},
-      { 1, 2, 3},
-      { 2, 0, 3},
-      { 0, 1, 2}};
+    int face_table[4][3] = {{0, 1, 3}, {1, 2, 3}, {2, 0, 3}, {0, 1, 2}};
 
     p0 = p[face_table[isect.subface_id][0]];
     p1 = p[face_table[isect.subface_id][1]];
@@ -2117,7 +2112,7 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
     real3 p10 = p1 - p0;
     real3 p20 = p2 - p0;
     real3 n = cross(p10, p20);
-    //printf("n = %f, %f, %f\n", n[0], n[1], n[2]);
+    // printf("n = %f, %f, %f\n", n[0], n[1], n[2]);
     n.normalize();
 
     isect.geometric = n;

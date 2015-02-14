@@ -294,8 +294,8 @@ RaytraceEngine::RaytraceEngine()
 
 RaytraceEngine::~RaytraceEngine() { sRaytraceEngine = NULL; }
 
-void RaytraceEngine::SetCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up,
-                               GLfloat fov) {
+void RaytraceEngine::SetCamera(const GLfloat *eye, const GLfloat *target,
+                               const GLfloat *up, GLfloat fov) {
   if (camera_) {
     delete camera_;
   }
@@ -314,8 +314,10 @@ void RaytraceEngine::SetCamera(const GLfloat *eye, const GLfloat *target, const 
   camera_ = new Camera(veye, vtarget, vup, fov, ortho);
 }
 
-void RaytraceEngine::SetStereoEnvCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up,
-                               GLfloat zeroParallax, GLfloat eyeSeparation) {
+void RaytraceEngine::SetStereoEnvCamera(const GLfloat *eye,
+                                        const GLfloat *target,
+                                        const GLfloat *up, GLfloat zeroParallax,
+                                        GLfloat eyeSeparation) {
   if (camera_) {
     delete camera_;
   }
@@ -709,11 +711,13 @@ bool RaytraceEngine::OnData() {
                     camera_->getEye();
             }
 #else
-          
+
             if (camera_->isStereoEnv()) {
-              camera_->generateStereoEnvRay(org, dir, (float)px + u + step / 2.0f, (float)py + v - step / 2.0f + 1.0f, width, height);
-              //printf("org = %f, %f, %f\n", org[0], org[1], org[2]);
-              //printf("dir = %f, %f, %f\n", dir[0], dir[1], dir[2]);
+              camera_->generateStereoEnvRay(
+                  org, dir, (float)px + u + step / 2.0f,
+                  (float)py + v - step / 2.0f + 1.0f, width, height);
+              // printf("org = %f, %f, %f\n", org[0], org[1], org[2]);
+              // printf("dir = %f, %f, %f\n", dir[0], dir[1], dir[2]);
 
             } else if (camera_->isOrtho()) {
               // Add +1.0f in Y to match OpenGL's rasterizer rule.
