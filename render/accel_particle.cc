@@ -1856,7 +1856,7 @@ bool ParticleAccel::Build32(const Particles *particles,
   trace("[ParticleAccel] # of nodes = %lu\n", nodes_.size());
 
   trace("  ParticleAccel : %llu MB\n",
-         sizeof(ParticleNode) * nodes_.size() / (1024ULL * 1014ULL));
+        sizeof(ParticleNode) * nodes_.size() / (1024ULL * 1014ULL));
 
   // Store pointer
   particles_ = particles;
@@ -3100,7 +3100,7 @@ bool ParticleAccel::Traverse(Intersection &isect, Ray &ray) const {
 
       if (hitmask) {
 
-        int mask[2] = {(hitmask >> 1) & 0x1, (hitmask) & 0x1};
+        int mask[2] = {(hitmask >> 1) & 0x1, (hitmask)&0x1};
 
         int orderNear = dirSign[node.axis];
         int orderFar = 1 - orderNear;

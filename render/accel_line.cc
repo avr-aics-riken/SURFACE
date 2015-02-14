@@ -57,7 +57,9 @@ inline real GetRadius(const Lines *lines, unsigned int index) {
 }
 
 inline real3 GetPosition(const Lines *lines, unsigned int index) {
-  return real3(&lines->positions[3 * index]);
+  return real3(lines->positions[3 * index + 0],
+               lines->positions[3 * index + 1],
+               lines->positions[3 * index + 2]);
 }
 
 inline real GetMin(real a, real b) { return (a < b) ? a : b; }
@@ -74,8 +76,10 @@ inline void GetBoundingBoxOfLine(real3 &bmin, real3 &bmax, const Lines *lines,
   real r0 = GetRadius(lines, 2 * index + 0);
   real r1 = GetRadius(lines, 2 * index + 1);
 
-  real3 points[4] = {p0 - real3(r0, r0, r0), p0 + real3(r0, r0, r0),
-                     p1 - real3(r1, r1, r1), p1 + real3(r1, r1, r1), };
+  real3 points[4] = {
+      p0 - real3(r0, r0, r0), p0 + real3(r0, r0, r0), p1 - real3(r1, r1, r1),
+      p1 + real3(r1, r1, r1),
+  };
 
   bmin = points[0];
   bmax = points[0];
@@ -289,6 +293,8 @@ bool LineAccel::Build(const Lines *lines, const LineBuildOptions &options) {
 
   size_t n = lines->numLines;
   trace("[LineAccel] Input # of lines = %lu\n", n);
+
+  assert(n > 0);
 
   //
   // 1. Create triangle indices(this will be permutated in BuildTree)
@@ -512,12 +518,12 @@ bool TestLeafNode(Intersection &isect, // [inout]
 
   bool hit = false;
 
-  unsigned int numTriangles = node.data[0];
+  unsigned int numLines = node.data[0];
   unsigned int offset = node.data[1];
 
   real t = isect.t; // current hit distance
 
-  for (unsigned int i = 0; i < numTriangles; i++) {
+  for (unsigned int i = 0; i < numLines; i++) {
     unsigned int index = indices[i + offset];
 
     real3 p0 = GetPosition(lines, 2 * index + 0);
@@ -554,6 +560,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
   return hit;
 }
 
+#if 0
 //
 // Z-up
 //
@@ -574,6 +581,7 @@ inline void XYZToUV(real &theta, real &phi, const real3 &v) {
     z = 1.0;
   theta = acos(z);
 }
+#endif
 
 void BuildIntersection(Intersection &isect, const Lines *lines, Ray &ray) {
   real v = isect.v;

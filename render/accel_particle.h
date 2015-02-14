@@ -22,8 +22,8 @@ namespace render {
 /// Represents particle BVH node.
 class ParticleNode {
 public:
-  ParticleNode() {};
-  ~ParticleNode() {};
+  ParticleNode(){};
+  ~ParticleNode(){};
 
   // 2-ary BVH
   real bmin[2][3];
@@ -66,8 +66,8 @@ struct ParticleBuildStatistics {
 /// Particle BVH acceleration class.
 class ParticleAccel {
 public:
-  ParticleAccel() {};
-  ~ParticleAccel() {};
+  ParticleAccel(){};
+  ~ParticleAccel(){};
 
   /// Build Particle for input particles.
   bool Build(const Particles *particles, const ParticleBuildOptions &options);

@@ -36,7 +36,7 @@ void Context::glFinish() {
 
   // build sparse volume texture.
   for (size_t i = 0; i < sparseTextureList_.size(); i++) {
-    Texture* tex = sparseTextureList_[i];
+    Texture *tex = sparseTextureList_[i];
     tex->BuildSparseTexture();
   }
 

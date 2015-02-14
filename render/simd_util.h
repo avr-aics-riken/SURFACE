@@ -63,17 +63,11 @@ typedef __m256 float8;
 typedef __m256d double4;
 #endif
 #else
-typedef struct {
-  float v[4];
-} float4;
+typedef struct { float v[4]; } float4;
 
-typedef struct {
-  int v[4];
-} int4;
+typedef struct { int v[4]; } int4;
 
-typedef struct {
-  unsigned int v[4];
-} uint4;
+typedef struct { unsigned int v[4]; } uint4;
 #endif
 
 // ----------------------------------------------------------------------------
@@ -243,7 +237,8 @@ static inline float4 vgather_left_f4(const float4 &v, const int mask) {
       _mm_set_epi32(0x80808080, 0x80808080, 0x0f0e0d0c, 0x0b0a0908),
       _mm_set_epi32(0x80808080, 0x0f0e0d0c, 0x0b0a0908, 0x03020100),
       _mm_set_epi32(0x80808080, 0x0f0e0d0c, 0x0b0a0908, 0x07060504),
-      _mm_set_epi32(0x0f0e0d0c, 0x0b0a0908, 0x07060504, 0x03020100), };
+      _mm_set_epi32(0x0f0e0d0c, 0x0b0a0908, 0x07060504, 0x03020100),
+  };
 
   return vcasttof4_i4(_mm_shuffle_epi8(vcasttoi4_f4(v), maskTable[mask]));
 #else
@@ -290,7 +285,8 @@ static inline float4 vgather_right_f4(const float4 &v, const int mask) {
       _mm_set_epi32(0x0f0e0d0c, 0x0b0a0908, 0x80808080, 0x80808080),
       _mm_set_epi32(0x0f0e0d0c, 0x0b0a0908, 0x03020100, 0x80808080),
       _mm_set_epi32(0x0f0e0d0c, 0x0b0a0908, 0x07060504, 0x80808080),
-      _mm_set_epi32(0x0f0e0d0c, 0x0b0a0908, 0x07060504, 0x03020100), };
+      _mm_set_epi32(0x0f0e0d0c, 0x0b0a0908, 0x07060504, 0x03020100),
+  };
 
   return vcasttof4_i4(_mm_shuffle_epi8(vcasttoi4_f4(v), maskTable[mask]));
 #else

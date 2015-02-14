@@ -149,13 +149,14 @@ void Context::lsglSetPointSizev(GLsizei num, const GLfloat *size) {
                   "\"lsgl_PointSize\" in VertexAttribute insted.");
 }
 
-void Context::lsglSetCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up,
-                            GLfloat fov) {
+void Context::lsglSetCamera(const GLfloat *eye, const GLfloat *target,
+                            const GLfloat *up, GLfloat fov) {
   engine_.SetCamera(eye, target, up, fov);
 }
 
-void Context::lsglSetStereoEnvCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up,
-                            GLfloat zeroParallax, GLfloat eyeSeparation) {
+void Context::lsglSetStereoEnvCamera(const GLfloat *eye, const GLfloat *target,
+                                     const GLfloat *up, GLfloat zeroParallax,
+                                     GLfloat eyeSeparation) {
   engine_.SetStereoEnvCamera(eye, target, up, zeroParallax, eyeSeparation);
 }
 
@@ -184,7 +185,7 @@ void Context::lsglEvalFragmentShader() {
 
   // Build sparse texture if necessary.
   for (size_t i = 0; i < sparseTextureList_.size(); i++) {
-    Texture* tex = sparseTextureList_[i];
+    Texture *tex = sparseTextureList_[i];
     tex->BuildSparseTexture();
   }
 
