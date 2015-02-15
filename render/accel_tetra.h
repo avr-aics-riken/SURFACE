@@ -22,8 +22,8 @@ namespace render {
 /// Tetra BVH node
 class TetraNode {
 public:
-  TetraNode() {};
-  ~TetraNode() {};
+  TetraNode(){};
+  ~TetraNode(){};
 
   real bmin[3];
   real bmax[3];
@@ -61,14 +61,15 @@ struct TetraBuildStatistics {
   int numBranchNodes;
 
   // Set default value: Taabb = 0.2
-  TetraBuildStatistics() : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
+  TetraBuildStatistics()
+      : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
 };
 
 /// Tetra Acceleration class
 class TetraAccel {
 public:
-  TetraAccel() {};
-  ~TetraAccel() {};
+  TetraAccel(){};
+  ~TetraAccel(){};
 
   /// Build BVH for input tetra.
   bool Build(const Tetrahedron *tetras, const TetraBuildOptions &options);
@@ -87,7 +88,7 @@ public:
 
   // @todo
   /// Traverse into BVH along ray and find all hit points
-  //bool TraverseMultiHit(std::vector<Intersection> &isects, Ray &ray) const;
+  // bool TraverseMultiHit(std::vector<Intersection> &isects, Ray &ray) const;
 
   /// Get the bounding box of BVH. Valid after Build().
   void BoundingBox(double bmin[3], double bmax[3]) const;

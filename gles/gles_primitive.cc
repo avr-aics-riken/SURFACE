@@ -25,7 +25,8 @@ void Context::glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     return;
   }
 
-  if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES) && (mode != GL_TETRAHEDRONS_EXT)) {
+  if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES) &&
+      (mode != GL_TETRAHEDRONS_EXT)) {
     return SetGLError(GL_INVALID_ENUM);
   }
 
@@ -93,7 +94,8 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
   }
 
   // assume triangle or point input.
-  if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES) && (mode != GL_TETRAHEDRONS_EXT)) {
+  if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES) &&
+      (mode != GL_TETRAHEDRONS_EXT)) {
     return SetGLError(GL_INVALID_ENUM);
   }
 
@@ -201,17 +203,45 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     particleAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(particleAccel);
   } else if (mode == GL_LINES) {
-    AccelBuilder::LineAccelerator *lineAccel = meshBuilder_.BuildLineAccel(
-        elembuf, posbuf, isDoublePrecisionPos,
-        &state_.vertexAttributes[k].at(0), count,
-        (GLubyte *)indices - (GLubyte *)NULL, state_.lineWidth);
+
+    float lineSize = state_.lineWidth;
+
+    // Find a vertex attribute of line size if avaiable.
+    const float *lineSizeV = NULL;
+    GLsizei lineSizeVLen = 0;
+
+    GLuint lineSizeVPos = prg->GetVaryingLocation("lsgl_LineWidth");
+    const VertexAttribute *lineSizeAttr =
+        &state_.vertexAttributes[k][lineSizeVPos];
+
+    if (lineSizeAttr) {
+
+      if ((lineSizeAttr->size == 1) && (attrPos->type == GL_FLOAT) &&
+          (lineSizeAttr->normalized == GL_FALSE) &&
+          (lineSizeAttr->stride == (sizeof(float))) &&
+          (lineSizeAttr->enabled)) {
+
+        Buffer *buf = resourceManager_.GetBuffer(lineSizeAttr->handle);
+        if (buf) {
+          lineSizeVLen = buf->GetSize() / sizeof(float);
+          lineSizeV = reinterpret_cast<const float *>(buf->GetData());
+        }
+      }
+    }
+
+    AccelBuilder::LineAccelerator *lineAccel =
+        meshBuilder_.BuildLineAccel(elembuf, posbuf, isDoublePrecisionPos,
+                                    &state_.vertexAttributes[k].at(0), count,
+                                    (GLubyte *)indices - (GLubyte *)NULL,
+                                    lineSize, lineSizeV, lineSizeVLen);
     lineAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(lineAccel);
+
   } else if (mode == GL_TETRAHEDRONS_EXT) {
     AccelBuilder::TetraAccelerator *tetraAccel =
         meshBuilder_.BuildTetraAccel(elembuf, posbuf, isDoublePrecisionPos,
-                           &state_.vertexAttributes[k].at(0),
-                           count, (GLubyte *)indices - (GLubyte *)NULL);
+                                     &state_.vertexAttributes[k].at(0), count,
+                                     (GLubyte *)indices - (GLubyte *)NULL);
     assert(tetraAccel);
     tetraAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(tetraAccel);

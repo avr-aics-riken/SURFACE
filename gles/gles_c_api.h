@@ -507,11 +507,13 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
       target, level, xoffset, yoffset, width, height, format, type, pixels);
 }
 
-void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
-                     GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type,
+void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                     GLint zoffset, GLsizei width, GLsizei height,
+                     GLsizei depth, GLenum format, GLenum type,
                      const GLvoid *pixels) {
-  Context::GetCurrentContext().glTexSubImage3D(
-      target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+  Context::GetCurrentContext().glTexSubImage3D(target, level, xoffset, yoffset,
+                                               zoffset, width, height, depth,
+                                               format, type, pixels);
 }
 
 void glUniform1f(GLint location, GLfloat x) {
@@ -675,12 +677,16 @@ void lsglSetPointSizev(GLsizei num, const GLfloat *size) {
   Context::GetCurrentContext().lsglSetPointSizev(num, size);
 }
 
-void lsglSetCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up, GLfloat fov) {
+void lsglSetCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up,
+                   GLfloat fov) {
   Context::GetCurrentContext().lsglSetCamera(eye, target, up, fov);
 }
 
-void lsglSetStereoEnvCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up, GLfloat zeroParallax, GLfloat eyeSeparation) {
-  Context::GetCurrentContext().lsglSetStereoEnvCamera(eye, target, up, zeroParallax, eyeSeparation);
+void lsglSetStereoEnvCamera(const GLfloat *eye, const GLfloat *target,
+                            const GLfloat *up, GLfloat zeroParallax,
+                            GLfloat eyeSeparation) {
+  Context::GetCurrentContext().lsglSetStereoEnvCamera(
+      eye, target, up, zeroParallax, eyeSeparation);
 }
 
 void lsglInvalidateBuffer(GLenum target) {
@@ -715,25 +721,28 @@ void lsglTexImage3DPointer(GLenum target, GLint level, GLint internalformat,
 }
 
 // Add coordinate remapping feature for non-uniform volume data
-void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, GLfloat* coords) {
-  Context::GetCurrentContext().lsglTexCoordRemap(
-      target, coord, size, coords);
+void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size,
+                       GLfloat *coords) {
+  Context::GetCurrentContext().lsglTexCoordRemap(target, coord, size, coords);
 }
 
 // Alias for glTexPageCommitmentARB
-void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit) {
+void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset,
+                           GLint yoffset, GLint zoffset, GLsizei width,
+                           GLsizei height, GLsizei depth, GLboolean commit) {
   Context::GetCurrentContext().lsglTexPageCommitment(
       target, level, xoffset, yoffset, zoffset, width, height, depth, commit);
 }
 
 // Zero-copy version of glTexSubImage3D(for saving memory)
-void lsglTexSubImage3DPointer(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
-                     GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type,
-                     const GLvoid *pixels) {
+void lsglTexSubImage3DPointer(GLenum target, GLint level, GLint xoffset,
+                              GLint yoffset, GLint zoffset, GLsizei width,
+                              GLsizei height, GLsizei depth, GLenum format,
+                              GLenum type, const GLvoid *pixels) {
   Context::GetCurrentContext().lsglTexSubImage3DPointer(
-      target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+      target, level, xoffset, yoffset, zoffset, width, height, depth, format,
+      type, pixels);
 }
-
 }
 
 #endif // __LSGL_GLES_C_API_H__

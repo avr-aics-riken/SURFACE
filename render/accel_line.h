@@ -22,8 +22,8 @@ namespace render {
 /// Represents node data for line BVH accelerator.
 class LineNode {
 public:
-  LineNode() {};
-  ~LineNode() {};
+  LineNode(){};
+  ~LineNode(){};
 
   real bmin[3];
   real bmax[3];
@@ -64,8 +64,8 @@ struct LineBuildStatistics {
 /// Line BVH accelerator class
 class LineAccel {
 public:
-  LineAccel() {};
-  ~LineAccel() {};
+  LineAccel(){};
+  ~LineAccel(){};
 
   /// Build BVH for input lines.
   bool Build(const Lines *particles, const LineBuildOptions &options);

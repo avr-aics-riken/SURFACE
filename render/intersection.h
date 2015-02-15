@@ -23,15 +23,15 @@ struct Intersection {
   unsigned int subface_id; // For tetra primitive
 
   real3 position;
-  real3 geometric;  // geometric_normal
-  real3 normal;     // shading normal
+  real3 geometric; // geometric_normal
+  real3 normal;    // shading normal
   real3 tangent;
   real3 binormal;
 
   unsigned int f0;
   unsigned int f1;
   unsigned int f2;
-  unsigned int f3;    // for tetra primitive
+  unsigned int f3; // for tetra primitive
 
 #ifdef ENABLE_TRAVERSE_PROFILING
   unsigned int numTriangleTests_;

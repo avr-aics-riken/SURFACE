@@ -32,10 +32,13 @@ public:
   ~RaytraceEngine();
 
   /// Set camera where ray is traced from.
-  void SetCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up, GLfloat fov);
+  void SetCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up,
+                 GLfloat fov);
 
   /// Set panoramic environment camera.
-  void SetStereoEnvCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up, GLfloat zeroParallax, GLfloat eyeSeparation);
+  void SetStereoEnvCamera(const GLfloat *eye, const GLfloat *target,
+                          const GLfloat *up, GLfloat zeroParallax,
+                          GLfloat eyeSeparation);
 
   // Evented method
   //

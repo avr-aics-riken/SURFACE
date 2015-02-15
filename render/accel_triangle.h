@@ -21,8 +21,8 @@ namespace render {
 /// Triangle BVH node
 class TriangleNode {
 public:
-  TriangleNode() {};
-  ~TriangleNode() {};
+  TriangleNode(){};
+  ~TriangleNode(){};
 
   real bmin[2][3];
   real bmax[2][3];
@@ -60,14 +60,15 @@ struct TriangleBuildStatistics {
   int numBranchNodes;
 
   // Set default value: Taabb = 0.2
-  TriangleBuildStatistics() : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
+  TriangleBuildStatistics()
+      : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
 };
 
 /// Triangle BVH acceleration class
 class TriangleAccel {
 public:
-  TriangleAccel() {};
-  ~TriangleAccel() {};
+  TriangleAccel(){};
+  ~TriangleAccel(){};
 
   /// Build Triangle BVH for input mesh.
   bool Build(const Mesh *mesh, const TriangleBuildOptions &options);

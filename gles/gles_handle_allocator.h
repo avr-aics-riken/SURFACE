@@ -22,8 +22,8 @@ namespace lsgl {
 class HandleAllocator {
 public:
   // id = 0 is reserved.
-  HandleAllocator() : counter_(1) {};
-  ~HandleAllocator() {};
+  HandleAllocator() : counter_(1){};
+  ~HandleAllocator(){};
 
   /// Allocates handle object.
   GLuint Allocate() {
