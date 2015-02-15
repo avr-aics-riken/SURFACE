@@ -17,8 +17,7 @@ namespace render {
 /// Camera class
 class Camera {
 public:
-  Camera(real3 eye, real3 lookat, real3 up, float fov,
-         bool isOrtho = false) {
+  Camera(real3 eye, real3 lookat, real3 up, float fov, bool isOrtho = false) {
     m_eye = eye;
     m_lookat = lookat;
     m_up = up;
@@ -41,8 +40,8 @@ public:
   }
 
   // Create stereo environment camera
-  Camera(real3 eye, real3 lookat, real3 up,
-         float zeroParallax, float eyeSeparation) {
+  Camera(real3 eye, real3 lookat, real3 up, float zeroParallax,
+         float eyeSeparation) {
     m_eye = eye;
     m_lookat = lookat;
     m_up = up;
@@ -80,8 +79,8 @@ public:
   inline bool isStereoEnv() const { return m_isStereoEnv; }
 
   /// Env & stereo camera(longitude-latitude coordinate)
-  void generateStereoEnvRay(real3& org, real3 &dir, float imageU, float imageV, int imageWidth,
-                      int imageHeight);
+  void generateStereoEnvRay(real3 &org, real3 &dir, float imageU, float imageV,
+                            int imageWidth, int imageHeight);
 
 private:
   real3 m_eye;

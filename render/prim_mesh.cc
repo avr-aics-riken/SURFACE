@@ -19,9 +19,9 @@ using namespace lsgl::render;
 static float radians(float x) { return x * M_PI / 180.0f; }
 
 static inline real3 select_normal(const real3 &nv, const real3 &nt,
-                                    float limit_cos) {
-  float lv = nv.length()*nv.length();
-  float lt = nt.length()*nt.length();
+                                  float limit_cos) {
+  float lv = nv.length() * nv.length();
+  float lt = nt.length() * nt.length();
   int n = 0;
   if (lv != 0)
     n |= 1;
@@ -57,9 +57,9 @@ bool Mesh::CalculateNormals(float limit_angle) {
     unsigned int i0 = faces[3 * i + 0];
     unsigned int i1 = faces[3 * i + 1];
     unsigned int i2 = faces[3 * i + 2];
-    real3 p0(vertices[3*i0+0], vertices[3*i0+1], vertices[3*i0+2]);
-    real3 p1(vertices[3*i1+0], vertices[3*i1+1], vertices[3*i1+2]);
-    real3 p2(vertices[3*i2+0], vertices[3*i2+1], vertices[3*i2+2]);
+    real3 p0(vertices[3 * i0 + 0], vertices[3 * i0 + 1], vertices[3 * i0 + 2]);
+    real3 p1(vertices[3 * i1 + 0], vertices[3 * i1 + 1], vertices[3 * i1 + 2]);
+    real3 p2(vertices[3 * i2 + 0], vertices[3 * i2 + 1], vertices[3 * i2 + 2]);
     real3 e1 = p1 - p0;
     real3 e2 = p2 - p0;
     real3 n = cross(e1, e2);
@@ -68,7 +68,7 @@ bool Mesh::CalculateNormals(float limit_angle) {
     nv[i1] = nv[i1] + n;
     nv[i2] = nv[i2] + n;
 
-	real3 nn = n;
+    real3 nn = n;
     nt[i] = nn.normalize();
   }
 

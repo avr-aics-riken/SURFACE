@@ -19,7 +19,7 @@ GL_APICALL void GL_APIENTRY lsglSetPointSize(GLfloat size);
 GL_APICALL void GL_APIENTRY lsglSetPointSizev(GLsizei num, const GLfloat *size);
 
 GL_APICALL void GL_APIENTRY
-lsglSetCamera(GLfloat *eye, GLfloat *target, GLfloat *up, GLfloat fov);
+    lsglSetCamera(GLfloat *eye, GLfloat *target, GLfloat *up, GLfloat fov);
 
 GL_APICALL void GL_APIENTRY lsglInvalidateBuffer(GLenum target);
 
@@ -40,7 +40,7 @@ void GL_APIENTRY glAttachShader(GLuint program, GLuint shader) {
 }
 
 void GL_APIENTRY
-glBindAttribLocation(GLuint program, GLuint index, const GLchar *name) {
+    glBindAttribLocation(GLuint program, GLuint index, const GLchar *name) {
   Context::GetCurrentContext().glBindAttribLocation(program, index, name);
 }
 
@@ -61,7 +61,7 @@ void GL_APIENTRY glBindTexture(GLenum target, GLuint texture) {
 }
 
 void GL_APIENTRY
-glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) {
+    glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) {
   Context::GetCurrentContext().glBlendColor(red, green, blue, alpha);
 }
 
@@ -83,8 +83,8 @@ void GL_APIENTRY glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB,
                                                    dstAlpha);
 }
 
-void GL_APIENTRY
-glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage) {
+void GL_APIENTRY glBufferData(GLenum target, GLsizeiptr size,
+                              const GLvoid *data, GLenum usage) {
   Context::GetCurrentContext().glBufferData(target, size, data, usage);
 }
 
@@ -102,7 +102,7 @@ void GL_APIENTRY glClear(GLbitfield mask) {
 }
 
 void GL_APIENTRY
-glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) {
+    glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) {
   Context::GetCurrentContext().glClearColor(red, green, blue, alpha);
 }
 
@@ -114,8 +114,8 @@ void GL_APIENTRY glClearStencil(GLint s) {
   Context::GetCurrentContext().glClearStencil(s);
 }
 
-void GL_APIENTRY
-glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) {
+void GL_APIENTRY glColorMask(GLboolean red, GLboolean green, GLboolean blue,
+                             GLboolean alpha) {
   Context::GetCurrentContext().glColorMask(red, green, blue, alpha);
 }
 
@@ -218,8 +218,8 @@ void GL_APIENTRY glDrawArrays(GLenum mode, GLint first, GLsizei count) {
   Context::GetCurrentContext().glDrawArrays(mode, first, count);
 }
 
-void GL_APIENTRY
-glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices) {
+void GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum type,
+                                const GLvoid *indices) {
   Context::GetCurrentContext().glDrawElements(mode, count, type, indices);
 }
 
@@ -302,7 +302,7 @@ void GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean *params) {
 }
 
 void GL_APIENTRY
-glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params) {
+    glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params) {
   Context::GetCurrentContext().glGetBufferParameteriv(target, pname, params);
 }
 
@@ -315,8 +315,8 @@ void GL_APIENTRY glGetFloatv(GLenum pname, GLfloat *params) {
 }
 
 void GL_APIENTRY
-glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment,
-                                      GLenum pname, GLint *params) {
+    glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment,
+                                          GLenum pname, GLint *params) {
   Context::GetCurrentContext().glGetFramebufferAttachmentParameteriv(
       target, attachment, pname, params);
 }
@@ -336,7 +336,7 @@ void GL_APIENTRY glGetProgramInfoLog(GLuint program, GLsizei bufsize,
 }
 
 void GL_APIENTRY
-glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params) {
+    glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params) {
   Context::GetCurrentContext().glGetRenderbufferParameteriv(target, pname,
                                                             params);
 }
@@ -369,17 +369,17 @@ const GLubyte *GL_APIENTRY glGetString(GLenum name) {
 }
 
 void GL_APIENTRY
-glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params) {
+    glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params) {
   Context::GetCurrentContext().glGetTexParameterfv(target, pname, params);
 }
 
 void GL_APIENTRY
-glGetTexParameteriv(GLenum target, GLenum pname, GLint *params) {
+    glGetTexParameteriv(GLenum target, GLenum pname, GLint *params) {
   Context::GetCurrentContext().glGetTexParameteriv(target, pname, params);
 }
 
 void GL_APIENTRY
-glGetUniformfv(GLuint program, GLint location, GLfloat *params) {
+    glGetUniformfv(GLuint program, GLint location, GLfloat *params) {
   Context::GetCurrentContext().glGetUniformfv(program, location, params);
 }
 
@@ -392,17 +392,17 @@ int GL_APIENTRY glGetUniformLocation(GLuint program, const GLchar *name) {
 }
 
 void GL_APIENTRY
-glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat *params) {
+    glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat *params) {
   Context::GetCurrentContext().glGetVertexAttribfv(index, pname, params);
 }
 
 void GL_APIENTRY
-glGetVertexAttribiv(GLuint index, GLenum pname, GLint *params) {
+    glGetVertexAttribiv(GLuint index, GLenum pname, GLint *params) {
   Context::GetCurrentContext().glGetVertexAttribiv(index, pname, params);
 }
 
 void GL_APIENTRY
-glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid **pointer) {
+    glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid **pointer) {
   Context::GetCurrentContext().glGetVertexAttribPointerv(index, pname, pointer);
 }
 
@@ -495,7 +495,7 @@ void GL_APIENTRY glStencilFunc(GLenum func, GLint ref, GLuint mask) {
 }
 
 void GL_APIENTRY
-glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask) {
+    glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask) {
   Context::GetCurrentContext().glStencilFuncSeparate(face, func, ref, mask);
 }
 
@@ -512,7 +512,7 @@ void GL_APIENTRY glStencilOp(GLenum fail, GLenum zfail, GLenum zpass) {
 }
 
 void GL_APIENTRY
-glStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass) {
+    glStencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass) {
   Context::GetCurrentContext().glStencilOpSeparate(face, fail, zfail, zpass);
 }
 
@@ -539,7 +539,7 @@ void GL_APIENTRY glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
 }
 
 void GL_APIENTRY
-glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params) {
+    glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params) {
   Context::GetCurrentContext().glTexParameterfv(target, pname, params);
 }
 
@@ -548,7 +548,7 @@ void GL_APIENTRY glTexParameteri(GLenum target, GLenum pname, GLint param) {
 }
 
 void GL_APIENTRY
-glTexParameteriv(GLenum target, GLenum pname, const GLint *params) {
+    glTexParameteriv(GLenum target, GLenum pname, const GLint *params) {
   Context::GetCurrentContext().glTexParameteriv(target, pname, params);
 }
 
@@ -609,7 +609,7 @@ void GL_APIENTRY glUniform3iv(GLint location, GLsizei count, const GLint *v) {
 }
 
 void GL_APIENTRY
-glUniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
+    glUniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
   Context::GetCurrentContext().glUniform4f(location, x, y, z, w);
 }
 
@@ -618,7 +618,7 @@ void GL_APIENTRY glUniform4fv(GLint location, GLsizei count, const GLfloat *v) {
 }
 
 void GL_APIENTRY
-glUniform4i(GLint location, GLint x, GLint y, GLint z, GLint w) {
+    glUniform4i(GLint location, GLint x, GLint y, GLint z, GLint w) {
   Context::GetCurrentContext().glUniform4i(location, x, y, z, w);
 }
 
@@ -669,7 +669,7 @@ void GL_APIENTRY glVertexAttrib2fv(GLuint indx, const GLfloat *values) {
 }
 
 void GL_APIENTRY
-glVertexAttrib3f(GLuint indx, GLfloat x, GLfloat y, GLfloat z) {
+    glVertexAttrib3f(GLuint indx, GLfloat x, GLfloat y, GLfloat z) {
   Context::GetCurrentContext().glVertexAttrib3f(indx, x, y, z);
 }
 
@@ -678,7 +678,7 @@ void GL_APIENTRY glVertexAttrib3fv(GLuint indx, const GLfloat *values) {
 }
 
 void GL_APIENTRY
-glVertexAttrib4f(GLuint indx, GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
+    glVertexAttrib4f(GLuint indx, GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
   Context::GetCurrentContext().glVertexAttrib4f(indx, x, y, z, w);
 }
 
@@ -705,12 +705,12 @@ GL_APICALL void GL_APIENTRY lsglSetPointSize(GLfloat size) {
 }
 
 GL_APICALL void GL_APIENTRY
-lsglSetPointSizev(GLsizei num, const GLfloat *size) {
+    lsglSetPointSizev(GLsizei num, const GLfloat *size) {
   Context::GetCurrentContext().lsglSetPointSizev(num, size);
 }
 
 GL_APICALL void GL_APIENTRY
-lsglSetCamera(GLfloat *eye, GLfloat *target, GLfloat *up, GLfloat fov) {
+    lsglSetCamera(GLfloat *eye, GLfloat *target, GLfloat *up, GLfloat fov) {
   Context::GetCurrentContext().lsglSetCamera(eye, target, up, fov);
 }
 

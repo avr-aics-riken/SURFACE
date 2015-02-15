@@ -47,7 +47,10 @@
 namespace lsgl {
 namespace render {
 
-typedef enum { NODE_TYPE_INTERMEDIATE = 0, NODE_TYPE_LEAF = 1, } NodeType;
+typedef enum {
+  NODE_TYPE_INTERMEDIATE = 0,
+  NODE_TYPE_LEAF = 1,
+} NodeType;
 
 // @todo { save memory }
 struct NodeInfo32 {
