@@ -99,7 +99,8 @@ private:
   TriangleBuildStatistics stats_;
   const Mesh *mesh_;
 
-  double bmin_[3], bmax_[3]; // Bounding box of whole tree
+  double bmin_[3], bmax_[3];  // Bounding box of whole tree
+  double epsScale_;           // Epsilon scale(depends on the size of scene bounding box)
 };
 
 } // namespace render
