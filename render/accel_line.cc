@@ -48,6 +48,20 @@ using namespace lsgl::render;
 
 namespace {
 
+#if RENDER_USE_DOUBLE_PRECISION
+const real kEPS = 2.0e-15;
+#else
+const real kEPS = 1.0e-6f;
+#endif
+
+typedef struct {
+  real t;
+  real u;
+  real v;
+  bool hitCap;
+  unsigned int prim_id;
+} CylinderIntersection;
+
 inline real GetRadius(const Lines *lines, unsigned int index) {
   if (lines->radius) {
     return lines->radius[index];
@@ -417,8 +431,13 @@ inline real vdot(real3 a, real3 b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
+inline real3 vneg(real3 a) {
+  real3 c(-a[0], -a[1], -a[2]);
+  return c;
+}
+
 inline real3 vnormalize(real3 a) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 
   real3 v;
   real len = sqrt(vdot(a, a));
@@ -466,9 +485,10 @@ int solve2e(real root[], real A, real B, real C) {
   }
 }
 
-inline bool CylinderIsect(real *pt, real *pu, real *pv, const real3 &p0,
+inline bool CylinderIsect(real *pt, real *pu, real *pv, bool& hitCap, const real3 &p0,
                           real r0, const real3 &p1, real r1,
-                          const real3 &rayOrg, const real3 &rayDir) {
+                          const real3 &rayOrg, const real3 &rayDir, bool cap) {
+
   real tmax = *pt;
   real rr = std::max<real>(r0, r1);
   real3 ORG = rayOrg;
@@ -480,10 +500,53 @@ inline bool CylinderIsect(real *pt, real *pu, real *pv, const real3 &p0,
   real nd = vdot(n, d);
   real dd = vdot(d, d);
 
+  hitCap = false;
+  real capT = std::numeric_limits<real>::max(); // far
+
+  if (cap) {
+    real3 dN0 = vnormalize(p0 - p1);
+    real3 dN1 = vneg(dN0);
+    real3 rd = vnormalize(rayDir);
+
+    if (fabs(vdot(rayDir, dN0)) > kEPS) {
+
+      // test with 2 planes
+      real p0D = -vdot(p0, dN0); // plane D
+      real p1D = -vdot(p1, dN1); // plane D
+      
+      real p0T = -(vdot(rayOrg, dN0) + p0D) / vdot(rd, dN0);
+      real p1T = -(vdot(rayOrg, dN1) + p1D) / vdot(rd, dN1);
+
+      real3 q0 = rayOrg + p0T * rd;
+      real3 q1 = rayOrg + p1T * rd;
+
+      real qp0Sqr = vdot(q0 - p0, q0 - p0);
+      real qp1Sqr = vdot(q1 - p1, q1 - p1);
+      //printf("p0T = %f, p1T = %f, q0Sqr = %f, rr^2 = %f\n", p0T, p1T, q0Sqr, rr*rr);
+
+      if (p0T > 0.0 && p0T < tmax && (qp0Sqr < rr * rr)) {
+        // hit p0's plane
+        hitCap = true;
+        capT = p0T;
+        *pt = capT;
+        *pu = sqrt(qp0Sqr);
+        *pv = 0;
+      }
+
+      if (p1T > 0.0 && p1T < tmax && p1T < capT && (qp1Sqr < rr * rr)) {
+        hitCap = true;
+        capT = p1T;
+        *pt = capT;
+        *pu = sqrt(qp1Sqr);
+        *pv = 1.0;
+      }
+    }
+  }
+
   if (md <= 0.0 && nd <= 0.0)
-    return false;
+    return hitCap;
   if (md >= dd && nd >= 0.0)
-    return false;
+    return hitCap;
 
   real nn = vdot(n, n);
   real mn = vdot(m, n);
@@ -496,10 +559,11 @@ inline bool CylinderIsect(real *pt, real *pu, real *pv, const real3 &p0,
   int nRet = solve2e(root, A, B, C);
   if (nRet) {
     real t = root[0];
-    if (0 <= t && t <= tmax) {
+    if (0 <= t && t <= tmax && t <= capT) {
       real s = md + t * nd;
       s /= dd;
       if (0 <= s && s <= 1) {
+        hitCap = false;
         *pt = t;
         *pu = 0;
         *pv = s;
@@ -508,10 +572,10 @@ inline bool CylinderIsect(real *pt, real *pu, real *pv, const real3 &p0,
       }
     }
   }
-  return false;
+  return hitCap;
 }
 
-bool TestLeafNode(Intersection &isect, // [inout]
+bool TestLeafNode(CylinderIntersection &isect, // [inout]
                   const LineNode &node,
                   const std::vector<unsigned int> &indices, const Lines *lines,
                   const Ray &ray) {
@@ -545,11 +609,15 @@ bool TestLeafNode(Intersection &isect, // [inout]
     rayDir[1] = ray.direction()[1];
     rayDir[2] = ray.direction()[2];
 
-    if (CylinderIsect(&t, &u, &v, p0, r0, p1, r1, rayOrg, rayDir)) {
+    bool capTest = true; // @fixme
+
+    bool hitCap = false;
+    if (CylinderIsect(&t, &u, &v, hitCap, p0, r0, p1, r1, rayOrg, rayDir, capTest)) {
       // Update isect state
       isect.t = t;
       isect.u = u;
       isect.v = v;
+      isect.hitCap = hitCap;
 
       // u and v are computed in later.
       isect.prim_id = index;
@@ -583,7 +651,13 @@ inline void XYZToUV(real &theta, real &phi, const real3 &v) {
 }
 #endif
 
-void BuildIntersection(Intersection &isect, const Lines *lines, Ray &ray) {
+void BuildIntersection(Intersection &isectRet, const CylinderIntersection& isect, const Lines *lines, Ray &ray) {
+
+  isectRet.t = isect.t;
+  isectRet.u = isect.u;
+  isectRet.v = isect.v;
+  isectRet.prim_id = isect.prim_id;
+
   real v = isect.v;
   unsigned int index = isect.prim_id;
   real3 p0 = GetPosition(lines, 2 * index + 0);
@@ -591,33 +665,47 @@ void BuildIntersection(Intersection &isect, const Lines *lines, Ray &ray) {
 
   real3 center = p0 + real3(v, v, v) * (p1 - p0);
 
-  isect.position[0] = ray.origin()[0] + isect.t * ray.direction()[0];
-  isect.position[1] = ray.origin()[1] + isect.t * ray.direction()[1];
-  isect.position[2] = ray.origin()[2] + isect.t * ray.direction()[2];
+  isectRet.position[0] = ray.origin()[0] + isect.t * ray.direction()[0];
+  isectRet.position[1] = ray.origin()[1] + isect.t * ray.direction()[1];
+  isectRet.position[2] = ray.origin()[2] + isect.t * ray.direction()[2];
 
   real3 n;
-  n[0] = isect.position[0] - center[0];
-  n[1] = isect.position[1] - center[1];
-  n[2] = isect.position[2] - center[2];
-  n = vnormalize(n);
-  isect.normal[0] = n[0];
-  isect.normal[1] = n[1];
-  isect.normal[2] = n[2];
+  if (isect.hitCap) {
+    real3 p(isectRet.position[0], isectRet.position[1], isectRet.position[2]);
+    real3 c = 0.5 * (p1 - p0) + p0;
+    n = vnormalize(p1 - p0);
+
+    if (vdot((p - c), n) > 0.0) {
+      // hit p1's plane
+    } else {
+      // hit p0's plane
+      n = vneg(n);
+    }
+  } else {
+    n[0] = isectRet.position[0] - center[0];
+    n[1] = isectRet.position[1] - center[1];
+    n[2] = isectRet.position[2] - center[2];
+    n = vnormalize(n);
+  }
+  isectRet.normal[0] = n[0];
+  isectRet.normal[1] = n[1];
+  isectRet.normal[2] = n[2];
 
   // Same ID for line data.
-  isect.f0 = isect.prim_id;
-  isect.f1 = isect.prim_id;
-  isect.f2 = isect.prim_id;
+  isectRet.f0 = isect.prim_id;
+  isectRet.f1 = isect.prim_id;
+  isectRet.f2 = isect.prim_id;
 }
 
 } // namespace
 
-bool LineAccel::Traverse(Intersection &isect, Ray &ray) const {
+bool LineAccel::Traverse(Intersection &isectRet, Ray &ray) const {
   real hitT = std::numeric_limits<real>::max(); // far = no hit.
 
   int nodeStackIndex = 0;
   std::vector<int> nodeStack(512);
   nodeStack[0] = 0;
+  CylinderIntersection isect;
 
   bool ret = false;
 
@@ -676,7 +764,7 @@ bool LineAccel::Traverse(Intersection &isect, Ray &ray) const {
   assert(nodeStackIndex < kMaxStackDepth);
 
   if (isect.t < std::numeric_limits<real>::max()) {
-    BuildIntersection(isect, lines_, ray);
+    BuildIntersection(isectRet, isect, lines_, ray);
     return true;
   }
 
