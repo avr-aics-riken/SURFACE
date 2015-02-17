@@ -20,7 +20,7 @@ typedef struct {
   const float *positions;   /// float precision. [xyz] * numLines * 2
   const double *dpositions; /// double precision. [xyz] * numLines * 2.
   bool isDoublePrecisionPos;
-  const real *radius;        /// particle radius
+  const real *radius;  /// particle radius
   real constantRadius; /// Valid if radius == NULL
 } Lines;
 

@@ -71,8 +71,7 @@ inline real GetRadius(const Lines *lines, unsigned int index) {
 }
 
 inline real3 GetPosition(const Lines *lines, unsigned int index) {
-  return real3(lines->positions[3 * index + 0],
-               lines->positions[3 * index + 1],
+  return real3(lines->positions[3 * index + 0], lines->positions[3 * index + 1],
                lines->positions[3 * index + 2]);
 }
 
@@ -307,6 +306,7 @@ bool LineAccel::Build(const Lines *lines, const LineBuildOptions &options) {
 
   size_t n = lines->numLines;
   trace("[LineAccel] Input # of lines = %lu\n", n);
+  trace("[LineAccel] Cap = %d\n", (int)options.cap);
 
   assert(n > 0);
 
@@ -485,8 +485,8 @@ int solve2e(real root[], real A, real B, real C) {
   }
 }
 
-inline bool CylinderIsect(real *pt, real *pu, real *pv, bool& hitCap, const real3 &p0,
-                          real r0, const real3 &p1, real r1,
+inline bool CylinderIsect(real *pt, real *pu, real *pv, bool &hitCap,
+                          const real3 &p0, real r0, const real3 &p1, real r1,
                           const real3 &rayOrg, const real3 &rayDir, bool cap) {
 
   real tmax = *pt;
@@ -513,7 +513,7 @@ inline bool CylinderIsect(real *pt, real *pu, real *pv, bool& hitCap, const real
       // test with 2 planes
       real p0D = -vdot(p0, dN0); // plane D
       real p1D = -vdot(p1, dN1); // plane D
-      
+
       real p0T = -(vdot(rayOrg, dN0) + p0D) / vdot(rd, dN0);
       real p1T = -(vdot(rayOrg, dN1) + p1D) / vdot(rd, dN1);
 
@@ -522,7 +522,8 @@ inline bool CylinderIsect(real *pt, real *pu, real *pv, bool& hitCap, const real
 
       real qp0Sqr = vdot(q0 - p0, q0 - p0);
       real qp1Sqr = vdot(q1 - p1, q1 - p1);
-      //printf("p0T = %f, p1T = %f, q0Sqr = %f, rr^2 = %f\n", p0T, p1T, q0Sqr, rr*rr);
+      // printf("p0T = %f, p1T = %f, q0Sqr = %f, rr^2 = %f\n", p0T, p1T, q0Sqr,
+      // rr*rr);
 
       if (p0T > 0.0 && p0T < tmax && (qp0Sqr < rr * rr)) {
         // hit p0's plane
@@ -553,7 +554,7 @@ inline bool CylinderIsect(real *pt, real *pu, real *pv, bool& hitCap, const real
   real A = dd * nn - nd * nd;
   real k = vdot(m, m) - rr * rr;
   real C = dd * k - md * md;
-  real B = dd * mn - nd * md; //
+  real B = dd * mn - nd * md;
 
   real root[2] = {};
   int nRet = solve2e(root, A, B, C);
@@ -578,7 +579,7 @@ inline bool CylinderIsect(real *pt, real *pu, real *pv, bool& hitCap, const real
 bool TestLeafNode(CylinderIntersection &isect, // [inout]
                   const LineNode &node,
                   const std::vector<unsigned int> &indices, const Lines *lines,
-                  const Ray &ray) {
+                  const Ray &ray, bool cap) {
 
   bool hit = false;
 
@@ -609,10 +610,9 @@ bool TestLeafNode(CylinderIntersection &isect, // [inout]
     rayDir[1] = ray.direction()[1];
     rayDir[2] = ray.direction()[2];
 
-    bool capTest = true; // @fixme
-
     bool hitCap = false;
-    if (CylinderIsect(&t, &u, &v, hitCap, p0, r0, p1, r1, rayOrg, rayDir, capTest)) {
+    if (CylinderIsect(&t, &u, &v, hitCap, p0, r0, p1, r1, rayOrg, rayDir,
+                      cap)) {
       // Update isect state
       isect.t = t;
       isect.u = u;
@@ -651,7 +651,9 @@ inline void XYZToUV(real &theta, real &phi, const real3 &v) {
 }
 #endif
 
-void BuildIntersection(Intersection &isectRet, const CylinderIntersection& isect, const Lines *lines, Ray &ray) {
+void BuildIntersection(Intersection &isectRet,
+                       const CylinderIntersection &isect, const Lines *lines,
+                       Ray &ray) {
 
   isectRet.t = isect.t;
   isectRet.u = isect.u;
@@ -755,7 +757,7 @@ bool LineAccel::Traverse(Intersection &isectRet, Ray &ray) const {
 
     } else { // leaf node
 
-      if (TestLeafNode(isect, node, indices_, lines_, ray)) {
+      if (TestLeafNode(isect, node, indices_, lines_, ray, options_.cap)) {
         hitT = isect.t;
       }
     }

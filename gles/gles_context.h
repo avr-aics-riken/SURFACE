@@ -307,7 +307,7 @@ private:
 
   bool dirtyFrame_;
   RaytraceEngine engine_;
-  AccelBuilder meshBuilder_;
+  AccelBuilder accelBuilder_;
 
   RenderGraph *renderGraph_;
 

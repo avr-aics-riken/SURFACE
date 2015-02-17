@@ -59,7 +59,7 @@ void Context::glFinish() {
   bufferFreeList_.clear();
 
   // let the mesh builder know the frame ended, and clear our render list
-  meshBuilder_.EndFrame();
+  accelBuilder_.EndFrame();
 
   state_.currentDrawStackIndex = 0;
 

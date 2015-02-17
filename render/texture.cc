@@ -97,7 +97,7 @@ inline int Clamp(int v, int low, int high) {
   return std::min(std::max(v, low), high);
 }
 
-//inline bool myisnan(float a) {
+// inline bool myisnan(float a) {
 //  volatile float d = a;
 //  return d != d;
 //}

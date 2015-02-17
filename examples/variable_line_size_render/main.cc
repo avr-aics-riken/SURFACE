@@ -224,6 +224,9 @@ int main(int argc, char **argv) {
   GLboolean ok = glIsProgram(prog);
   assert(ok == GL_TRUE);
 
+  // false = dont' cap line primitive at the extent.
+  //glUniform1i(glGetUniformLocation(prog, "lsgl_LineCap"), 0);
+
   // 1. Create Vertex Buffers.
   GLuint lnvtx, lradius;
 
