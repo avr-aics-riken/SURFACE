@@ -239,20 +239,20 @@ static int TestRayAABB(double &tMinOut, double &tMaxOut, const double bmin[3],
   if ((tMax > 0.0) && (tMin <= tMax)) { // 3 op
                                         // printf("ray.org = %f, %f, %f\n",
                                         //    ray.org[0],
-                                         //    ray.org[1],
-                                         //    ray.org[2]);
-                                         // printf("ray.dir = %f, %f, %f\n",
-                                         //    ray.dir[0],
-                                         //    ray.dir[1],
-                                         //    ray.dir[2]);
-                                         // printf("bmin = %f, %f, %f\n",
-                                         //    bmin[0],
-                                         //    bmin[1],
-                                         //    bmin[2]);
-                                         // printf("bmax = %f, %f, %f\n",
-                                         //    bmax[0],
-                                         //    bmax[1],
-                                         //    bmax[2]);
+                                        //    ray.org[1],
+                                        //    ray.org[2]);
+                                        // printf("ray.dir = %f, %f, %f\n",
+                                        //    ray.dir[0],
+                                        //    ray.dir[1],
+                                        //    ray.dir[2]);
+                                        // printf("bmin = %f, %f, %f\n",
+                                        //    bmin[0],
+                                        //    bmin[1],
+                                        //    bmin[2]);
+                                        // printf("bmax = %f, %f, %f\n",
+                                        //    bmax[0],
+                                        //    bmax[1],
+                                        //    bmax[2]);
     tMinOut = tMin;
     tMaxOut = tMax;
 

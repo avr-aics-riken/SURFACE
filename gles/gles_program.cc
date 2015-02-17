@@ -28,6 +28,7 @@ void BuildPredefinedLSGLVertexUniforms(
   UniformLocation locView("lsgl_View", /*elem=*/0, indexOffset + 1);
   UniformLocation locProj("lsgl_Proj", /*elem=*/0, indexOffset + 2);
   UniformLocation locPointSize("lsgl_PointSize", /*elem=*/0, indexOffset + 3);
+  UniformLocation locLineCap("lsgl_LineCap", /*elem=*/0, indexOffset + 4);
 
   // use existing glLineWidth() to specify uniform width for line primitives.
   // UniformLocation locLineSize("lsgl_LineWidth", /*elem=*/0, indexOffset +
@@ -38,13 +39,13 @@ void BuildPredefinedLSGLVertexUniforms(
   vertUniformLocations.push_back(locView);
   vertUniformLocations.push_back(locProj);
   vertUniformLocations.push_back(locPointSize);
-  // vertUniformLocations.push_back(locLineSize);
+  vertUniformLocations.push_back(locLineCap);
 
   Uniform world(GL_FLOAT_MAT4, "lsgl_World", 1);
   Uniform view(GL_FLOAT_MAT4, "lsgl_View", 1);
   Uniform proj(GL_FLOAT_MAT4, "lsgl_Proj", 1);
   Uniform psize(GL_FLOAT, "lsgl_PointSize", 1);
-  // Uniform lsize(GL_FLOAT, "lsgl_LineWidth", 1);
+  Uniform lcap(GL_INT, "lsgl_LineCap", 1);
 
   // fill data with identity matrix.
   float ident[4][4];
@@ -78,16 +79,17 @@ void BuildPredefinedLSGLVertexUniforms(
   psize.data.resize(sizeof(float));
   memcpy(&psize.data.at(0), &initPointSize, sizeof(float));
 
-  // float initLineSize = 1.0f;
-  // lsize.data.resize(sizeof(float));
-  // memcpy(&lsize.data.at(0), &initLineSize, sizeof(float));
+  // fill with 1(true)
+  int initLineCap = 1;
+  lcap.data.resize(sizeof(int));
+  memcpy(&lcap.data.at(0), &initLineCap, sizeof(int));
 
   // SHOULD not break this ordering
   vertUniforms.push_back(world);
   vertUniforms.push_back(view);
   vertUniforms.push_back(proj);
   vertUniforms.push_back(psize);
-  // vertUniforms.push_back(lsize);
+  vertUniforms.push_back(lcap);
 }
 
 } // namespace

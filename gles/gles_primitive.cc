@@ -154,10 +154,10 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
 
   unsigned char *accel = NULL;
   if (mode == GL_TRIANGLES) {
-    AccelBuilder::MeshAccelerator *meshAccel =
-        meshBuilder_.Build(elembuf, posbuf, isDoublePrecisionPos,
-                           &state_.vertexAttributes[k].at(0), state_.texture2D,
-                           count, (GLubyte *)indices - (GLubyte *)NULL);
+    AccelBuilder::MeshAccelerator *meshAccel = accelBuilder_.BuildMeshAccel(
+        elembuf, posbuf, isDoublePrecisionPos,
+        &state_.vertexAttributes[k].at(0), state_.texture2D, count,
+        (GLubyte *)indices - (GLubyte *)NULL);
     assert(meshAccel);
     meshAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(meshAccel);
@@ -195,16 +195,29 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     }
 
     AccelBuilder::ParticleAccelerator *particleAccel =
-        meshBuilder_.BuildParticleAccel(elembuf, posbuf, isDoublePrecisionPos,
-                                        &state_.vertexAttributes[k].at(0),
-                                        count,
-                                        (GLubyte *)indices - (GLubyte *)NULL,
-                                        pointSize, pointSizeV, pointSizeVLen);
+        accelBuilder_.BuildParticleAccel(elembuf, posbuf, isDoublePrecisionPos,
+                                         &state_.vertexAttributes[k].at(0),
+                                         count,
+                                         (GLubyte *)indices - (GLubyte *)NULL,
+                                         pointSize, pointSizeV, pointSizeVLen);
     particleAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(particleAccel);
   } else if (mode == GL_LINES) {
 
-    float lineSize = state_.lineWidth;
+    float lineSize =
+        state_.lineWidth; // use glLineWith() to set uniform line width.
+
+    bool cap = false;
+    GLuint capPos = prg->GetUniformLocation("lsgl_LineCap");
+    if (capPos != (GLuint)(-1)) {
+      const Uniform *capUniform = prg->GetUniform(capPos);
+      assert(capUniform->data.size() == sizeof(int));
+      int value = 0;
+      memcpy(&value, &capUniform->data.at(0), sizeof(int));
+      if (value > 0) {
+        cap = true;
+      }
+    }
 
     // Find a vertex attribute of line size if avaiable.
     const float *lineSizeV = NULL;
@@ -230,18 +243,18 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     }
 
     AccelBuilder::LineAccelerator *lineAccel =
-        meshBuilder_.BuildLineAccel(elembuf, posbuf, isDoublePrecisionPos,
-                                    &state_.vertexAttributes[k].at(0), count,
-                                    (GLubyte *)indices - (GLubyte *)NULL,
-                                    lineSize, lineSizeV, lineSizeVLen);
+        accelBuilder_.BuildLineAccel(elembuf, posbuf, isDoublePrecisionPos,
+                                     &state_.vertexAttributes[k].at(0), count,
+                                     (GLubyte *)indices - (GLubyte *)NULL,
+                                     lineSize, lineSizeV, lineSizeVLen, cap);
     lineAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(lineAccel);
 
   } else if (mode == GL_TETRAHEDRONS_EXT) {
     AccelBuilder::TetraAccelerator *tetraAccel =
-        meshBuilder_.BuildTetraAccel(elembuf, posbuf, isDoublePrecisionPos,
-                                     &state_.vertexAttributes[k].at(0), count,
-                                     (GLubyte *)indices - (GLubyte *)NULL);
+        accelBuilder_.BuildTetraAccel(elembuf, posbuf, isDoublePrecisionPos,
+                                      &state_.vertexAttributes[k].at(0), count,
+                                      (GLubyte *)indices - (GLubyte *)NULL);
     assert(tetraAccel);
     tetraAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(tetraAccel);

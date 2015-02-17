@@ -111,8 +111,7 @@ IsectD2(double2 &tInOut, double2 &tidInOut, // Use as integer(53bit)
         const double2 &rdz,
         const double2 &tid,             // Triangle ID as interger(53bit)
         const double2 &doubleSidedMask, // Assume all bits are 1 or 0.
-        double epsScale = 2.0)
-{
+        double epsScale = 2.0) {
   const double kEPS = std::numeric_limits<double>::epsilon() * epsScale;
 
   // e1 = v1 - v0;
@@ -239,8 +238,7 @@ IsectD2(double2 &tInOut, double2 &tidInOut, // Use as integer(53bit)
         const double2 &rdz,
         const double2 &tid,             // Triangle ID as interger(53bit)
         const double2 &doubleSidedMask, // Assume all bits are 1 or 0.
-        double epsScale = 2.0)
-{
+        double epsScale = 2.0) {
   const double kEPS = std::numeric_limits<double>::epsilon() * epsScale;
 
   // e1 = v1 - v0;
@@ -390,7 +388,8 @@ static inline void GetBoundingBoxOfTriangle(real3 &bmin, real3 &bmax,
 static void ContributeBinBuffer(BinBuffer *bins, // [out]
                                 const real3 &sceneMin, const real3 &sceneMax,
                                 const Mesh *mesh, unsigned int *indices,
-                                unsigned int leftIdx, unsigned int rightIdx, real epsScale = 2.0) {
+                                unsigned int leftIdx, unsigned int rightIdx,
+                                real epsScale = 2.0) {
   static const real EPS = std::numeric_limits<real>::epsilon() * epsScale;
 
   real binSize = (real)bins->binSize;
@@ -466,8 +465,7 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
                                  const BinBuffer *bins, const real3 &bmin,
                                  const real3 &bmax, size_t numTriangles,
                                  real costTaabb, // should be in [0.0, 1.0]
-                                 real epsScale = 2.0)
-{
+                                 real epsScale = 2.0) {
   const real eps = std::numeric_limits<real>::epsilon() * epsScale;
 
   size_t left, right;
@@ -628,8 +626,7 @@ private:
 template <typename T>
 static void ComputeBoundingBox(real3 &bmin, real3 &bmax, const T *vertices,
                                unsigned int *faces, unsigned int *indices,
-                               unsigned int leftIndex,
-                               unsigned int rightIndex,
+                               unsigned int leftIndex, unsigned int rightIndex,
                                real epsScale = 2.0) {
   const real kEPS = std::numeric_limits<real>::epsilon() * epsScale;
 
@@ -660,10 +657,11 @@ static void ComputeBoundingBox(real3 &bmin, real3 &bmax, const T *vertices,
 }
 
 template <typename T>
-static void
-ComputeBoundingBox30(real3 &bmin, real3 &bmax, const T *vertices,
-                     const uint32_t *faces, const std::vector<IndexKey30> &keys,
-                     unsigned int leftIndex, unsigned int rightIndex, real epsScale = 2.0) {
+static void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const T *vertices,
+                                 const uint32_t *faces,
+                                 const std::vector<IndexKey30> &keys,
+                                 unsigned int leftIndex,
+                                 unsigned int rightIndex, real epsScale = 2.0) {
   const real kEPS = std::numeric_limits<real>::epsilon() * epsScale;
 
   bmin[0] = std::numeric_limits<real>::max();
@@ -1832,7 +1830,8 @@ inline double vdotd(double3 a, double3 b) {
 
 inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut, const real3 &v0,
                           const real3 &v1, const real3 &v2, const real3 &rayOrg,
-                          const real3 &rayDir, bool doubleSided, real epsScale = 2.0) {
+                          const real3 &rayDir, bool doubleSided,
+                          real epsScale = 2.0) {
   const real kEPS = std::numeric_limits<real>::epsilon() * epsScale;
 
   real3 p0(v0[0], v0[1], v0[2]);
@@ -1885,7 +1884,8 @@ inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut, const real3 &v0,
 inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
                            const double3 &v0, const double3 &v1,
                            const double3 &v2, const double3 &rayOrg,
-                           const double3 &rayDir, bool doubleSided, real epsScale = 2.0) {
+                           const double3 &rayDir, bool doubleSided,
+                           real epsScale = 2.0) {
   const real kEPS = std::numeric_limits<real>::epsilon() * epsScale;
 
   double3 p0(v0[0], v0[1], v0[2]);

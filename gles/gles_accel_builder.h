@@ -84,10 +84,11 @@ public:
   AccelBuilder(GLuint maxCacheSize = (8192 * 1024));
   ~AccelBuilder();
 
-  MeshAccelerator *Build(const Buffer *elembuf, const Buffer *arraybuf,
-                         bool isDoublePrecisionPos,
-                         const VertexAttribute *vertexAttributes,
-                         const GLuint *texture2D, GLsizei count, GLuint offset);
+  MeshAccelerator *BuildMeshAccel(const Buffer *elembuf, const Buffer *arraybuf,
+                                  bool isDoublePrecisionPos,
+                                  const VertexAttribute *vertexAttributes,
+                                  const GLuint *texture2D, GLsizei count,
+                                  GLuint offset);
 
   ParticleAccelerator *BuildParticleAccel(
       const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
@@ -98,7 +99,8 @@ public:
                                   const VertexAttribute *vertexAttributes,
                                   GLsizei count, GLuint offset,
                                   GLfloat constantWidth,
-                                  const GLfloat *widthBuf, GLsizei widthBufLen);
+                                  const GLfloat *widthBuf, GLsizei widthBufLen,
+                                  bool cap);
   TetraAccelerator *BuildTetraAccel(const Buffer *elembuf,
                                     const Buffer *arraybuf,
                                     bool isDoublePrecisionPos,
@@ -157,7 +159,8 @@ private:
   static void AddLineData(MeshData *md, const Buffer *elembuf,
                           const Buffer *arraybuf, const ArrayBufInfo *abinfo,
                           GLsizei count, GLuint offset, GLfloat constantWidth,
-                          const GLfloat *widthBuf, GLsizei widthBufLen);
+                          const GLfloat *widthBuf, GLsizei widthBufLen,
+                          bool cap);
   static void AddTetraData(MeshData *md, const Buffer *elembuf,
                            const Buffer *arraybuf, bool isDoublePrecisionPos,
                            const ArrayBufInfo *abinfo, GLsizei count,

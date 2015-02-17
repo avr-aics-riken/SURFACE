@@ -30,11 +30,10 @@ AccelBuilder::~AccelBuilder() {
   staticList_.clear();
 }
 
-AccelBuilder::MeshAccelerator *
-AccelBuilder::Build(const Buffer *elembuf, const Buffer *arraybuf,
-                    bool isDoublePrecisionPos,
-                    const VertexAttribute *vertexAttributes,
-                    const GLuint *texture2D, GLsizei count, GLuint offset) {
+AccelBuilder::MeshAccelerator *AccelBuilder::BuildMeshAccel(
+    const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
+    const VertexAttribute *vertexAttributes, const GLuint *texture2D,
+    GLsizei count, GLuint offset) {
   // ensure the position vertex attribute is enabled, at minimum
   const VertexAttribute *attrPos = &vertexAttributes[kVtxAttrPosition];
   if (attrPos->enabled == false) {
@@ -187,7 +186,8 @@ AccelBuilder::ParticleAccelerator *AccelBuilder::BuildParticleAccel(
 AccelBuilder::LineAccelerator *AccelBuilder::BuildLineAccel(
     const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
     const VertexAttribute *vertexAttributes, GLsizei count, GLuint offset,
-    GLfloat constantWidth, const GLfloat *widthBuf, const GLsizei widthBufLen) {
+    GLfloat constantWidth, const GLfloat *widthBuf, const GLsizei widthBufLen,
+    bool cap) {
   // ensure the position vertex attribute is enabled, at minimum
   const VertexAttribute *attrPos = &vertexAttributes[kVtxAttrPosition];
   if (attrPos->enabled == false) {
@@ -231,7 +231,7 @@ AccelBuilder::LineAccelerator *AccelBuilder::BuildLineAccel(
 
   // build the particle accelerator
   AddLineData(&ce->meshData, elembuf, arraybuf, &abinfo, count, offset,
-              constantWidth, widthBuf, widthBufLen);
+              constantWidth, widthBuf, widthBufLen, cap);
 
   // if both buffers are marked as static, add this mesh to the static cache
   // list, otherwise add it to the dynamic list instead
@@ -613,7 +613,7 @@ void AccelBuilder::AddLineData(MeshData *md, const Buffer *elembuf,
                                const ArrayBufInfo *abinfo, GLsizei count,
                                GLuint offset, GLfloat constantWidth,
                                const GLfloat *widthBuf,
-                               const GLsizei widthBufLen) {
+                               const GLsizei widthBufLen, bool cap) {
   GLuint maxIndex;
 
   // first free any existing accelerator
@@ -637,12 +637,14 @@ void AccelBuilder::AddLineData(MeshData *md, const Buffer *elembuf,
   md->type = PRIMITIVE_LINES;
 
   LineBuildOptions options;
+  options.cap = cap;
+
   timerutil t;
   t.start();
   LineAccel *accel = new LineAccel();
 
   Lines *lines = new Lines(); // @fixme { No delete operaton for this object. }
-  //lines->positions = md->positionBuffer.GetBase();
+  // lines->positions = md->positionBuffer.GetBase();
   if ((widthBuf == NULL) || (widthBufLen == 0)) {
     lines->radius = NULL;
   } else {
@@ -694,7 +696,6 @@ void AccelBuilder::AddLineData(MeshData *md, const Buffer *elembuf,
   }
 
   lines->numLines = md->indexBuffer.GetCount() / 2; // LINES
-
 
   accel->Build(lines, options);
   t.end();

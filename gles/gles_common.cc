@@ -584,7 +584,7 @@ void Shader::BuildVaryingInfo(std::vector<Varying> &varyings,
   }
 
   {
-    int index = config.numVaryings+1;
+    int index = config.numVaryings + 1;
     assert(index < kMaxVertexAttribs);
     VaryingLocation lineSizeVaryingLocation("lsgl_LineWidth", 0, index);
     Varying lineSizeVarying(GL_FLOAT, 1, "lsgl_LineWidth", 1);
