@@ -601,6 +601,11 @@ void CalculateMortonCodesTriangleFloat30(uint32_t *codes, const float *vertices,
                                          const real3 &bmin, const real3 &bmax,
                                          int64_t startIdx, int64_t endIdx);
 
+void CalculateMortonCodesTetraFloat30(uint32_t *codes, const float *vertices,
+                                         const uint32_t *faces,
+                                         const real3 &bmin, const real3 &bmax,
+                                         int64_t startIdx, int64_t endIdx);
+
 void CalculateMortonCodes60(uint64_t *codes, const float *points,
                             const real3 &bmin, const real3 &bmax,
                             int64_t startIdx, int64_t endIdx);

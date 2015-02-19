@@ -770,12 +770,10 @@ void AccelBuilder::AddTetraData(MeshData *md, const Buffer *elembuf,
   tetras->faces = md->indexBuffer.GetBase();
 
   // Take a reference
-  md->mesh.nfaces = tetras->numTetrahedrons;
-  md->mesh.faces = tetras->faces;
-
+  md->mesh.nfaces = 0;
+  md->mesh.faces = NULL;
   md->mesh.nvertices = 0;
   md->mesh.vertices = NULL;
-
   md->type = PRIMITIVE_TETRAHEDRONS;
 
   TetraBuildOptions options;
@@ -783,8 +781,8 @@ void AccelBuilder::AddTetraData(MeshData *md, const Buffer *elembuf,
   t.start();
   TetraAccel *accel = new TetraAccel();
 
-  accel->Build(tetras, options);
-  // accel->Build32(tetras, options);
+  //accel->Build(tetras, options);
+  accel->Build32(tetras, options);
 
   t.end();
 

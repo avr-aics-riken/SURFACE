@@ -72,7 +72,7 @@ inline double vdotd(double3 a, double3 b) {
 }
 
 inline int fsign(const real x) {
-  real eps = std::numeric_limits<real>::epsilon() * 1024;
+  real eps = std::numeric_limits<real>::epsilon() * 16;
   return (x > eps ? 1 : (x < -eps ? -1 : 0));
 }
 
@@ -519,7 +519,7 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
                                 const Tetrahedron *tetras,
                                 unsigned int *indices, unsigned int leftIdx,
                                 unsigned int rightIdx) {
-  static const real EPS = std::numeric_limits<real>::epsilon() * 1024;
+  static const real EPS = std::numeric_limits<real>::epsilon() * 16;
 
   real binSize = (real)bins->binSize;
 
@@ -592,10 +592,10 @@ static inline double SAH(size_t ns1, real leftArea, size_t ns2, real rightArea,
 static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
                                  int &minCostAxis, // [out]
                                  const BinBuffer *bins, const real3 &bmin,
-                                 const real3 &bmax, size_t numTriangles,
+                                 const real3 &bmax, size_t numPrims,
                                  real costTaabb) // should be in [0.0, 1.0]
 {
-  const real eps = std::numeric_limits<real>::epsilon() * 1024;
+  const real eps = std::numeric_limits<real>::epsilon() * 16;
 
   size_t left, right;
   real3 bsize, bstep;
@@ -634,7 +634,7 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
     minCost[j] = std::numeric_limits<real>::max();
 
     left = 0;
-    right = numTriangles;
+    right = numPrims;
     bminLeft = bminRight = bmin;
     bmaxLeft = bmaxRight = bmax;
 
@@ -642,8 +642,8 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
       left += bins->bin[0 * (3 * bins->binSize) + j * bins->binSize + i];
       right -= bins->bin[1 * (3 * bins->binSize) + j * bins->binSize + i];
 
-      assert(left <= numTriangles);
-      assert(right <= numTriangles);
+      assert(left <= numPrims);
+      assert(right <= numPrims);
 
       //
       // Split pos bmin + (i + 1) * (bsize / BIN_SIZE)
@@ -763,7 +763,7 @@ static void ComputeBoundingBox(real3 &bmin, real3 &bmax, const T *vertices,
                                unsigned int *faces, unsigned int *indices,
                                unsigned int leftIndex,
                                unsigned int rightIndex) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16;
 
   bmin[0] = std::numeric_limits<real>::max();
   bmin[1] = std::numeric_limits<real>::max();
@@ -807,7 +807,7 @@ static void
 ComputeBoundingBox30(real3 &bmin, real3 &bmax, const T *vertices,
                      const uint32_t *faces, const std::vector<IndexKey30> &keys,
                      unsigned int leftIndex, unsigned int rightIndex) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16;
 
   bmin[0] = std::numeric_limits<real>::max();
   bmin[1] = std::numeric_limits<real>::max();
@@ -828,18 +828,18 @@ ComputeBoundingBox30(real3 &bmin, real3 &bmax, const T *vertices,
 
   size_t i = leftIndex;
   size_t idx = keys[i].index;
-  bmin[0] = vertices[3 * faces[3 * idx + 0] + 0] - kEPS;
-  bmin[1] = vertices[3 * faces[3 * idx + 0] + 1] - kEPS;
-  bmin[2] = vertices[3 * faces[3 * idx + 0] + 2] - kEPS;
-  bmax[0] = vertices[3 * faces[3 * idx + 0] + 0] + kEPS;
-  bmax[1] = vertices[3 * faces[3 * idx + 0] + 1] + kEPS;
-  bmax[2] = vertices[3 * faces[3 * idx + 0] + 2] + kEPS;
+  bmin[0] = vertices[3 * faces[4 * idx + 0] + 0] - kEPS;
+  bmin[1] = vertices[3 * faces[4 * idx + 0] + 1] - kEPS;
+  bmin[2] = vertices[3 * faces[4 * idx + 0] + 2] - kEPS;
+  bmax[0] = vertices[3 * faces[4 * idx + 0] + 0] + kEPS;
+  bmax[1] = vertices[3 * faces[4 * idx + 0] + 1] + kEPS;
+  bmax[2] = vertices[3 * faces[4 * idx + 0] + 2] + kEPS;
 
   // Assume tetras are composed of all triangles
   for (i = leftIndex; i < rightIndex; i++) { // for each faces
     size_t idx = keys[i].index;
-    for (int j = 0; j < 3; j++) { // for each face vertex
-      size_t fid = faces[3 * idx + j];
+    for (int j = 0; j < 4; j++) { // for each tetra vertex
+      size_t fid = faces[4 * idx + j];
       for (int k = 0; k < 3; k++) { // xyz
         real minval = vertices[3 * fid + k] - kEPS;
         real maxval = vertices[3 * fid + k] + kEPS;
@@ -861,7 +861,7 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const T *vertices,
   // assert(leftIndex < rightIndex);
   // assert(rightIndex - leftIndex > 0);
 
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16;
 
   bmin[0] = std::numeric_limits<real>::max();
   bmin[1] = std::numeric_limits<real>::max();
@@ -873,12 +873,12 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const T *vertices,
   {
     size_t i = leftIndex;
     size_t idx = indices[i];
-    bmin[0] = vertices[3 * faces[3 * idx + 0] + 0] - kEPS;
-    bmin[1] = vertices[3 * faces[3 * idx + 0] + 1] - kEPS;
-    bmin[2] = vertices[3 * faces[3 * idx + 0] + 2] - kEPS;
-    bmax[0] = vertices[3 * faces[3 * idx + 0] + 0] + kEPS;
-    bmax[1] = vertices[3 * faces[3 * idx + 0] + 1] + kEPS;
-    bmax[2] = vertices[3 * faces[3 * idx + 0] + 2] + kEPS;
+    bmin[0] = vertices[3 * faces[4 * idx + 0] + 0] - kEPS;
+    bmin[1] = vertices[3 * faces[4 * idx + 0] + 1] - kEPS;
+    bmin[2] = vertices[3 * faces[4 * idx + 0] + 2] - kEPS;
+    bmax[0] = vertices[3 * faces[4 * idx + 0] + 0] + kEPS;
+    bmax[1] = vertices[3 * faces[4 * idx + 0] + 1] + kEPS;
+    bmax[2] = vertices[3 * faces[4 * idx + 0] + 2] + kEPS;
   }
 
   // We could use min and max reduction if OpenMP 3.1 ready compiler was
@@ -897,14 +897,14 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const T *vertices,
 
       size_t idx = indices[i];
 
-      for (int k = 0; k < 3; k++) {
-        real minval_x = vertices[3 * faces[3 * idx + k] + 0] - kEPS;
-        real minval_y = vertices[3 * faces[3 * idx + k] + 1] - kEPS;
-        real minval_z = vertices[3 * faces[3 * idx + k] + 2] - kEPS;
+      for (int k = 0; k < 4; k++) { // for each tetra vertex
+        real minval_x = vertices[3 * faces[4 * idx + k] + 0] - kEPS;
+        real minval_y = vertices[3 * faces[4 * idx + k] + 1] - kEPS;
+        real minval_z = vertices[3 * faces[4 * idx + k] + 2] - kEPS;
 
-        real maxval_x = vertices[3 * faces[3 * idx + k] + 0] + kEPS;
-        real maxval_y = vertices[3 * faces[3 * idx + k] + 1] + kEPS;
-        real maxval_z = vertices[3 * faces[3 * idx + k] + 2] + kEPS;
+        real maxval_x = vertices[3 * faces[4 * idx + k] + 0] + kEPS;
+        real maxval_y = vertices[3 * faces[4 * idx + k] + 1] + kEPS;
+        real maxval_z = vertices[3 * faces[4 * idx + k] + 2] + kEPS;
 
         local_bmin[0] = std::min(local_bmin[0], minval_x);
         local_bmin[1] = std::min(local_bmin[1], minval_y);
@@ -918,7 +918,7 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const T *vertices,
 
 #pragma omp critical
     {
-      for (int k = 0; k < 3; k++) {
+      for (int k = 0; k < 3; k++) { // xyz
 
         if (local_bmin[k] < bmin[k]) {
           {
@@ -1050,7 +1050,7 @@ size_t BuildTreeRecursive32(std::vector<TetraNode> &nodes, real3 &bmin,
   // rootIndex, leftIndex, rightIndex, isLeaf, n);
 
   if (isLeaf || (n <= MAX_LEAF_ELEMENTS) || (depth > MAX_TREE_DEPTH_32BIT)) {
-    // printf("  makeLeaf: range (%d - %d)\n", leftIndex, rightIndex);
+    //printf("  makeLeaf: range (%d - %d)\n", leftIndex, rightIndex);
 
     uint32_t endIndex = rightIndex + 1;
     // if (leftIndex == rightIndex) { // this would be OK. 1 tri in 1 leaf case.
@@ -1143,7 +1143,7 @@ size_t BuildTreeRecursive32OMP(std::vector<TetraNode> &nodes, real3 &bmin,
 
   if (isLeaf || (n <= MAX_LEAF_ELEMENTS) || (depth > MAX_TREE_DEPTH_32BIT)) {
     // if (isLeaf || (n <= 0)) {
-    // printf("  makeLeaf: range (%d - %d)\n", leftIndex, rightIndex);
+    //printf("  makeLeaf: range (%d - %d)\n", leftIndex, rightIndex);
 
     uint32_t endIndex = rightIndex + 1;
 
@@ -1477,7 +1477,7 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
     return Build(tetras, options);
   }
 
-  trace("[TetraAccel2] Input # of tetrahedrons    = %lu\n",
+  trace("[LSGL] [TetraAccel2] Input # of tetrahedrons    = %lu\n",
         tetras->numTetrahedrons);
 
   //
@@ -1494,7 +1494,7 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
     indices_[i] = i;
   }
   t.end();
-  printf("[1:indexing] %d msec\n", (int)t.msec());
+  trace("[LSGL] [1:indexing] %d msec\n", (int)t.msec());
 
   {
     timerutil t;
@@ -1511,10 +1511,10 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 #endif
 
     t.end();
-    printf("[2:scene bbox calculation] %d msec\n", (int)t.msec());
+    trace("[LSGL] [2:scene bbox calculation] %d msec\n", (int)t.msec());
 
-    printf(" bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
-    printf(" bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
+    trace("[LSGL]   bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
+    trace("[LSGL]   bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
 
     std::vector<uint32_t> codes(n);
     assert(sizeof(real) == sizeof(float));
@@ -1526,13 +1526,13 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       if (tetras->isDoublePrecisionPos) {
         assert(0); // @todo
       } else {
-        CalculateMortonCodesTriangleFloat30(&codes.at(0), tetras->vertices,
-                                            tetras->faces, bmin, bmax, 0, n);
+        CalculateMortonCodesTetraFloat30(&codes.at(0), tetras->vertices,
+                                         tetras->faces, bmin, bmax, 0, n);
       }
       t.end();
-      printf("[3:morton calculation] %d msec\n", (int)t.msec());
+      trace("[LSGL] [3:morton calculation] %d msec\n", (int)t.msec());
 
-      // for (size_t i = 0; i < n; i++) {
+      //for (size_t i = 0; i < n; i++) {
       //  printf("code[%d] = %d\n", i, codes[i]);
       //}
     }
@@ -1561,7 +1561,7 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 #pragma omp barrier
 #endif
       t.end();
-      printf("[4:radix sort] %d msec\n", (int)t.msec());
+      trace("[LSGL] [4:radix sort] %d msec\n", (int)t.msec());
 
 #else
       RadixSort30(&keys.at(0), &keys.at(0) + n);
@@ -1593,7 +1593,7 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       }
 
       t.end();
-      printf("[5:Construct binary radix tree: %d msec\n", (int)t.msec());
+      trace("[LSGL] [5:Construct binary radix tree: %d msec\n", (int)t.msec());
     }
 
     {
@@ -1615,8 +1615,8 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       real3 leftBMin, leftBMax;
       real3 rightBMin, rightBMax;
 
-// printf("root: midIndex = %d, range (%d, %d), flag = %d/%d\n", midIndex,
-// 0, n-1, isLeftLeaf, isRightLeaf);
+      //printf("root: midIndex = %d, range (%d, %d), flag = %d/%d\n", midIndex,
+      //0, n-1, isLeftLeaf, isRightLeaf);
 
 #ifdef _OPENMP
 
@@ -1654,16 +1654,16 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 
 #endif
 
-      // printf("  leftbmin = %f, %f, %f\n", leftBMin[0], leftBMin[1],
-      // leftBMin[2]);
-      // printf("  leftbmax = %f, %f, %f\n", leftBMax[0], leftBMax[1],
-      // leftBMax[2]);
-      // printf("  rightbmin = %f, %f, %f\n", rightBMin[0], rightBMin[1],
-      // rightBMin[2]);
-      // printf("  rightbmax = %f, %f, %f\n", rightBMax[0], rightBMax[1],
-      // rightBMax[2]);
-      // printf("  leftIndex = %d, rightIndex = %d\n", leftChildIndex,
-      // rightChildIndex);
+      //printf("  leftbmin = %f, %f, %f\n", leftBMin[0], leftBMin[1],
+      //leftBMin[2]);
+      //printf("  leftbmax = %f, %f, %f\n", leftBMax[0], leftBMax[1],
+      //leftBMax[2]);
+      //printf("  rightbmin = %f, %f, %f\n", rightBMin[0], rightBMin[1],
+      //rightBMin[2]);
+      //printf("  rightbmax = %f, %f, %f\n", rightBMax[0], rightBMax[1],
+      //rightBMax[2]);
+      //printf("  leftIndex = %d, rightIndex = %d\n", leftChildIndex, rightChildIndex);
+      //printf("  isLeaf = %d, %d\n", isLeftLeaf, isRightLeaf);
 
       real3 rootBMin, rootBMax;
 
@@ -1692,10 +1692,10 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       // 0, n-1, isLeftLeaf, isRightLeaf);
       // printf("node.total = %d", nodes_.size());
       // printf("[%d] -> (%d, %d)\n", 0, leftChildIndex, rightChildIndex);
-      printf("[6:Construct final AABB tree: %d msec\n", (int)t.msec());
+      trace("[LSGL] [6:Construct final AABB tree: %d msec\n", (int)t.msec());
 
-      printf("  bmin = %f, %f, %f\n", rootBMin[0], rootBMin[1], rootBMin[2]);
-      printf("  bmax = %f, %f, %f\n", rootBMax[0], rootBMax[1], rootBMax[2]);
+      trace("[LSGL]   bmin = %f, %f, %f\n", rootBMin[0], rootBMin[1], rootBMin[2]);
+      trace("[LSGL]   bmax = %f, %f, %f\n", rootBMax[0], rootBMax[1], rootBMax[2]);
     }
 
     {
@@ -1804,111 +1804,6 @@ inline bool IntersectRayAABB(real &tminOut, // [out]
   return false; // no hit
 }
 
-inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut, const real3 &v0,
-                          const real3 &v1, const real3 &v2, const real3 &rayOrg,
-                          const real3 &rayDir, bool doubleSided) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
-
-  real3 p0(v0[0], v0[1], v0[2]);
-  real3 p1(v1[0], v1[1], v1[2]);
-  real3 p2(v2[0], v2[1], v2[2]);
-  real3 e1, e2;
-  real3 p, s, q;
-
-  e1 = p1 - p0;
-  e2 = p2 - p0;
-
-  p = vcross(rayDir, e2);
-
-  real invDet;
-  real det = vdot(e1, p);
-
-  if (doubleSided) {
-    if (std::abs(det) < kEPS) {
-      return false;
-    }
-  } else {
-    if (det < kEPS) { // single-sided
-      return false;
-    }
-  }
-
-  invDet = 1.0 / det;
-
-  s = rayOrg - p0;
-  q = vcross(s, e1);
-
-  real u = vdot(s, p) * invDet;
-  real v = vdot(q, rayDir) * invDet;
-  real t = vdot(e2, q) * invDet;
-
-  if (u < 0.0 || u > 1.0)
-    return false;
-  if (v < 0.0 || u + v > 1.0)
-    return false;
-  if (t < 0.0 || t > tInOut)
-    return false;
-
-  tInOut = t;
-  uOut = u;
-  vOut = v;
-
-  return true;
-}
-
-inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
-                           const double3 &v0, const double3 &v1,
-                           const double3 &v2, const double3 &rayOrg,
-                           const double3 &rayDir, bool doubleSided) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
-
-  double3 p0(v0[0], v0[1], v0[2]);
-  double3 p1(v1[0], v1[1], v1[2]);
-  double3 p2(v2[0], v2[1], v2[2]);
-  double3 e1, e2;
-  double3 p, s, q;
-
-  e1 = p1 - p0;
-  e2 = p2 - p0;
-
-  p = vcrossd(rayDir, e2);
-
-  double invDet;
-  double det = vdotd(e1, p);
-
-  if (doubleSided) {
-    if (std::abs(det) < kEPS) {
-      return false;
-    }
-  } else {
-    if (det < kEPS) { // single-sided
-      return false;
-    }
-  }
-
-  invDet = 1.0 / det;
-
-  s = rayOrg - p0;
-  q = vcrossd(s, e1);
-
-  double u = vdotd(s, p) * invDet;
-  double v = vdotd(q, rayDir) * invDet;
-  double t = vdotd(e2, q) * invDet;
-
-  if (u < 0.0 || u > 1.0)
-    return false;
-  if (v < 0.0 || u + v > 1.0)
-    return false;
-  if (t < 0.0 || t > tInOut)
-    return false;
-
-  tInOut = t;
-  uOut = u;
-  vOut = v;
-
-  return true;
-}
-
 bool TestLeafNode(Intersection &isect, // [inout]
                   const TetraNode &node,
                   const std::vector<unsigned int> &indices,
@@ -1924,54 +1819,8 @@ bool TestLeafNode(Intersection &isect, // [inout]
   bool doubleSided = (bool)ray.double_sided;
 
   if (tetras->isDoublePrecisionPos) {
-    assert(0);
 
-    double3 rayOrg;
-    rayOrg[0] = ray.origin()[0];
-    rayOrg[1] = ray.origin()[1];
-    rayOrg[2] = ray.origin()[2];
-
-    double3 rayDir;
-    rayDir[0] = ray.direction()[0];
-    rayDir[1] = ray.direction()[1];
-    rayDir[2] = ray.direction()[2];
-
-    for (unsigned int i = 0; i < numTetras; i++) {
-      int faceIdx = indices[i + offset];
-
-      // self-intersection check
-      if (faceIdx == ray.prev_prim_id) {
-        continue;
-      }
-
-      int f0 = tetras->faces[3 * faceIdx + 0];
-      int f1 = tetras->faces[3 * faceIdx + 1];
-      int f2 = tetras->faces[3 * faceIdx + 2];
-
-      double3 v0, v1, v2;
-      v0[0] = tetras->dvertices[3 * f0 + 0];
-      v0[1] = tetras->dvertices[3 * f0 + 1];
-      v0[2] = tetras->dvertices[3 * f0 + 2];
-
-      v1[0] = tetras->dvertices[3 * f1 + 0];
-      v1[1] = tetras->dvertices[3 * f1 + 1];
-      v1[2] = tetras->dvertices[3 * f1 + 2];
-
-      v2[0] = tetras->dvertices[3 * f2 + 0];
-      v2[1] = tetras->dvertices[3 * f2 + 1];
-      v2[2] = tetras->dvertices[3 * f2 + 2];
-
-      real u, v;
-      if (TriangleIsectD(t, u, v, v0, v1, v2, rayOrg, rayDir, doubleSided)) {
-        // Update isect state
-        isect.t = t;
-        isect.u = u;
-        isect.v = v;
-        isect.prim_id = faceIdx;
-
-        hit = true;
-      }
-    }
+    assert(0); // @todo
 
   } else { // float
 
