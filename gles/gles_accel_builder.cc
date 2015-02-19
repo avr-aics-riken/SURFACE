@@ -697,7 +697,7 @@ void AccelBuilder::AddLineData(MeshData *md, const Buffer *elembuf,
 
   lines->numLines = md->indexBuffer.GetCount() / 2; // LINES
 
-  accel->Build(lines, options);
+  accel->Build(lines, options); // @todo { implement parallel BVH builder for line primitive. }
   t.end();
 
   double bmin[3], bmax[3];

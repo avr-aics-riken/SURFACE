@@ -109,6 +109,10 @@ struct double3 {
   double x, y, z;
 };
 
+inline double3 operator*(double f, const double3 &v) {
+  return double3(v.x * f, v.y * f, v.z * f);
+}
+
 inline real dot(const real3 &lhs, const real3 &rhs) {
   return (lhs[0] * rhs[0]) + (lhs[1] * rhs[1]) + (lhs[2] * rhs[2]);
 }
@@ -119,6 +123,7 @@ inline real3 cross(const real3 &lhs, const real3 &rhs) {
                lhs[0] * rhs[1] - lhs[1] * rhs[0]  // zxyyx
                );
 }
+
 
 } // namespace render
 } // namespace lsgl

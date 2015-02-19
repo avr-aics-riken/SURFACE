@@ -1935,7 +1935,7 @@ inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
   return true;
 }
 
-static bool FORCEINLINE TestLeafNode(Intersection &isect, // [inout]
+static bool TestLeafNode(Intersection &isect, // [inout]
                                      const TriangleNode &node,
                                      const std::vector<unsigned int> &indices,
                                      const Mesh *mesh, const Ray &ray) {
