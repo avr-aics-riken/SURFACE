@@ -31,8 +31,9 @@ GLfloat scenescale = 1.0;
 int windowWidth = 512;
 int windowHeight = 512;
 
-void GenerateRandomTetrasFloat(
-  float* vertices, size_t n, double bmin[3], double bmax[3], int seed)
+template<typename T>
+void GenerateRandomTetras(
+  T* vertices, size_t n, double bmin[3], double bmax[3], int seed)
 {
 
   assert(vertices);
@@ -76,17 +77,21 @@ void GenerateRandomTetrasFloat(
 
     for (size_t j = 0; j < 4; j++) {
 
-#if 0
-      double scale = 0.025;
+#if 1
+      double scale = 0.005;
       // random offset. [-0.025, 0.025)
       double v0 = scale * (bmax[0] - bmin[0]) * tinymt64_generate_double(&rng);
       double v1 = scale * (bmax[1] - bmin[1]) * tinymt64_generate_double(&rng);
       double v2 = scale * (bmax[2] - bmin[2]) * tinymt64_generate_double(&rng);
+
+      v0 += 0.002 * (bmax[0] - bmin[0]) * offset[j][0];
+      v1 += 0.002 * (bmax[1] - bmin[1]) * offset[j][1];
+      v2 += 0.002 * (bmax[2] - bmin[2]) * offset[j][2];
 #else 
       // fixed offset
-      double v0 = 0.02 * (bmax[0] - bmin[0]) * offset[j][0];
-      double v1 = 0.02 * (bmax[1] - bmin[1]) * offset[j][1];
-      double v2 = 0.02 * (bmax[2] - bmin[2]) * offset[j][2];
+      double v0 = 0.002 * (bmax[0] - bmin[0]) * offset[j][0];
+      double v1 = 0.002 * (bmax[1] - bmin[1]) * offset[j][1];
+      double v2 = 0.002 * (bmax[2] - bmin[2]) * offset[j][2];
 #endif
 
       vertices[3*(4*i+j)+0] = px + v0;
@@ -204,7 +209,7 @@ main(
   int argc,
   char **argv)
 {
-  int numTetras = 100;
+  int numTetras = 1000;
 
 #ifdef ENABLE_MPI
   int rank;
@@ -279,7 +284,7 @@ main(
   bmin[0] = bmin[1] = bmin[2] = -scenescale;
   bmax[0] = bmax[1] = bmax[2] =  scenescale;
   positions.resize(numPoints*3);
-  GenerateRandomTetrasFloat(&positions.at(0), numTetras, bmin, bmax, 1234);
+  GenerateRandomTetras<float>(&positions.at(0), numTetras, bmin, bmax, 1234);
 
   // gen indices
   numTetras = numPoints;
@@ -305,7 +310,7 @@ main(
 
   // PDB Z up
   //float eye[3] = {50.0f, 50.0f, 150.0f};  // PDB
-  float eye[3] = {1.0f, 1.0f, 1.0f}; // tetra
+  float eye[3] = {2.0f, 2.0f, 1.0f}; // tetra
   float up[3] = {0.0f, 1.0f, 0.0f}; 
   lsglSetCamera(eye, lookat, up, 45.0f);
 

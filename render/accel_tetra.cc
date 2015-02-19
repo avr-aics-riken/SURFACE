@@ -81,15 +81,15 @@ inline int fsign(const real x) {
 //
 class Pluecker {
 public:
-  real3 d; // direction
-  real3 c; // cross
+  double3 d; // direction
+  double3 c; // cross
 
-  Pluecker(const real3 &v0, const real3 &v1) : d(v1 - v0), c(vcross(v1, v0)) {}
+  Pluecker(const double3 &v0, const double3 &v1) : d(v1 - v0), c(vcrossd(v1, v0)) {}
 };
 
 // Inner product
-inline real operator*(const Pluecker &p0, const Pluecker &p1) {
-  return vdot(p0.d, p1.c) + vdot(p1.d, p0.c);
+inline double operator*(const Pluecker &p0, const Pluecker &p1) {
+  return vdotd(p0.d, p1.c) + vdotd(p1.d, p0.c);
 }
 
 // Ray - Tetrahedron intersection based on
@@ -103,8 +103,8 @@ inline real operator*(const Pluecker &p0, const Pluecker &p1) {
 // (To enhance performance of the intersection algorithm, this code
 // should in practice be incorporated to the function below.)
 
-void ComputeParametricDist(const real3 &orig, const real3 &dir,
-                           const real3 &enterPoint, const real3 &leavePoint,
+void ComputeParametricDist(const double3 &orig, const double3 &dir,
+                           const double3 &enterPoint, const double3 &leavePoint,
                            double &tEnter, double &tLeave) {
   if (dir.x) {
     double invDirx = 1.0 / dir.x;
@@ -121,9 +121,9 @@ void ComputeParametricDist(const real3 &orig, const real3 &dir,
   }
 }
 
-bool RayTetraPluecker(const real3 &orig, const real3 &dir, const real3 vert[],
-                      int &enterFace, int &leaveFace, real3 &enterPoint,
-                      real3 &leavePoint, double &uEnter1, double &uEnter2,
+bool RayTetraPluecker(const double3 &orig, const double3 &dir, const double3 vert[],
+                      int &enterFace, int &leaveFace, double3 &enterPoint,
+                      double3 &leavePoint, double &uEnter1, double &uEnter2,
                       double &uLeave1, double &uLeave2, double &tEnter,
                       double &tLeave) {
   enterFace = -1;
@@ -135,7 +135,7 @@ bool RayTetraPluecker(const real3 &orig, const real3 &dir, const real3 vert[],
       signAD = -2;
 
   // In the following: A,B,C,D=vert[i], i=0,1,2,3.
-  real3 dest = orig + dir;
+  double3 dest = orig + dir;
   Pluecker plRay(orig, dest);
 
   int nextSign = 0;
@@ -1466,7 +1466,6 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
   stats_ = TetraBuildStatistics();
 
   assert(options_.binSize > 1);
-  assert(tetras->isDoublePrecisionPos == false); // @todo
 
   assert(tetras);
 
@@ -1502,13 +1501,27 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 
     real3 bmin, bmax;
 
+    if (tetras->isDoublePrecisionPos) {
+
 #ifdef _OPENMP
-    ComputeBoundingBoxOMP(bmin, bmax, tetras->vertices, tetras->faces,
-                          &indices_.at(0), 0, n);
+      ComputeBoundingBoxOMP(bmin, bmax, tetras->dvertices, tetras->faces,
+                            &indices_.at(0), 0, n);
 #else
-    ComputeBoundingBox(bmin, bmax, tetras->vertices, tetras->faces,
-                       &indices_.at(0), 0, n);
+      ComputeBoundingBox(bmin, bmax, tetras->dvertices, tetras->faces,
+                         &indices_.at(0), 0, n);
 #endif
+
+    } else {
+
+#ifdef _OPENMP
+      ComputeBoundingBoxOMP(bmin, bmax, tetras->vertices, tetras->faces,
+                            &indices_.at(0), 0, n);
+#else
+      ComputeBoundingBox(bmin, bmax, tetras->vertices, tetras->faces,
+                         &indices_.at(0), 0, n);
+#endif
+
+    }
 
     t.end();
     trace("[LSGL] [2:scene bbox calculation] %d msec\n", (int)t.msec());
@@ -1524,7 +1537,8 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       t.start();
 
       if (tetras->isDoublePrecisionPos) {
-        assert(0); // @todo
+        CalculateMortonCodesTetraDouble30(&codes.at(0), tetras->dvertices,
+                                         tetras->faces, bmin, bmax, 0, n);
       } else {
         CalculateMortonCodesTetraFloat30(&codes.at(0), tetras->vertices,
                                          tetras->faces, bmin, bmax, 0, n);
@@ -1622,35 +1636,73 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 
       size_t leftChildIndex = (size_t)(-1), rightChildIndex = (size_t)(-1);
 
+      if (tetras->isDoublePrecisionPos) {
+
 #pragma omp parallel shared(leftChildIndex, rightChildIndex, keys, nodeInfos)
-      {
-#pragma omp single
         {
-          leftChildIndex = BuildTreeRecursive32OMP(
-              nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->vertices,
-              tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
-        }
+#pragma omp single
+          {
+            leftChildIndex = BuildTreeRecursive32OMP(
+                nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->dvertices,
+                tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
+          }
 
 #pragma omp single
-        {
-          rightChildIndex = BuildTreeRecursive32OMP(
-              nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->vertices,
-              tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+          {
+            rightChildIndex = BuildTreeRecursive32OMP(
+                nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->dvertices,
+                tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+          }
         }
-      }
 #pragma omp barrier
+
+      } else {
+
+#pragma omp parallel shared(leftChildIndex, rightChildIndex, keys, nodeInfos)
+        {
+#pragma omp single
+          {
+            leftChildIndex = BuildTreeRecursive32OMP(
+                nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->vertices,
+                tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
+          }
+
+#pragma omp single
+          {
+            rightChildIndex = BuildTreeRecursive32OMP(
+                nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->vertices,
+                tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+          }
+        }
+#pragma omp barrier
+
+      }
 
       assert(leftChildIndex != (size_t)(-1));
       assert(rightChildIndex != (size_t)(-1));
 
 #else
 
-      size_t leftChildIndex = BuildTreeRecursive32(
-          nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->vertices,
-          tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
-      size_t rightChildIndex = BuildTreeRecursive32(
-          nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->vertices,
-          tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+      if (tetras->isDoublePrecisionPos) {
+
+        size_t leftChildIndex = BuildTreeRecursive32(
+            nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->dvertices,
+            tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
+        size_t rightChildIndex = BuildTreeRecursive32(
+            nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->dvertices,
+            tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+
+      } else {
+
+        size_t leftChildIndex = BuildTreeRecursive32(
+            nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->vertices,
+            tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
+        size_t rightChildIndex = BuildTreeRecursive32(
+            nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->vertices,
+            tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+
+
+      }
 
 #endif
 
@@ -1820,16 +1872,12 @@ bool TestLeafNode(Intersection &isect, // [inout]
 
   if (tetras->isDoublePrecisionPos) {
 
-    assert(0); // @todo
-
-  } else { // float
-
-    real3 rayOrg;
+    double3 rayOrg;
     rayOrg[0] = ray.origin()[0];
     rayOrg[1] = ray.origin()[1];
     rayOrg[2] = ray.origin()[2];
 
-    real3 rayDir;
+    double3 rayDir;
     rayDir[0] = ray.direction()[0];
     rayDir[1] = ray.direction()[1];
     rayDir[2] = ray.direction()[2];
@@ -1846,7 +1894,70 @@ bool TestLeafNode(Intersection &isect, // [inout]
       int f2 = tetras->faces[4 * faceIdx + 2];
       int f3 = tetras->faces[4 * faceIdx + 3];
 
-      real3 vtx[4];
+      double3 vtx[4];
+      vtx[0][0] = tetras->dvertices[3 * f0 + 0];
+      vtx[0][1] = tetras->dvertices[3 * f0 + 1];
+      vtx[0][2] = tetras->dvertices[3 * f0 + 2];
+
+      vtx[1][0] = tetras->dvertices[3 * f1 + 0];
+      vtx[1][1] = tetras->dvertices[3 * f1 + 1];
+      vtx[1][2] = tetras->dvertices[3 * f1 + 2];
+
+      vtx[2][0] = tetras->dvertices[3 * f2 + 0];
+      vtx[2][1] = tetras->dvertices[3 * f2 + 1];
+      vtx[2][2] = tetras->dvertices[3 * f2 + 2];
+
+      vtx[3][0] = tetras->dvertices[3 * f3 + 0];
+      vtx[3][1] = tetras->dvertices[3 * f3 + 1];
+      vtx[3][2] = tetras->dvertices[3 * f3 + 2];
+
+      int enterF, leaveF;
+      double3 enterP, leaveP;
+      double enterU, leaveU;
+      double enterV, leaveV;
+      double enterT, leaveT;
+      if (RayTetraPluecker(rayOrg, rayDir, vtx, enterF, leaveF, enterP, leaveP,
+                           enterU, leaveU, enterV, leaveV, enterT, leaveT)) {
+
+        if ((enterT >= 0.0) && (enterT < t)) {
+          // Update isect state.
+          // @todo { Record leaving point. }
+          isect.t = enterT;
+          isect.u = enterU;
+          isect.v = enterV;
+          isect.prim_id = faceIdx;
+          isect.subface_id = enterF; // 0,1,2 or 3
+          t = enterT;
+          hit = true;
+        }
+      }
+    }
+
+  } else { // float
+
+    double3 rayOrg;
+    rayOrg[0] = ray.origin()[0];
+    rayOrg[1] = ray.origin()[1];
+    rayOrg[2] = ray.origin()[2];
+
+    double3 rayDir;
+    rayDir[0] = ray.direction()[0];
+    rayDir[1] = ray.direction()[1];
+    rayDir[2] = ray.direction()[2];
+
+    for (unsigned int i = 0; i < numTetras; i++) {
+      int faceIdx = indices[i + offset];
+
+      // self-intersection check
+      if (faceIdx == ray.prev_prim_id) {
+        continue;
+      }
+      int f0 = tetras->faces[4 * faceIdx + 0];
+      int f1 = tetras->faces[4 * faceIdx + 1];
+      int f2 = tetras->faces[4 * faceIdx + 2];
+      int f3 = tetras->faces[4 * faceIdx + 3];
+
+      double3 vtx[4];
       vtx[0][0] = tetras->vertices[3 * f0 + 0];
       vtx[0][1] = tetras->vertices[3 * f0 + 1];
       vtx[0][2] = tetras->vertices[3 * f0 + 2];
@@ -1864,7 +1975,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
       vtx[3][2] = tetras->vertices[3 * f3 + 2];
 
       int enterF, leaveF;
-      real3 enterP, leaveP;
+      double3 enterP, leaveP;
       double enterU, leaveU;
       double enterV, leaveV;
       double enterT, leaveT;
@@ -1899,39 +2010,11 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
   isect.f2 = faces[4 * isect.prim_id + 2];
   isect.f3 = faces[4 * isect.prim_id + 3];
 
+  real3 p[4];
+
   if (tetras->isDoublePrecisionPos) {
-    assert(0); // @todo
-#if 0
     const double *vertices = tetras->dvertices;
 
-    real3d p0, p1, p2;
-    p0[0] = vertices[3 * isect.f0 + 0];
-    p0[1] = vertices[3 * isect.f0 + 1];
-    p0[2] = vertices[3 * isect.f0 + 2];
-    p1[0] = vertices[3 * isect.f1 + 0];
-    p1[1] = vertices[3 * isect.f1 + 1];
-    p1[2] = vertices[3 * isect.f1 + 2];
-    p2[0] = vertices[3 * isect.f2 + 0];
-    p2[1] = vertices[3 * isect.f2 + 1];
-    p2[2] = vertices[3 * isect.f2 + 2];
-
-    // calc shading point.
-    isect.position = ray.origin() + isect.t * ray.direction();
-
-    // calc geometric normal.
-    real3d p10 = p1 - p0;
-    real3d p20 = p2 - p0;
-    real3d n = cross(p10, p20);
-    n.normalize();
-
-    isect.geometric = n;
-    isect.normal = n;
-#endif
-
-  } else {
-    const float *vertices = tetras->vertices;
-
-    real3 p[4];
     p[0][0] = vertices[3 * isect.f0 + 0];
     p[0][1] = vertices[3 * isect.f0 + 1];
     p[0][2] = vertices[3 * isect.f0 + 2];
@@ -1945,28 +2028,44 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
     p[3][1] = vertices[3 * isect.f3 + 1];
     p[3][2] = vertices[3 * isect.f3 + 2];
 
-    // calc shading point.
-    isect.position = ray.origin() + isect.t * ray.direction();
+  } else {
+    const float *vertices = tetras->vertices;
 
-    // calc geometric normal.
-    real3 p0, p1, p2;
-
-    // @fixme { Validation required! }
-    int face_table[4][3] = {{0, 1, 3}, {1, 2, 3}, {2, 0, 3}, {0, 1, 2}};
-
-    p0 = p[face_table[isect.subface_id][0]];
-    p1 = p[face_table[isect.subface_id][1]];
-    p2 = p[face_table[isect.subface_id][2]];
-
-    real3 p10 = p1 - p0;
-    real3 p20 = p2 - p0;
-    real3 n = cross(p10, p20);
-    // printf("n = %f, %f, %f\n", n[0], n[1], n[2]);
-    n.normalize();
-
-    isect.geometric = n;
-    isect.normal = n;
+    p[0][0] = vertices[3 * isect.f0 + 0];
+    p[0][1] = vertices[3 * isect.f0 + 1];
+    p[0][2] = vertices[3 * isect.f0 + 2];
+    p[1][0] = vertices[3 * isect.f1 + 0];
+    p[1][1] = vertices[3 * isect.f1 + 1];
+    p[1][2] = vertices[3 * isect.f1 + 2];
+    p[2][0] = vertices[3 * isect.f2 + 0];
+    p[2][1] = vertices[3 * isect.f2 + 1];
+    p[2][2] = vertices[3 * isect.f2 + 2];
+    p[3][0] = vertices[3 * isect.f3 + 0];
+    p[3][1] = vertices[3 * isect.f3 + 1];
+    p[3][2] = vertices[3 * isect.f3 + 2];
   }
+
+  // calc shading point.
+  isect.position = ray.origin() + isect.t * ray.direction();
+
+  // calc geometric normal.
+  real3 p0, p1, p2;
+
+  // @fixme { Validation required! }
+  int face_table[4][3] = {{0, 1, 3}, {1, 2, 3}, {2, 0, 3}, {0, 1, 2}};
+
+  p0 = p[face_table[isect.subface_id][0]];
+  p1 = p[face_table[isect.subface_id][1]];
+  p2 = p[face_table[isect.subface_id][2]];
+
+  real3 p10 = p1 - p0;
+  real3 p20 = p2 - p0;
+  real3 n = cross(p10, p20);
+  // printf("n = %f, %f, %f\n", n[0], n[1], n[2]);
+  n.normalize();
+
+  isect.geometric = n;
+  isect.normal = n;
 }
 
 } // namespace

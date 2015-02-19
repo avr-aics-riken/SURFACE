@@ -302,6 +302,47 @@ void lsgl::render::CalculateMortonCodesTetraFloat30(
   }
 }
 
+void lsgl::render::CalculateMortonCodesTetraDouble30(
+    uint32_t *codes, const double *points, const uint32_t *faces,
+    const real3 &bmin, const real3 &bmax, int64_t startIdx, int64_t endIdx) {
+  assert(startIdx <= endIdx);
+
+  int kDIV = (1 << 10);
+  real invx = kDIV / (bmax[0] - bmin[0]);
+  real invy = kDIV / (bmax[1] - bmin[1]);
+  real invz = kDIV / (bmax[2] - bmin[2]);
+
+  // printf("inv: %f, %f, %f\n", invx, invy, invz);
+
+  int64_t n = endIdx - startIdx;
+
+  float one_fourth = 1.0f / 4.0f;
+
+#ifdef _OPENMP
+//#pragma omp parallel for if (n > 4096)
+//#pragma omp parallel for schedule(dynamic, 1) if (n > 4096)
+#pragma omp parallel for if (n > 4096)
+#endif
+  for (int64_t i = startIdx; i < endIdx; i++) {
+    uint32_t f0 = faces[4 * i + 0];
+    uint32_t f1 = faces[4 * i + 1];
+    uint32_t f2 = faces[4 * i + 2];
+    uint32_t f3 = faces[4 * i + 3];
+
+    // may truncate precision.
+    real3 p0(points[3 * f0 + 0], points[3 * f0 + 1], points[3 * f0 + 2]);
+    real3 p1(points[3 * f1 + 0], points[3 * f1 + 1], points[3 * f1 + 2]);
+    real3 p2(points[3 * f2 + 0], points[3 * f2 + 1], points[3 * f2 + 2]);
+    real3 p3(points[3 * f3 + 0], points[3 * f3 + 1], points[3 * f3 + 2]);
+    real3 p_i;
+
+    p_i[0] = one_fourth * (p0[0] + p1[0] + p2[0] + p3[0]);
+    p_i[1] = one_fourth * (p0[1] + p1[1] + p2[1] + p3[1]);
+    p_i[2] = one_fourth * (p0[2] + p1[2] + p2[2] + p3[2]);
+    codes[i] = MortionCode30(p_i, bmin, invx, invy, invz);
+  }
+}
+
 
 void lsgl::render::CalculateMortonCodes60(uint64_t *codes, const float *points,
                                           const real3 &bmin, const real3 &bmax,
