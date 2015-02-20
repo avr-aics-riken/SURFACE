@@ -1632,9 +1632,9 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       //printf("root: midIndex = %d, range (%d, %d), flag = %d/%d\n", midIndex,
       //0, n-1, isLeftLeaf, isRightLeaf);
 
-#ifdef _OPENMP
-
       size_t leftChildIndex = (size_t)(-1), rightChildIndex = (size_t)(-1);
+
+#ifdef _OPENMP
 
       if (tetras->isDoublePrecisionPos) {
 
