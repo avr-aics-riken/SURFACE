@@ -270,8 +270,8 @@ int main(int argc, char **argv) {
   glVertexAttribPointer(attrPos, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
   glEnableVertexAttribArray(attrPos);
 
-  glDrawElements(GL_LINES, 2*numLines, GL_UNSIGNED_INT, 0);
-  //glDrawArrays(GL_LINES, 0, 2*numLines);
+  glDrawElements(GL_LINES, numLines, GL_UNSIGNED_INT, 0); // index buffer version.
+  //glDrawArrays(GL_LINES, 0, numLines);
   assert(glGetError() == GL_NO_ERROR);
 
   glFinish();
