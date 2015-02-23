@@ -19,8 +19,8 @@
 #include <functional>
 #include <algorithm>
 
-#include "accel_triangle.h"
-#include "prefix_tree_util.h"
+#include "render_accel_triangle.h"
+#include "render_prefix_tree_util.h"
 
 #if defined(__sparc__) && defined(__HPC_ACE__) // K/FX10
 #include <emmintrin.h>

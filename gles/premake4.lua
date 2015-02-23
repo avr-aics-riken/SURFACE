@@ -104,17 +104,17 @@ newplatform {
 --
 
 render_sources = {
-   "../render/accel_triangle.cc",
-   "../render/accel_line.cc",
-   "../render/accel_particle.cc",
-   "../render/accel_tetra.cc",
-   "../render/accel_volume.cc",
+   "../render/render_accel_triangle.cc",
+   "../render/render_accel_line.cc",
+   "../render/render_accel_particle.cc",
+   "../render/render_accel_tetra.cc",
+   "../render/render_accel_volume.cc",
    "../render/render_camera.cc",
-   "../render/prim_mesh.cc",
+   "../render/render_prim_triangle.cc",
    "../render/render_texture.cc",
    "../render/tinymt64.cpp",
    "../render/render_bvh_tree.cc",
-   "../render/prefix_tree_util.cc",
+   "../render/render_prefix_tree_util.cc",
    }
 
 gles_sources = {

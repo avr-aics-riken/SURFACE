@@ -26,7 +26,7 @@
 #include <functional>
 #include <algorithm>
 
-#include "accel_line.h"
+#include "render_accel_line.h"
 
 #define ENABLE_TRACE_PRINT (0)
 #define ENABLE_DEBUG_PRINT (0)

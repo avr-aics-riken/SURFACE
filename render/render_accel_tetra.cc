@@ -19,8 +19,8 @@
 #include <functional>
 #include <algorithm>
 
-#include "accel_tetra.h"
-#include "prefix_tree_util.h"
+#include "render_accel_tetra.h"
+#include "render_prefix_tree_util.h"
 #include "tinymt64.h"
 
 using namespace lsgl::render;

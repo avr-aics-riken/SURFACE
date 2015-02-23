@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "render_common.h"
-#include "prim_line.h"
+#include "render_prim_line.h"
 #include "render_ray.h"
 #include "render_intersection.h"
 

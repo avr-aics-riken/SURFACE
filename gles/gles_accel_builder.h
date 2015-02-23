@@ -14,11 +14,11 @@
 #include <vector>
 #include <map>
 
-#include "../render/prim_mesh.h"
-#include "../render/accel_triangle.h"
-#include "../render/accel_particle.h"
-#include "../render/accel_line.h"
-#include "../render/accel_tetra.h"
+#include "../render/render_prim_triangle.h"
+#include "../render/render_accel_triangle.h"
+#include "../render/render_accel_particle.h"
+#include "../render/render_accel_line.h"
+#include "../render/render_accel_tetra.h"
 #include "gles_common.h"
 #include "GLES2/gl2.h"
 

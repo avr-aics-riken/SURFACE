@@ -2,7 +2,7 @@
 
 #include "../render/render_common.h"
 #include "../render/tinymt64.h"
-#include "../render/prefix_tree_util.h"
+#include "../render/render_prefix_tree_util.h"
 
 using namespace lsgl::render;
 
@@ -596,7 +596,7 @@ TEST(LSGLRenderTest, TestBinaryPrefixTree30) {
 
       for (size_t i = 0; i < counter.size(); i++) {
         if (counter[i] != 1) {
-          printf("i = %d, node = %d, leaf = %d, %d\n", i, nodes[i].childIndex, nodes[i].leftType, nodes[i].rightType);
+          printf("i = %zu, node = %d, leaf = %d, %d\n", i, nodes[i].childIndex, nodes[i].leftType, nodes[i].rightType);
         }
         EXPECT_EQ(1, counter[i]);
       }
@@ -613,7 +613,7 @@ TEST(LSGLRenderTest, TestBinaryPrefixTree30) {
 
       for (size_t i = 0; i < counter.size(); i++) {
         if (counter[i] != 1) {
-          printf("i = %d, node = %d, leaf = %d, %d\n", i, nodes[i].childIndex, nodes[i].leftType, nodes[i].rightType);
+          printf("i = %zu, node = %d, leaf = %d, %d\n", i, nodes[i].childIndex, nodes[i].leftType, nodes[i].rightType);
         }
         EXPECT_EQ(1, counter[i]);
       }
@@ -696,7 +696,7 @@ TEST(LSGLRenderTest, TestBinaryPrefixTree60) {
 
       for (size_t i = 0; i < counter.size(); i++) {
         if (counter[i] != 1) {
-          printf("i = %d, node = %d, leaf = %d, %d\n", i, nodes[i].index, nodes[i].leftType, nodes[i].rightType);
+          printf("i = %zu, node = %llu, leaf = %d, %d\n", i, nodes[i].index, nodes[i].leftType, nodes[i].rightType);
         }
         EXPECT_EQ(1, counter[i]);
       }
@@ -713,7 +713,7 @@ TEST(LSGLRenderTest, TestBinaryPrefixTree60) {
 
       for (size_t i = 0; i < counter.size(); i++) {
         if (counter[i] != 1) {
-          printf("i = %d, node = %d, leaf = %d, %d\n", i, nodes[i].index, nodes[i].leftType, nodes[i].rightType);
+          printf("i = %zu, node = %llu, leaf = %d, %d\n", i, nodes[i].index, nodes[i].leftType, nodes[i].rightType);
         }
         EXPECT_EQ(1, counter[i]);
       }
@@ -792,7 +792,7 @@ TEST(LSGLRenderTest, TestBinaryPrefixTreeSameKey30) {
 
       for (size_t i = 0; i < counter.size(); i++) {
         if (counter[i] != 1) {
-          printf("i = %d, node = %d, leaf = %d, %d\n", i, nodes[i].childIndex, nodes[i].leftType, nodes[i].rightType);
+          printf("i = %zu, node = %d, leaf = %d, %d\n", i, nodes[i].childIndex, nodes[i].leftType, nodes[i].rightType);
         }
         EXPECT_EQ(1, counter[i]);
       }
@@ -809,7 +809,7 @@ TEST(LSGLRenderTest, TestBinaryPrefixTreeSameKey30) {
 
       for (size_t i = 0; i < counter.size(); i++) {
         if (counter[i] != 1) {
-          printf("i = %d, node = %d, leaf = %d, %d\n", i, nodes[i].childIndex, nodes[i].leftType, nodes[i].rightType);
+          printf("i = %zu, node = %d, leaf = %d, %d\n", i, nodes[i].childIndex, nodes[i].leftType, nodes[i].rightType);
         }
         EXPECT_EQ(1, counter[i]);
       }
@@ -884,7 +884,7 @@ TEST(LSGLRenderTest, TestBinaryPrefixTreeSameKey60) {
 
       for (size_t i = 0; i < counter.size(); i++) {
         if (counter[i] != 1) {
-          printf("i = %d, node = %d, leaf = %d, %d\n", i, nodes[i].index, nodes[i].leftType, nodes[i].rightType);
+          printf("i = %zu, node = %llu, leaf = %d, %d\n", i, nodes[i].index, nodes[i].leftType, nodes[i].rightType);
         }
         EXPECT_EQ(1, counter[i]);
       }
@@ -901,7 +901,7 @@ TEST(LSGLRenderTest, TestBinaryPrefixTreeSameKey60) {
 
       for (size_t i = 0; i < counter.size(); i++) {
         if (counter[i] != 1) {
-          printf("i = %d, node = %d, leaf = %d, %d\n", i, nodes[i].index, nodes[i].leftType, nodes[i].rightType);
+          printf("i = %zu, node = %llu, leaf = %d, %d\n", i, nodes[i].index, nodes[i].leftType, nodes[i].rightType);
         }
         EXPECT_EQ(1, counter[i]);
       }

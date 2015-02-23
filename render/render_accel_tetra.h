@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "render_common.h"
-#include "prim_tetra.h"
+#include "render_prim_tetra.h"
 #include "render_intersection.h"
 #include "render_ray.h"
 
