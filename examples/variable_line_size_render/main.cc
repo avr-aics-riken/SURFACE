@@ -178,6 +178,11 @@ int main(int argc, char **argv) {
   float bmax[3] = { 100,  100,  100};
   GenerateRandomLines(&positions.at(0), &widths.at(0), numLines, bmin, bmax);
 
+  std::vector<unsigned int> indices(2 * numLines);
+  for (size_t i = 0; i < indices.size(); i++) {
+    indices[i] = i;
+  }
+
   GLuint prog = 0, fragShader = 0;
   bool ret = LoadShader(prog, fragShader, fragShaderFile);
   if (!ret) {
@@ -228,11 +233,15 @@ int main(int argc, char **argv) {
   //glUniform1i(glGetUniformLocation(prog, "lsgl_LineCap"), 0);
 
   // 1. Create Vertex Buffers.
-  GLuint lnvtx, lradius;
+  GLuint lnvtx, lradius, lidx;
 
   glGenBuffers(1, &lnvtx);
   glBindBuffer(GL_ARRAY_BUFFER, lnvtx);
   lsglBufferDataPointer(GL_ARRAY_BUFFER, numLines * sizeof(float) * 3 * 2, &positions.at(0), GL_STATIC_DRAW);
+
+  glGenBuffers(1, &lidx);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lidx);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numLines * sizeof(int) * 2, &indices.at(0), GL_DYNAMIC_DRAW);
 
   glGenBuffers(1, &lradius);
   glBindBuffer(GL_ARRAY_BUFFER, lradius);
@@ -261,7 +270,8 @@ int main(int argc, char **argv) {
   glVertexAttribPointer(attrPos, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
   glEnableVertexAttribArray(attrPos);
 
-  glDrawArrays(GL_LINES, 0, 2*numLines);
+  glDrawElements(GL_LINES, 2*numLines, GL_UNSIGNED_INT, 0);
+  //glDrawArrays(GL_LINES, 0, 2*numLines);
   assert(glGetError() == GL_NO_ERROR);
 
   glFinish();
