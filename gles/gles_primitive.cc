@@ -39,32 +39,22 @@ void Context::glDrawArrays(GLenum mode, GLint first, GLsizei count) {
   // Construct index buffer
   std::vector<GLint> indices;
 
+  int n = 0;
+  
+  // Truncate # of indices depending on primitive type. 
   if (mode == GL_TRIANGLES) {
-    //   triangle
-    for (GLint i = 0; i < count; i++) {
-      indices.push_back(3 * (i + first) + 0);
-      indices.push_back(3 * (i + first) + 1);
-      indices.push_back(3 * (i + first) + 2);
-    }
+    n = (count / 3) * 3;
   } else if (mode == GL_POINTS) {
-    //   points
-    for (GLint i = 0; i < count; i++) {
-      indices.push_back(i + first);
-    }
+    n = count;
   } else if (mode == GL_LINES) {
-    //   lines
-    for (GLint i = 0; i < count; i++) {
-      indices.push_back(2 * (i + first) + 0);
-      indices.push_back(2 * (i + first) + 1);
-    }
+    n = (count / 2) * 2;
   } else if (mode == GL_TETRAHEDRONS_EXT) {
-    //   tetrahedronss
-    for (GLint i = 0; i < count; i++) {
-      indices.push_back(4 * (i + first) + 0);
-      indices.push_back(4 * (i + first) + 1);
-      indices.push_back(4 * (i + first) + 2);
-      indices.push_back(4 * (i + first) + 3);
-    }
+    n = (count / 4) * 4;
+  }
+
+  indices.resize(n);
+  for (int i = 0; i < n; i++) {
+    indices[i] = i + first;
   }
 
   // Cerate index buffer.

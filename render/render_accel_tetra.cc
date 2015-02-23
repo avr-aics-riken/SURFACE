@@ -1685,24 +1685,27 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 
       if (tetras->isDoublePrecisionPos) {
 
-        size_t leftChildIndex = BuildTreeRecursive32(
+        leftChildIndex = BuildTreeRecursive32(
             nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->dvertices,
             tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
-        size_t rightChildIndex = BuildTreeRecursive32(
+        rightChildIndex = BuildTreeRecursive32(
             nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->dvertices,
             tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
 
       } else {
 
-        size_t leftChildIndex = BuildTreeRecursive32(
+        leftChildIndex = BuildTreeRecursive32(
             nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->vertices,
             tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
-        size_t rightChildIndex = BuildTreeRecursive32(
+        rightChildIndex = BuildTreeRecursive32(
             nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->vertices,
             tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
 
 
       }
+
+      assert(leftChildIndex != (size_t)(-1));
+      assert(rightChildIndex != (size_t)(-1));
 
 #endif
 
