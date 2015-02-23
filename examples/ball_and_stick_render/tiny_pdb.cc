@@ -247,7 +247,7 @@ void TinyPDB::Consume(int amount) {
 namespace {
 
 float GetBondLengthLimit(const Atom& a, const Atom& b) {
-  if (a.GetName().size() >= 2 && (a.GetName()[2] == 'S' || b.GetName()[2] == 'S')) {
+  if ((a.GetName().length() > 2 && b.GetName().length() > 2) && (a.GetName()[2] == 'S' || b.GetName()[2] == 'S')) {
     return 1.9;
   } else {
     return 1.7;
