@@ -16,9 +16,9 @@
 #include "../include/GLES2/gl2.h"
 #include "../include/GLES2/gl2ext.h"
 #include "../render/prim_mesh.h"
-#include "../render/timerutil.h"
-#include "../render/camera.h"
-#include "../render/texture.h"
+#include "../render/render_timerutil.h"
+#include "../render/render_camera.h"
+#include "../render/render_texture.h"
 #include "../render/accel_volume.h"
 #include "../glsl/glsl_runtime.h"
 

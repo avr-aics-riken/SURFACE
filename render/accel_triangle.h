@@ -13,7 +13,7 @@
 
 #include "render_common.h"
 #include "prim_mesh.h"
-#include "intersection.h"
+#include "render_intersection.h"
 
 namespace lsgl {
 namespace render {

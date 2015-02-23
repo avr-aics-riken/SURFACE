@@ -15,8 +15,8 @@
 #include <algorithm>
 #include <stdint.h>
 
-#include "bvh_tree.h"
-#include "matrix.h"
+#include "render_bvh_tree.h"
+#include "render_matrix.h"
 
 using namespace lsgl::render;
 

@@ -109,12 +109,11 @@ render_sources = {
    "../render/accel_particle.cc",
    "../render/accel_tetra.cc",
    "../render/accel_volume.cc",
-   "../render/camera.cc",
+   "../render/render_camera.cc",
    "../render/prim_mesh.cc",
-   "../render/texture.cc",
+   "../render/render_texture.cc",
    "../render/tinymt64.cpp",
-   "../render/bvh_tree.cc",
-   -- "../render/logutil.cc",
+   "../render/render_bvh_tree.cc",
    "../render/prefix_tree_util.cc",
    }
 

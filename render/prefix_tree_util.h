@@ -42,7 +42,7 @@
 #include <algorithm>
 
 #include "render_common.h"
-#include "timerutil.h"
+#include "render_timerutil.h"
 
 namespace lsgl {
 namespace render {

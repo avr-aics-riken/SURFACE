@@ -13,8 +13,8 @@
 #include <cstring>
 
 #include "gles_accel_builder.h"
-#include "../render/bvh_tree.h"
-#include "../render/intersection.h"
+#include "../render/render_bvh_tree.h"
+#include "../render/render_intersection.h"
 
 namespace lsgl {
 

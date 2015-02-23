@@ -9,8 +9,8 @@
 #ifndef __LSGL_PRIMITIVE_MESH_H__
 #define __LSGL_PRIMITIVE_MESH_H__
 
-#include "ray.h"
-#include "intersection.h"
+#include "render_ray.h"
+#include "render_intersection.h"
 
 namespace lsgl {
 namespace render {

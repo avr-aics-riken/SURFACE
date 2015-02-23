@@ -28,7 +28,7 @@
 #include "gles_common.h"
 #include "gles_context.h"
 
-#include "../render/timerutil.h"
+#include "../render/render_timerutil.h"
 
 // 1 if measure pure raytracing performance(disable shader call)
 #define ENABLE_RAYTRACE_PERF (0)

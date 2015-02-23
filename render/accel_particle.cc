@@ -42,7 +42,7 @@
 #endif
 
 #include "accel_particle.h"
-#include "timerutil.h"
+#include "render_timerutil.h"
 #include "prefix_tree_util.h"
 
 using namespace lsgl::render;

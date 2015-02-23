@@ -22,11 +22,11 @@ SET(GLES_SOURCES
   ../render/accel_tetra.cc
   ../render/accel_triangle.cc
   ../render/accel_volume.cc
-  ../render/camera.cc
+  ../render/render_camera.cc
   ../render/prefix_tree_util.cc
   ../render/prim_mesh.cc
-  ../render/texture.cc
-  ../render/bvh_tree.cc
+  ../render/render_texture.cc
+  ../render/render_bvh_tree.cc
   ../render/tinymt64.cpp
   )
 

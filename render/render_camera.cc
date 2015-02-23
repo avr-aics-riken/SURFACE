@@ -9,7 +9,7 @@
 #define _USE_MATH_DEFINES // VS specific. Includes M_PI
 #include <cmath>
 
-#include "camera.h"
+#include "render_camera.h"
 
 using namespace lsgl::render;
 

@@ -16,7 +16,7 @@
 #include "../glsl/glsl_simdclass.h"
 #endif
 
-#include "texture.h"
+#include "render_texture.h"
 
 #ifndef M_PI
 #define M_PI 3.141592
