@@ -998,8 +998,8 @@ int GetSplitAxis(uint32_t key) {
   int clz = CountLeadingZeros32(key);
 
   int n = clz - 2;
-  assert(n >= 0);
-  assert(n < 30);
+  //assert(n >= 0);
+  //assert(n < 30);
 
   // 0 -> x, 1 -> y, 2 -> z, 3 -> x, ...
   return n % 3;
