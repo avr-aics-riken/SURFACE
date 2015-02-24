@@ -1683,7 +1683,7 @@ def eFunction(exp):
 
     # Call constructor in main function
     if isMainFunction:
-        s += Indent() + "__shader_internal_constructor();\n"
+        s += Indent() + "__shader_internal_constructor(__state);\n"
 
     for stmt in statements:
         expName = stmt[0]
@@ -1873,7 +1873,7 @@ def ir_to_c(input_sexp_string, opts):
     # pass2: emit global variable initializer
     #
     IncrementIndent()
-    s += "static void __shader_internal_constructor() {\n"
+    s += "static void __shader_internal_constructor(FragmentState* __state) {\n"
     for e in ir_exp:
         if isinstance(e, list):
             name = e[0]
