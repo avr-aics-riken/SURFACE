@@ -11,8 +11,8 @@
 #include <functional>
 #include <algorithm>
 
-#include "texture.h" // LSGL_RENDER_TEXTURE3D_FORMAT_XXXX
-#include "accel_volume.h"
+#include "render_texture.h" // LSGL_RENDER_TEXTURE3D_FORMAT_XXXX
+#include "render_accel_volume.h"
 
 using namespace lsgl::render;
 

@@ -7,10 +7,10 @@
 #include <vector>
 
 #include "render_common.h"
-#include "prim_volume.h"
-#include "bvh_tree.h"
-#include "ray.h"
-#include "intersection.h"
+#include "render_prim_volume.h"
+#include "render_bvh_tree.h"
+#include "render_ray.h"
+#include "render_intersection.h"
 
 namespace lsgl {
 namespace render {

@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include "gles_accel_builder.h"
-#include "../render/timerutil.h"
+#include "../render/render_timerutil.h"
 
 using namespace lsgl;
 
@@ -696,6 +696,7 @@ void AccelBuilder::AddLineData(MeshData *md, const Buffer *elembuf,
   }
 
   lines->numLines = md->indexBuffer.GetCount() / 2; // LINES
+  lines->segments = md->indexBuffer.GetBase();
 
   accel->Build(lines, options); // @todo { implement parallel BVH builder for line primitive. }
   t.end();

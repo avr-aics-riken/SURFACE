@@ -41,9 +41,9 @@
 #include <emmintrin.h>
 #endif
 
-#include "accel_particle.h"
-#include "timerutil.h"
-#include "prefix_tree_util.h"
+#include "render_accel_particle.h"
+#include "render_timerutil.h"
+#include "render_prefix_tree_util.h"
 
 using namespace lsgl::render;
 

@@ -26,7 +26,7 @@
 #include <functional>
 #include <algorithm>
 
-#include "accel_line.h"
+#include "render_accel_line.h"
 
 #define ENABLE_TRACE_PRINT (0)
 #define ENABLE_DEBUG_PRINT (0)
@@ -83,11 +83,11 @@ inline void GetBoundingBoxOfLine(real3 &bmin, real3 &bmax, const Lines *lines,
                                  unsigned int index) {
   const real kEPS = std::numeric_limits<real>::epsilon() * 1024.0;
 
-  real3 p0 = GetPosition(lines, 2 * index + 0);
-  real3 p1 = GetPosition(lines, 2 * index + 1);
+  real3 p0 = GetPosition(lines, lines->segments[2 * index + 0]);
+  real3 p1 = GetPosition(lines, lines->segments[2 * index + 1]);
 
-  real r0 = GetRadius(lines, 2 * index + 0);
-  real r1 = GetRadius(lines, 2 * index + 1);
+  real r0 = GetRadius(lines, lines->segments[2 * index + 0]);
+  real r1 = GetRadius(lines, lines->segments[2 * index + 1]);
 
   real3 points[4] = {
       p0 - real3(r0, r0, r0), p0 + real3(r0, r0, r0), p1 - real3(r1, r1, r1),
@@ -120,8 +120,8 @@ public:
   bool operator()(unsigned int i) const {
     int axis = axis_;
 
-    real3 p0 = GetPosition(lines_, 2 * i + 0);
-    real3 p1 = GetPosition(lines_, 2 * i + 1);
+    real3 p0 = GetPosition(lines_, lines_->segments[2 * i + 0]);
+    real3 p1 = GetPosition(lines_, lines_->segments[2 * i + 1]);
 
     real3 p = (p0 + p1) * 0.5;
 
@@ -143,7 +143,6 @@ static void ComputeBoundingBox(real3 &bmin, real3 &bmax, const Lines *lines,
                                unsigned int rightIndex) {
   size_t i = leftIndex;
   size_t idx = indices[i];
-  real radius = GetRadius(lines, idx);
   GetBoundingBoxOfLine(bmin, bmax, lines, idx);
 
   for (i = leftIndex; i < rightIndex; i++) {
@@ -311,7 +310,7 @@ bool LineAccel::Build(const Lines *lines, const LineBuildOptions &options) {
   assert(n > 0);
 
   //
-  // 1. Create triangle indices(this will be permutated in BuildTree)
+  // 1. Create line indices(this will be permutated in BuildTree)
   //
   indices_.resize(n);
   for (size_t i = 0; i < n; i++) {
@@ -323,7 +322,7 @@ bool LineAccel::Build(const Lines *lines, const LineBuildOptions &options) {
   //
   BuildTree(lines, 0, n, 0);
 
-  // Tree will be null if input triangle count == 0.
+  // Tree will be null if input line count == 0.
   if (!nodes_.empty()) {
     // 0 = root node.
     real3 bmin(&nodes_[0].bmin[0]);
@@ -591,11 +590,11 @@ bool TestLeafNode(CylinderIntersection &isect, // [inout]
   for (unsigned int i = 0; i < numLines; i++) {
     unsigned int index = indices[i + offset];
 
-    real3 p0 = GetPosition(lines, 2 * index + 0);
-    real3 p1 = GetPosition(lines, 2 * index + 1);
+    real3 p0 = GetPosition(lines, lines->segments[2 * index + 0]);
+    real3 p1 = GetPosition(lines, lines->segments[2 * index + 1]);
 
-    real r0 = GetRadius(lines, 2 * index + 0);
-    real r1 = GetRadius(lines, 2 * index + 1);
+    real r0 = GetRadius(lines, lines->segments[2 * index + 0]);
+    real r1 = GetRadius(lines, lines->segments[2 * index + 1]);
 
     real u;
     real v;
@@ -662,8 +661,8 @@ void BuildIntersection(Intersection &isectRet,
 
   real v = isect.v;
   unsigned int index = isect.prim_id;
-  real3 p0 = GetPosition(lines, 2 * index + 0);
-  real3 p1 = GetPosition(lines, 2 * index + 1);
+  real3 p0 = GetPosition(lines, lines->segments[2 * index + 0]);
+  real3 p1 = GetPosition(lines, lines->segments[2 * index + 1]);
 
   real3 center = p0 + real3(v, v, v) * (p1 - p0);
 

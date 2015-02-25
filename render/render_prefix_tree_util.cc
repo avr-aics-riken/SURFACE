@@ -30,9 +30,9 @@
 #include <algorithm>
 
 #include "render_common.h"
-#include "timerutil.h"
-#include "prefix_tree_util.h"
-#include "simd_util.h"
+#include "render_timerutil.h"
+#include "render_prefix_tree_util.h"
+#include "render_simd_util.h"
 
 using namespace lsgl::render;
 

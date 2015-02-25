@@ -78,7 +78,7 @@ void GenerateRandomTetras(
     for (size_t j = 0; j < 4; j++) {
 
 #if 1
-      double scale = 0.005;
+      double scale = 0.05;
       // random offset. [-0.025, 0.025)
       double v0 = scale * (bmax[0] - bmin[0]) * tinymt64_generate_double(&rng);
       double v1 = scale * (bmax[1] - bmin[1]) * tinymt64_generate_double(&rng);
@@ -287,7 +287,6 @@ main(
   GenerateRandomTetras<float>(&positions.at(0), numTetras, bmin, bmax, 1234);
 
   // gen indices
-  numTetras = numPoints;
   std::vector<unsigned int> indices;
   for (int i = 0; i < 4*numTetras; i++) {
     indices.push_back(i);
@@ -330,8 +329,7 @@ main(
   glEnableVertexAttribArray(attrPos);
   assert(glGetError() == GL_NO_ERROR);
 
-  //glDrawElements(GL_POINTS, npoints, GL_UNSIGNED_INT, (void*)0); // 0 = use vertex buffer.
-  glDrawArrays(GL_TETRAHEDRONS_EXT, 0, numTetras);
+  glDrawArrays(GL_TETRAHEDRONS_EXT, 0, 4*numTetras);
   assert(glGetError() == GL_NO_ERROR);
 
   timerutil t;

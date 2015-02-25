@@ -15,7 +15,7 @@
 
 using namespace lsgl;
 
-#include "../render/texture.h"
+#include "../render/render_texture.h"
 
 Texture *Context::HandleToTexture(GLenum target) {
   // get current selected texture index

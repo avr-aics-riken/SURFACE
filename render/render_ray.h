@@ -19,7 +19,7 @@
 #endif
 
 #include "render_common.h"
-#include "simd_util.h"
+#include "render_simd_util.h"
 
 namespace lsgl {
 namespace render {

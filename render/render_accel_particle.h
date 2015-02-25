@@ -12,9 +12,9 @@
 #include <vector>
 
 #include "render_common.h"
-#include "prim_particle.h"
-#include "ray.h"
-#include "intersection.h"
+#include "render_prim_particle.h"
+#include "render_ray.h"
+#include "render_intersection.h"
 
 namespace lsgl {
 namespace render {

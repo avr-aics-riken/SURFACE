@@ -6,9 +6,10 @@
  *
  */
 
-#include "render_common.h"
-#include "prim_mesh.h"
 #include <vector>
+
+#include "render_common.h"
+#include "render_prim_triangle.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265

@@ -19,8 +19,8 @@
 #include <functional>
 #include <algorithm>
 
-#include "accel_tetra.h"
-#include "prefix_tree_util.h"
+#include "render_accel_tetra.h"
+#include "render_prefix_tree_util.h"
 #include "tinymt64.h"
 
 using namespace lsgl::render;
@@ -998,8 +998,8 @@ int GetSplitAxis(uint32_t key) {
   int clz = CountLeadingZeros32(key);
 
   int n = clz - 2;
-  assert(n >= 0);
-  assert(n < 30);
+  //assert(n >= 0);
+  //assert(n < 30);
 
   // 0 -> x, 1 -> y, 2 -> z, 3 -> x, ...
   return n % 3;
@@ -1685,24 +1685,27 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 
       if (tetras->isDoublePrecisionPos) {
 
-        size_t leftChildIndex = BuildTreeRecursive32(
+        leftChildIndex = BuildTreeRecursive32(
             nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->dvertices,
             tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
-        size_t rightChildIndex = BuildTreeRecursive32(
+        rightChildIndex = BuildTreeRecursive32(
             nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->dvertices,
             tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
 
       } else {
 
-        size_t leftChildIndex = BuildTreeRecursive32(
+        leftChildIndex = BuildTreeRecursive32(
             nodes_, leftBMin, leftBMax, keys, nodeInfos, tetras->vertices,
             tetras->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
-        size_t rightChildIndex = BuildTreeRecursive32(
+        rightChildIndex = BuildTreeRecursive32(
             nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->vertices,
             tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
 
 
       }
+
+      assert(leftChildIndex != (size_t)(-1));
+      assert(rightChildIndex != (size_t)(-1));
 
 #endif
 

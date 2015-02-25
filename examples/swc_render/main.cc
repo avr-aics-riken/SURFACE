@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
   int dim[3] = {32, 32, 32};
 
   if (argc < 2) {
-    fprintf(stderr, "need input.pdb\n");
+    fprintf(stderr, "need input.swc\n");
     exit(-1);
   }
 

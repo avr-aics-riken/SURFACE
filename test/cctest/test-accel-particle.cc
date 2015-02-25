@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "../render/accel_particle.h"
+#include "../render/render_accel_particle.h"
 
 using namespace lsgl::render;
 

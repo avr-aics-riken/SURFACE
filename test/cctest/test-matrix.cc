@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "matrix.h"
+#include "render_matrix.h"
 
 using namespace lsgl::render;
 
