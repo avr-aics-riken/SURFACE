@@ -30,11 +30,10 @@ AccelBuilder::~AccelBuilder() {
   staticList_.clear();
 }
 
-AccelBuilder::MeshAccelerator *
-AccelBuilder::Build(const Buffer *elembuf, const Buffer *arraybuf,
-                    bool isDoublePrecisionPos,
-                    const VertexAttribute *vertexAttributes,
-                    const GLuint *texture2D, GLsizei count, GLuint offset) {
+AccelBuilder::MeshAccelerator *AccelBuilder::BuildMeshAccel(
+    const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
+    const VertexAttribute *vertexAttributes, const GLuint *texture2D,
+    GLsizei count, GLuint offset) {
   // ensure the position vertex attribute is enabled, at minimum
   const VertexAttribute *attrPos = &vertexAttributes[kVtxAttrPosition];
   if (attrPos->enabled == false) {
@@ -187,7 +186,8 @@ AccelBuilder::ParticleAccelerator *AccelBuilder::BuildParticleAccel(
 AccelBuilder::LineAccelerator *AccelBuilder::BuildLineAccel(
     const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
     const VertexAttribute *vertexAttributes, GLsizei count, GLuint offset,
-    GLfloat constantWidth) {
+    GLfloat constantWidth, const GLfloat *widthBuf, const GLsizei widthBufLen,
+    bool cap) {
   // ensure the position vertex attribute is enabled, at minimum
   const VertexAttribute *attrPos = &vertexAttributes[kVtxAttrPosition];
   if (attrPos->enabled == false) {
@@ -212,7 +212,7 @@ AccelBuilder::LineAccelerator *AccelBuilder::BuildLineAccel(
     return NULL;
   }
 
-  // first try to locate this mesh in our static cache
+  // first try to locate this line in our static cache
   LineAccelerator *accel = reinterpret_cast<LineAccelerator *>(
       Locate(elembuf, arraybuf, &abinfo, count, offset));
   if (accel != NULL) {
@@ -231,7 +231,7 @@ AccelBuilder::LineAccelerator *AccelBuilder::BuildLineAccel(
 
   // build the particle accelerator
   AddLineData(&ce->meshData, elembuf, arraybuf, &abinfo, count, offset,
-              constantWidth);
+              constantWidth, widthBuf, widthBufLen, cap);
 
   // if both buffers are marked as static, add this mesh to the static cache
   // list, otherwise add it to the dynamic list instead
@@ -253,11 +253,9 @@ AccelBuilder::LineAccelerator *AccelBuilder::BuildLineAccel(
   return reinterpret_cast<LineAccelerator *>(ce->meshData.accel);
 }
 
-AccelBuilder::TetraAccelerator *
-AccelBuilder::BuildTetraAccel(const Buffer *elembuf, const Buffer *arraybuf,
-                    bool isDoublePrecisionPos,
-                    const VertexAttribute *vertexAttributes,
-                    GLsizei count, GLuint offset) {
+AccelBuilder::TetraAccelerator *AccelBuilder::BuildTetraAccel(
+    const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
+    const VertexAttribute *vertexAttributes, GLsizei count, GLuint offset) {
   // ensure the position vertex attribute is enabled, at minimum
   const VertexAttribute *attrPos = &vertexAttributes[kVtxAttrPosition];
   if (attrPos->enabled == false) {
@@ -265,7 +263,7 @@ AccelBuilder::BuildTetraAccel(const Buffer *elembuf, const Buffer *arraybuf,
   }
 
   // initialize array buffer info
-  ArrayBufInfo abinfo = { 0 };
+  ArrayBufInfo abinfo = {0};
   abinfo.offsetPosition = (GLubyte *)attrPos->ptr - (GLubyte *)NULL;
 
   // FIXME: assume non-interleaved XYZ float for position (for now)
@@ -303,7 +301,7 @@ AccelBuilder::BuildTetraAccel(const Buffer *elembuf, const Buffer *arraybuf,
 
   // build the mesh accelerator
   AddTetraData(&ce->meshData, elembuf, arraybuf, isDoublePrecisionPos, &abinfo,
-              count, offset);
+               count, offset);
 
   // if both buffers are marked as static, add this mesh to the static cache
   // list, otherwise add it to the dynamic list instead
@@ -591,24 +589,6 @@ void AccelBuilder::AddParticleData(MeshData *md, const Buffer *elembuf,
 
   md->type = PRIMITIVE_POINTS;
 
-#if 0
-  // add indices, position, normal, and texcoord data from the GL buffers to our
-  // internal data buffers
-  AddData(md->indexBuffer, elembuf, count, offset,
-          md->positionBuffer.GetCount() / 3, &maxIndex);
-  AddData(md->positionBuffer, arraybuf, (maxIndex + 1) * 3,
-          abinfo->offsetPosition);
-
-  if (widthBuf.size() >= (count + offset)) {
-    GLfloat *dptr = md->radiusBuffer.Add(count);
-
-    for (GLuint i = 0; i < count; i++) {
-      dptr[i] = widthBuf[i + offset];
-    }
-  }
-
-#endif
-
   ParticleBuildOptions options;
   timerutil t;
   t.start();
@@ -631,7 +611,9 @@ void AccelBuilder::AddParticleData(MeshData *md, const Buffer *elembuf,
 void AccelBuilder::AddLineData(MeshData *md, const Buffer *elembuf,
                                const Buffer *arraybuf,
                                const ArrayBufInfo *abinfo, GLsizei count,
-                               GLuint offset, GLfloat constantWidth) {
+                               GLuint offset, GLfloat constantWidth,
+                               const GLfloat *widthBuf,
+                               const GLsizei widthBufLen, bool cap) {
   GLuint maxIndex;
 
   // first free any existing accelerator
@@ -640,36 +622,82 @@ void AccelBuilder::AddLineData(MeshData *md, const Buffer *elembuf,
   delete pacc;
   md->accel = NULL;
 
-  // printf("count = %d\n", count);
+  if ((widthBufLen >= (count + offset)) && (widthBuf != NULL)) {
+    GLfloat *dptr = md->radiusBuffer.Add(count);
 
-  // add indices, position, normal, and texcoord data from the GL buffers to our
-  // internal data buffers
-  AddData(md->indexBuffer, elembuf, count, offset,
-          md->positionBuffer.GetCount() / 3, &maxIndex);
-  // printf("maxIndex = %d\n", maxIndex);
-  AddData(md->positionBuffer, arraybuf, (maxIndex + 1) * 3,
-          abinfo->offsetPosition);
+    for (GLuint i = 0; i < count; i++) {
+      dptr[i] = widthBuf[i + offset];
+    }
+  }
 
-  // update the mesh structure with the data from our data buffers
-  md->mesh.nfaces = md->indexBuffer.GetCount() / 3;
-  md->mesh.faces = md->indexBuffer.GetBase();
-  md->mesh.nvertices = md->positionBuffer.GetCount() / 3;
-  md->mesh.vertices = md->positionBuffer.GetBase();
-
+  md->mesh.nfaces = 0;
+  md->mesh.faces = NULL;
+  md->mesh.nvertices = 0;
+  md->mesh.vertices = NULL;
   md->type = PRIMITIVE_LINES;
 
   LineBuildOptions options;
+  options.cap = cap;
+
   timerutil t;
   t.start();
   LineAccel *accel = new LineAccel();
 
   Lines *lines = new Lines(); // @fixme { No delete operaton for this object. }
-  lines->numLines = md->indexBuffer.GetCount() / 2; // LINES
-  lines->positions = md->positionBuffer.GetBase();
-  lines->radius = NULL;                        // @fixme {}
+  // lines->positions = md->positionBuffer.GetBase();
+  if ((widthBuf == NULL) || (widthBufLen == 0)) {
+    lines->radius = NULL;
+  } else {
+    lines->radius = md->radiusBuffer.GetBase();
+  }
   lines->constantRadius = constantWidth * 0.5; // @fixme {}
 
-  accel->Build(lines, options);
+  bool isDoublePrecisionPos = false; // @fixme;
+
+  if (isDoublePrecisionPos) {
+    // @todo { provide zero-copy version. }
+    AddData(md->indexBuffer, elembuf, count, offset,
+            md->dpositionBuffer.GetCount() / 3, &maxIndex);
+
+    if (arraybuf->IsRetained()) {
+      // zero-copy vesion.
+      assert(abinfo->offsetPosition == 0);
+      lines->dpositions = reinterpret_cast<const double *>(arraybuf->GetData());
+      lines->positions = NULL;
+    } else {
+      AddData(md->dpositionBuffer, arraybuf, (maxIndex + 1) * 3,
+              abinfo->offsetPosition);
+
+      lines->dpositions = md->dpositionBuffer.GetBase();
+      lines->positions = NULL;
+    }
+
+    lines->isDoublePrecisionPos = true;
+
+  } else {
+    // @todo { provide zero-copy version. }
+    AddData(md->indexBuffer, elembuf, count, offset,
+            md->positionBuffer.GetCount() / 3, &maxIndex);
+
+    if (arraybuf->IsRetained()) {
+      // zero-copy vesion.
+      assert(abinfo->offsetPosition == 0);
+      lines->positions = reinterpret_cast<const float *>(arraybuf->GetData());
+      lines->dpositions = NULL;
+
+    } else {
+      AddData(md->positionBuffer, arraybuf, (maxIndex + 1) * 3,
+              abinfo->offsetPosition);
+      lines->positions = md->positionBuffer.GetBase();
+      lines->dpositions = NULL;
+    }
+
+    lines->isDoublePrecisionPos = false;
+  }
+
+  lines->numLines = md->indexBuffer.GetCount() / 2; // LINES
+
+  accel->Build(lines, options); // @todo { implement parallel BVH builder for line primitive. }
   t.end();
 
   double bmin[3], bmax[3];
@@ -682,10 +710,10 @@ void AccelBuilder::AddLineData(MeshData *md, const Buffer *elembuf,
 }
 
 void AccelBuilder::AddTetraData(MeshData *md, const Buffer *elembuf,
-                                   const Buffer *arraybuf,
-                                   bool isDoublePrecisionPos,
-                                   const ArrayBufInfo *abinfo, GLsizei count,
-                                   GLuint offset) {
+                                const Buffer *arraybuf,
+                                bool isDoublePrecisionPos,
+                                const ArrayBufInfo *abinfo, GLsizei count,
+                                GLuint offset) {
   GLuint maxIndex;
 
   // first free any existing accelerator
@@ -742,12 +770,10 @@ void AccelBuilder::AddTetraData(MeshData *md, const Buffer *elembuf,
   tetras->faces = md->indexBuffer.GetBase();
 
   // Take a reference
-  md->mesh.nfaces = tetras->numTetrahedrons;
-  md->mesh.faces = tetras->faces;
-
+  md->mesh.nfaces = 0;
+  md->mesh.faces = NULL;
   md->mesh.nvertices = 0;
   md->mesh.vertices = NULL;
-
   md->type = PRIMITIVE_TETRAHEDRONS;
 
   TetraBuildOptions options;
@@ -755,8 +781,8 @@ void AccelBuilder::AddTetraData(MeshData *md, const Buffer *elembuf,
   t.start();
   TetraAccel *accel = new TetraAccel();
 
-  accel->Build(tetras, options);
-  //accel->Build32(tetras, options); 
+  //accel->Build(tetras, options);
+  accel->Build32(tetras, options);
 
   t.end();
 
@@ -836,7 +862,8 @@ void AccelBuilder::FreeMesh(CacheEntry *ce) {
   // Remove accel
   //
   if (ce->meshData.type == PRIMITIVE_TRIANGLES) {
-    TriangleAccel *accel = reinterpret_cast<TriangleAccel *>(ce->meshData.accel);
+    TriangleAccel *accel =
+        reinterpret_cast<TriangleAccel *>(ce->meshData.accel);
     delete accel;
   } else if (ce->meshData.type == PRIMITIVE_POINTS) {
     AccelBuilder::ParticleAccelerator *accel =
@@ -849,8 +876,7 @@ void AccelBuilder::FreeMesh(CacheEntry *ce) {
     delete accel;
   } else if (ce->meshData.type == PRIMITIVE_TETRAHEDRONS) {
     AccelBuilder::TetraAccelerator *accel =
-        reinterpret_cast<AccelBuilder::TetraAccelerator *>(
-            ce->meshData.accel);
+        reinterpret_cast<AccelBuilder::TetraAccelerator *>(ce->meshData.accel);
     delete accel;
   } else {
     assert(0 && "Unknown error");

@@ -177,7 +177,7 @@ void Context::glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     // resource manager
     Buffer *buf = resourceManager_.GetBuffer(buffers[i]);
     if (buf != NULL) {
-      meshBuilder_.Invalidate(buf);
+      accelBuilder_.Invalidate(buf);
     }
     resourceManager_.DeleteBuffer(buffers[i]);
   }
@@ -695,6 +695,6 @@ void Context::lsglInvalidateBuffer(GLenum target) {
 
   Buffer *buf = HandleToBuffer(target);
   if (buf != NULL) {
-    meshBuilder_.Invalidate(buf);
+    accelBuilder_.Invalidate(buf);
   }
 }

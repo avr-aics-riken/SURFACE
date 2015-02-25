@@ -13,7 +13,6 @@
 #include <cstring>
 
 #include "gles_common.h"
-#include "../render/matrix.h"
 
 using namespace lsgl;
 
@@ -29,21 +28,43 @@ void BuildPredefinedLSGLVertexUniforms(
   UniformLocation locView("lsgl_View", /*elem=*/0, indexOffset + 1);
   UniformLocation locProj("lsgl_Proj", /*elem=*/0, indexOffset + 2);
   UniformLocation locPointSize("lsgl_PointSize", /*elem=*/0, indexOffset + 3);
+  UniformLocation locLineCap("lsgl_LineCap", /*elem=*/0, indexOffset + 4);
+
+  // use existing glLineWidth() to specify uniform width for line primitives.
+  // UniformLocation locLineSize("lsgl_LineWidth", /*elem=*/0, indexOffset +
+  // 4);
 
   // SHOULD not break this ordering
   vertUniformLocations.push_back(locWorld);
   vertUniformLocations.push_back(locView);
   vertUniformLocations.push_back(locProj);
   vertUniformLocations.push_back(locPointSize);
+  vertUniformLocations.push_back(locLineCap);
 
   Uniform world(GL_FLOAT_MAT4, "lsgl_World", 1);
   Uniform view(GL_FLOAT_MAT4, "lsgl_View", 1);
   Uniform proj(GL_FLOAT_MAT4, "lsgl_Proj", 1);
   Uniform psize(GL_FLOAT, "lsgl_PointSize", 1);
+  Uniform lcap(GL_INT, "lsgl_LineCap", 1);
 
   // fill data with identity matrix.
   float ident[4][4];
-  Matrixf::Identity(ident);
+  ident[0][0] = 1.0f;
+  ident[0][1] = 0.0f;
+  ident[0][2] = 0.0f;
+  ident[0][3] = 0.0f;
+  ident[1][0] = 0.0f;
+  ident[1][1] = 1.0f;
+  ident[1][2] = 0.0f;
+  ident[1][3] = 0.0f;
+  ident[2][0] = 0.0f;
+  ident[2][1] = 0.0f;
+  ident[2][2] = 1.0f;
+  ident[2][3] = 0.0f;
+  ident[3][0] = 0.0f;
+  ident[3][1] = 0.0f;
+  ident[3][2] = 0.0f;
+  ident[3][3] = 1.0f;
 
   int sz = sizeof(float) * 4 * 4; // 4x4 float matrix.
   world.data.resize(sz);
@@ -58,11 +79,17 @@ void BuildPredefinedLSGLVertexUniforms(
   psize.data.resize(sizeof(float));
   memcpy(&psize.data.at(0), &initPointSize, sizeof(float));
 
+  // fill with 1(true)
+  int initLineCap = 1;
+  lcap.data.resize(sizeof(int));
+  memcpy(&lcap.data.at(0), &initLineCap, sizeof(int));
+
   // SHOULD not break this ordering
   vertUniforms.push_back(world);
   vertUniforms.push_back(view);
   vertUniforms.push_back(proj);
   vertUniforms.push_back(psize);
+  vertUniforms.push_back(lcap);
 }
 
 } // namespace

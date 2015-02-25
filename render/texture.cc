@@ -37,18 +37,18 @@ inline double dlerp(double t, double a, double b) {
 namespace {
 
 FORCEINLINE __vec4_d
-vclamp(const __vec4_d &v, const __vec4_d &low, const __vec4_d &high) {
+    vclamp(const __vec4_d &v, const __vec4_d &low, const __vec4_d &high) {
   return vmin(vmax(v, low), high);
 }
 
 FORCEINLINE __vec4_d
-vlerp4(const __vec4_d &t, const __vec4_d &a, const __vec4_d &b) {
+    vlerp4(const __vec4_d &t, const __vec4_d &a, const __vec4_d &b) {
   const __vec4_d vone(1.0);
   return (vone - t) * a + t * b;
 }
 
 FORCEINLINE __vec2_d
-vlerp2(const __vec2_d &t, const __vec2_d a, const __vec2_d &b) {
+    vlerp2(const __vec2_d &t, const __vec2_d a, const __vec2_d &b) {
   const __vec2_d vone(1.0);
   return (vone - t) * a + t * b;
 }
@@ -60,29 +60,29 @@ vlerp2(const __vec2_d &t, const __vec2_d a, const __vec2_d &b) {
 #define FORCEINLINE __attribute__((always_inline))
 
 FORCEINLINE __vec4_d
-vclamp(const __vec4_d &v, const __vec4_d &low, const __vec4_d &high) {
+    vclamp(const __vec4_d &v, const __vec4_d &low, const __vec4_d &high) {
   return vmin(vmax(v, low), high);
 }
 
 FORCEINLINE __vec4_f
-vclampf(const __vec4_f &v, const __vec4_f &low, const __vec4_f &high) {
+    vclampf(const __vec4_f &v, const __vec4_f &low, const __vec4_f &high) {
   return vmin(vmax(v, low), high);
 }
 
 FORCEINLINE __vec4_d
-vlerp4(const __vec4_d &t, const __vec4_d &a, const __vec4_d &b) {
+    vlerp4(const __vec4_d &t, const __vec4_d &a, const __vec4_d &b) {
   const __vec4_d vone(1.0);
   return (vone - t) * a + t * b;
 }
 
 FORCEINLINE __vec4_f
-vlerp4f(const __vec4_f &t, const __vec4_f &a, const __vec4_f &b) {
+    vlerp4f(const __vec4_f &t, const __vec4_f &a, const __vec4_f &b) {
   const __vec4_f vone(1.0f);
   return (vone - t) * a + t * b;
 }
 
 FORCEINLINE __vec2_d
-vlerp2(const __vec2_d &t, const __vec2_d &a, const __vec2_d &b) {
+    vlerp2(const __vec2_d &t, const __vec2_d &a, const __vec2_d &b) {
   const __vec2_d vone(1.0);
   return (vone - t) * a + t * b;
 }
@@ -97,7 +97,7 @@ inline int Clamp(int v, int low, int high) {
   return std::min(std::max(v, low), high);
 }
 
-//inline bool myisnan(float a) {
+// inline bool myisnan(float a) {
 //  volatile float d = a;
 //  return d != d;
 //}

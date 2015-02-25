@@ -19,11 +19,17 @@
 namespace lsgl {
 namespace render {
 
+//
+// @note { Line is represented as cylinder(line + width) primitive
+// `cap` option is avaiable whether cap cylinder object or not.
+// default = capping enabled. }
+//
+
 /// Represents node data for line BVH accelerator.
 class LineNode {
 public:
-  LineNode() {};
-  ~LineNode() {};
+  LineNode(){};
+  ~LineNode(){};
 
   real bmin[3];
   real bmax[3];
@@ -46,9 +52,10 @@ struct LineBuildOptions {
   bool debugPrint;
   int minLeafPrimitives;
   int maxTreeDepth;
+  bool cap; // enable = cap line(cylinder) primitive.
 
   // Set default value: Taabb = 0.2
-  LineBuildOptions() : minLeafPrimitives(16), maxTreeDepth(512) {}
+  LineBuildOptions() : minLeafPrimitives(16), maxTreeDepth(512), cap(true) {}
 };
 
 ///< Line BVH build statistics.
@@ -64,8 +71,8 @@ struct LineBuildStatistics {
 /// Line BVH accelerator class
 class LineAccel {
 public:
-  LineAccel() {};
-  ~LineAccel() {};
+  LineAccel(){};
+  ~LineAccel(){};
 
   /// Build BVH for input lines.
   bool Build(const Lines *particles, const LineBuildOptions &options);

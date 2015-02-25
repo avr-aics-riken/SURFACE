@@ -47,7 +47,10 @@
 namespace lsgl {
 namespace render {
 
-typedef enum { NODE_TYPE_INTERMEDIATE = 0, NODE_TYPE_LEAF = 1, } NodeType;
+typedef enum {
+  NODE_TYPE_INTERMEDIATE = 0,
+  NODE_TYPE_LEAF = 1,
+} NodeType;
 
 // @todo { save memory }
 struct NodeInfo32 {
@@ -597,6 +600,16 @@ void CalculateMortonCodesTriangleFloat30(uint32_t *codes, const float *vertices,
                                          const uint32_t *faces,
                                          const real3 &bmin, const real3 &bmax,
                                          int64_t startIdx, int64_t endIdx);
+
+void CalculateMortonCodesTetraFloat30(uint32_t *codes, const float *vertices,
+                                         const uint32_t *faces,
+                                         const real3 &bmin, const real3 &bmax,
+                                         int64_t startIdx, int64_t endIdx);
+
+void CalculateMortonCodesTetraDouble30(uint32_t *codes, const double *vertices,
+                                       const uint32_t *faces,
+                                       const real3 &bmin, const real3 &bmax,
+                                       int64_t startIdx, int64_t endIdx);
 
 void CalculateMortonCodes60(uint64_t *codes, const float *points,
                             const real3 &bmin, const real3 &bmax,

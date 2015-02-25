@@ -51,18 +51,16 @@ struct real3 {
   real operator[](int i) const { return (&x)[i]; }
   real &operator[](int i) { return (&x)[i]; }
 
-  real length() const {
-    return sqrt(x*x+y*y+z*z);
-  }
+  real length() const { return sqrt(x * x + y * y + z * z); }
 
   real3 &normalize() {
 
-    double length2 = x*x+y*y+z*z;
-	double length = 0.0;
+    double length2 = x * x + y * y + z * z;
+    double length = 0.0;
 
-	if (fabs(length2) > 1.0e-30) {
-    	length = 1.0 / sqrt(length2);
-	}
+    if (fabs(length2) > 1.0e-30) {
+      length = 1.0 / sqrt(length2);
+    }
 
     x *= length;
     y *= length;
@@ -75,7 +73,9 @@ struct real3 {
   // real pad;  // for alignment
 };
 
-inline real3 operator*(real f, const real3& v) { return real3(v.x * f, v.y * f, v.z * f); }
+inline real3 operator*(real f, const real3 &v) {
+  return real3(v.x * f, v.y * f, v.z * f);
+}
 
 struct double3 {
   double3() {}
@@ -109,15 +109,19 @@ struct double3 {
   double x, y, z;
 };
 
+inline double3 operator*(double f, const double3 &v) {
+  return double3(v.x * f, v.y * f, v.z * f);
+}
+
 inline real dot(const real3 &lhs, const real3 &rhs) {
   return (lhs[0] * rhs[0]) + (lhs[1] * rhs[1]) + (lhs[2] * rhs[2]);
 }
 
 inline real3 cross(const real3 &lhs, const real3 &rhs) {
   return real3(lhs[1] * rhs[2] - lhs[2] * rhs[1], // xyzzy
-                     lhs[2] * rhs[0] - lhs[0] * rhs[2], // yzxxz
-                     lhs[0] * rhs[1] - lhs[1] * rhs[0]  // zxyyx
-                     );
+               lhs[2] * rhs[0] - lhs[0] * rhs[2], // yzxxz
+               lhs[0] * rhs[1] - lhs[1] * rhs[0]  // zxyyx
+               );
 }
 
 

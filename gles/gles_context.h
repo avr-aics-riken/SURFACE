@@ -212,8 +212,9 @@ public:
                        GLsizei width, GLsizei height, GLenum format,
                        GLenum type, const GLvoid *pixels);
   void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
-                       GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
-                       GLenum format, GLenum type, const GLvoid *pixels);
+                       GLint zoffset, GLsizei width, GLsizei height,
+                       GLsizei depth, GLenum format, GLenum type,
+                       const GLvoid *pixels);
   void glUniform1f(GLint location, GLfloat x);
   void glUniform1fv(GLint location, GLsizei count, const GLfloat *v);
   void glUniform1i(GLint location, GLint x);
@@ -258,10 +259,13 @@ public:
   void lsglSetProgressCallback(LSGLProgressCallback func);
   void lsglSetPixelStep(GLint step);
   GLint lsglGetPixelStep();
-  void lsglSetPointSize(GLfloat size);
-  void lsglSetPointSizev(GLsizei num, const GLfloat *size);
-  void lsglSetCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up, GLfloat fov);
-  void lsglSetStereoEnvCamera(const GLfloat *eye, const GLfloat *target, const GLfloat *up, GLfloat zeroParallax, GLfloat eyeSeparation);
+  void lsglSetPointSize(GLfloat size);                      // deprecated
+  void lsglSetPointSizev(GLsizei num, const GLfloat *size); // deprecated
+  void lsglSetCamera(const GLfloat *eye, const GLfloat *target,
+                     const GLfloat *up, GLfloat fov);
+  void lsglSetStereoEnvCamera(const GLfloat *eye, const GLfloat *target,
+                              const GLfloat *up, GLfloat zeroParallax,
+                              GLfloat eyeSeparation);
   void lsglInvalidateBuffer(GLenum target);
   void lsglEvalFragmentShader();
   void lsglEvalSingleFragmentShader();
@@ -272,16 +276,20 @@ public:
                              GLsizei width, GLsizei height, GLsizei depth,
                              GLint border, GLenum format, GLenum type,
                              const GLvoid *pixels);
-  void lsglTexSubImage3DPointer(GLenum target, GLint level,
-                             GLint xoffset, GLint yoffset, GLint zoffset,
-                             GLsizei width, GLsizei height, GLsizei depth,
-                             GLenum format, GLenum type,
-                             const GLvoid *pixels);
-  /// Add coordinate remap when looking up texture. remap table is given as 1D array.
-  void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size, const GLfloat* coords);
+  void lsglTexSubImage3DPointer(GLenum target, GLint level, GLint xoffset,
+                                GLint yoffset, GLint zoffset, GLsizei width,
+                                GLsizei height, GLsizei depth, GLenum format,
+                                GLenum type, const GLvoid *pixels);
+  /// Add coordinate remap when looking up texture. remap table is given as 1D
+  /// array.
+  void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size,
+                         const GLfloat *coords);
 
-  /// Set an resident memory region(works as in glTexPageCommitmentARB) for sparse volume texture.
-  void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
+  /// Set an resident memory region(works as in glTexPageCommitmentARB) for
+  /// sparse volume texture.
+  void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset,
+                             GLint yoffset, GLint zoffset, GLsizei width,
+                             GLsizei height, GLsizei depth, GLboolean commit);
 
 private:
   friend class RaytraceEngine;
@@ -299,12 +307,12 @@ private:
 
   bool dirtyFrame_;
   RaytraceEngine engine_;
-  AccelBuilder meshBuilder_;
+  AccelBuilder accelBuilder_;
 
   RenderGraph *renderGraph_;
 
   // Required to ensure building sparse volume texture before rendering begins.
-  std::vector<Texture*> sparseTextureList_;
+  std::vector<Texture *> sparseTextureList_;
 
   std::vector<GLuint> bufferFreeList_; // For property free memories used in
                                        // glDrawElements.

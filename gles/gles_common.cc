@@ -582,6 +582,16 @@ void Shader::BuildVaryingInfo(std::vector<Varying> &varyings,
     varyings.push_back(pointSizeVarying);
     varyingLocations.push_back(pointSizeVaryingLocation);
   }
+
+  {
+    int index = config.numVaryings + 1;
+    assert(index < kMaxVertexAttribs);
+    VaryingLocation lineSizeVaryingLocation("lsgl_LineWidth", 0, index);
+    Varying lineSizeVarying(GL_FLOAT, 1, "lsgl_LineWidth", 1);
+
+    varyings.push_back(lineSizeVarying);
+    varyingLocations.push_back(lineSizeVaryingLocation);
+  }
 }
 
 VertexShader::VertexShader() {}
@@ -808,8 +818,6 @@ bool FragmentShader::PrepareEval(
       // get buffer pointer from handle
       int handle = vertexAttribute.handle;
       assert((handle > 0) && "Unexpected behavior");
-
-      // printf("handle = %d\n", handle);
 
       const Buffer *buf = ctx.resourceManager_.GetBuffer(handle);
       assert(buf && "Unexpected behavior");

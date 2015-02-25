@@ -36,7 +36,7 @@ void Context::glFinish() {
 
   // build sparse volume texture.
   for (size_t i = 0; i < sparseTextureList_.size(); i++) {
-    Texture* tex = sparseTextureList_[i];
+    Texture *tex = sparseTextureList_[i];
     tex->BuildSparseTexture();
   }
 
@@ -59,7 +59,7 @@ void Context::glFinish() {
   bufferFreeList_.clear();
 
   // let the mesh builder know the frame ended, and clear our render list
-  meshBuilder_.EndFrame();
+  accelBuilder_.EndFrame();
 
   state_.currentDrawStackIndex = 0;
 

@@ -84,10 +84,11 @@ public:
   AccelBuilder(GLuint maxCacheSize = (8192 * 1024));
   ~AccelBuilder();
 
-  MeshAccelerator *Build(const Buffer *elembuf, const Buffer *arraybuf,
-                         bool isDoublePrecisionPos,
-                         const VertexAttribute *vertexAttributes,
-                         const GLuint *texture2D, GLsizei count, GLuint offset);
+  MeshAccelerator *BuildMeshAccel(const Buffer *elembuf, const Buffer *arraybuf,
+                                  bool isDoublePrecisionPos,
+                                  const VertexAttribute *vertexAttributes,
+                                  const GLuint *texture2D, GLsizei count,
+                                  GLuint offset);
 
   ParticleAccelerator *BuildParticleAccel(
       const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
@@ -97,11 +98,14 @@ public:
                                   bool isDoublePrecisionPos,
                                   const VertexAttribute *vertexAttributes,
                                   GLsizei count, GLuint offset,
-                                  GLfloat constantWidth);
-  TetraAccelerator *BuildTetraAccel(const Buffer *elembuf, const Buffer *arraybuf,
-                                  bool isDoublePrecisionPos,
-                                  const VertexAttribute *vertexAttributes,
-                                  GLsizei count, GLuint offset);
+                                  GLfloat constantWidth,
+                                  const GLfloat *widthBuf, GLsizei widthBufLen,
+                                  bool cap);
+  TetraAccelerator *BuildTetraAccel(const Buffer *elembuf,
+                                    const Buffer *arraybuf,
+                                    bool isDoublePrecisionPos,
+                                    const VertexAttribute *vertexAttributes,
+                                    GLsizei count, GLuint offset);
   static bool AddMeshData(MeshData *md, MeshAccelerator *accel);
   static bool AddParticleData(MeshData *md, ParticleAccelerator *accel);
   static bool AddTetraData(MeshData *md, TetraAccelerator *accel);
@@ -134,7 +138,8 @@ private:
 private:
   template <typename T>
   static void AddData(DataBuffer<T> &dest, const Buffer *src, GLuint count,
-                      GLuint offset = 0, GLuint adjust = 0, T *maxValue = NULL);
+                      GLuint offset = 0, GLuint adjust = 0,
+                      T * maxValue = NULL);
 
   // template <typename T>
   // static void AddDataPad(bool enabled, const T *meshBuf, GLuint scalar,
@@ -153,11 +158,13 @@ private:
                               const GLfloat *widthBuf, GLsizei widthBufLen);
   static void AddLineData(MeshData *md, const Buffer *elembuf,
                           const Buffer *arraybuf, const ArrayBufInfo *abinfo,
-                          GLsizei count, GLuint offset, GLfloat constantWidth);
+                          GLsizei count, GLuint offset, GLfloat constantWidth,
+                          const GLfloat *widthBuf, GLsizei widthBufLen,
+                          bool cap);
   static void AddTetraData(MeshData *md, const Buffer *elembuf,
-                          const Buffer *arraybuf, bool isDoublePrecisionPos,
-                          const ArrayBufInfo *abinfo,
-                          GLsizei count, GLuint offset);
+                           const Buffer *arraybuf, bool isDoublePrecisionPos,
+                           const ArrayBufInfo *abinfo, GLsizei count,
+                           GLuint offset);
   static void DebugDumpMesh(const Mesh *mesh);
 
   unsigned char *Locate(const Buffer *elembuf, const Buffer *arraybuf,

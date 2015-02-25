@@ -22,7 +22,7 @@ using namespace lsgl::render;
 
 #define TREE_MAXDEPTH (256)
 
-static const double kEPS = 1.0e-6;
+static const double kEPS = 2.0e-15;
 
 typedef struct {
   int sign[3];
@@ -236,23 +236,23 @@ static int TestRayAABB(double &tMinOut, double &tMaxOut, const double bmin[3],
   tMin = (tMin > tMinZ) ? tMin : tMinZ; // 2 op
   tMax = (tMax < tMaxZ) ? tMax : tMaxZ; // 2 op
 
-  if ((tMax > 0.0f) && (tMin <= tMax)) { // 3 op
-                                         // printf("ray.org = %f, %f, %f\n",
-                                         //    ray.org[0],
-                                         //    ray.org[1],
-                                         //    ray.org[2]);
-                                         // printf("ray.dir = %f, %f, %f\n",
-                                         //    ray.dir[0],
-                                         //    ray.dir[1],
-                                         //    ray.dir[2]);
-                                         // printf("bmin = %f, %f, %f\n",
-                                         //    bmin[0],
-                                         //    bmin[1],
-                                         //    bmin[2]);
-                                         // printf("bmax = %f, %f, %f\n",
-                                         //    bmax[0],
-                                         //    bmax[1],
-                                         //    bmax[2]);
+  if ((tMax > 0.0) && (tMin <= tMax)) { // 3 op
+                                        // printf("ray.org = %f, %f, %f\n",
+                                        //    ray.org[0],
+                                        //    ray.org[1],
+                                        //    ray.org[2]);
+                                        // printf("ray.dir = %f, %f, %f\n",
+                                        //    ray.dir[0],
+                                        //    ray.dir[1],
+                                        //    ray.dir[2]);
+                                        // printf("bmin = %f, %f, %f\n",
+                                        //    bmin[0],
+                                        //    bmin[1],
+                                        //    bmin[2]);
+                                        // printf("bmax = %f, %f, %f\n",
+                                        //    bmax[0],
+                                        //    bmax[1],
+                                        //    bmax[2]);
     tMinOut = tMin;
     tMaxOut = tMax;
 
