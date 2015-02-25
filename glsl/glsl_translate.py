@@ -1186,7 +1186,7 @@ def eAssign(exp):
     ss = ""
 
     if len(slots) == 0:
-        # maybe assignment of matrix type.
+        # maybe assignment of matrix or struct type.
 
         lhs = constructExpr(exp[2])
         rhs = constructExpr(exp[3])
@@ -1195,13 +1195,28 @@ def eAssign(exp):
         if isinstance(lhs, VarRef):
             (ty, n) = GetTypeOfSymbol(lhs.orgname)
             if IsMatrixType(ty):
+                
                 for j in range(n):
                     for i in range(n):
-                        ss += Indent() + "%s.v[%d][%d] = %s.v[%d][%d];\n" % (lhs, j, i, rhs, j, i)
+                        if isinstance(rhs, Constant):
+                            idx = j * n + i
+                            ss += Indent() + "%s.v[%d][%d] = %s;\n" % (lhs, j, i, rhs.values[idx])
+                        else:
+                            ss += Indent() + "%s.v[%d][%d] = %s.v[%d][%d];\n" % (lhs, j, i, rhs, j, i)
 
             else:
-                print "Assume matrix type but got: " + ty
-                raise
+                sym = GetSymbol(lhs.orgname)
+                if sym is not None:
+                    (sty, sn) = sym['type']
+                    if FindStruct(sty) is not None:
+                        # struct type
+                        ss += Indent() + "%s = %s;\n" % (lhs, rhs)
+                    else:
+                        print "Invalid definition:" + sym
+                        raise
+                else:
+                    print "Unknown or unsupported type:" + ty
+                    raise
         else:
             print "Unknown assign op"
             raise
@@ -1618,7 +1633,14 @@ def emitCArgs(args):
 def eFunction(exp):
     name = exp[1] 
     params = exp[2]
-    signature = params[1]
+
+    # consider struct type
+    p = params[1].split('__')
+    if len(p) > 1:
+        signature = p[0] + '__'
+    else:
+        signature = p[0]
+
     args = params[2]
     statements = params[3]
 
