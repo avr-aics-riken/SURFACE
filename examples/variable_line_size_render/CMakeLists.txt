@@ -15,4 +15,5 @@ ENDIF()
 
 # --
 INSTALL(TARGETS variable_line_size_render DESTINATION bin)
+INSTALL(TARGETS input.frag DESTINATION bin) # fixme
 # --

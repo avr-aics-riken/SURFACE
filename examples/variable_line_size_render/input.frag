@@ -89,6 +89,9 @@ void main(void) {
     float ndotl = 0.0;
     vec3 nn = faceforward(n, dir, n);
 
+    gl_FragColor = vec4(0.5 * nn + 0.5, 1.0);
+    return;
+
     int depth = 0;
     depth = raydepth(depth);
     
