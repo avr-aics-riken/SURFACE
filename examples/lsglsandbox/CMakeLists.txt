@@ -15,5 +15,5 @@ ENDIF()
 
 # --
 INSTALL(TARGETS lsglsandbox DESTINATION bin)
-INSTALL(TARGETS default.frag DESTINATION bin)
+INSTALL(FILES default.frag DESTINATION bin)
 # --
