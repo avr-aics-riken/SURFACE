@@ -24,7 +24,7 @@ static WebSocket::pointer ws = NULL;
 void handle_message(const std::string & message)
 {
     printf(">>> %s\n", message.c_str());
-    if (message == "world") { ws->close(); }
+    if (message == "ack") { ws->close(); }
 }
 
 bool SaveColorBufferRGBA(const char *savename) {
@@ -64,9 +64,7 @@ EncodeAsJPEG(int& out_size, unsigned char *rgba, int w, int h)
     void *buf = malloc(sz);
     bool ret = jpge::compress_image_to_jpeg_file_in_memory(buf, out_size, w, h, 4, rgba, comp_params);
 
-    free(buf);
-
-    return reinterpret_cast<unsigned char*>(buf);
+    return reinterpret_cast<unsigned char*>(buf); // callee must call free() 
 }
 
 bool LoadShader(GLuint &prog, GLuint &fragShader,
@@ -149,13 +147,13 @@ int main(int argc, char *argv[]) {
   if (!ws) {
     // fail to connect server. save image as jpg as file.
   } else {
-    ws->send("goodbye");
-    ws->send("hello");
-    while (ws->getReadyState() != WebSocket::CLOSED) {
-      ws->poll();
-      ws->dispatch(handle_message);
-    }
-    delete ws;
+    //ws->send("goodbye");
+    //ws->send("hello");
+    //while (ws->getReadyState() != WebSocket::CLOSED) {
+    //  ws->poll();
+    //  ws->dispatch(handle_message);
+    //}
+    //delete ws;
   }
 
   GLuint prog = 0, frag_shader = 0;
@@ -239,6 +237,32 @@ int main(int argc, char *argv[]) {
   glDrawArrays(GL_TRIANGLES, 0, sizeof(vertex_data) / sizeof(vertex_data[0]) / 3);
 
   glFinish();
+
+  if (ws) {
+
+    int dataLen = 0;
+    unsigned char *imgBuf = new unsigned char[kWindowWidth * kWindowHeight * 4];
+    glReadPixels(0, 0, kWindowWidth, kWindowHeight, GL_RGBA, GL_UNSIGNED_BYTE, imgBuf);
+    unsigned char* data = EncodeAsJPEG(dataLen, imgBuf, kWindowWidth, kWindowHeight);
+
+    std::string s = std::string(reinterpret_cast<const char*>(data), reinterpret_cast<const char*>(data) + dataLen);
+
+    printf("dataLen = %d\n", dataLen);
+    ws->sendBinary(s);
+    //while (ws->getReadyState() != WebSocket::CLOSED) {
+    //  ws->poll();
+    //  ws->dispatch(handle_message);
+    //}
+
+    while (ws->getReadyState() != WebSocket::CLOSED) {
+      ws->poll();
+      ws->dispatch(handle_message);
+    }
+
+    delete [] imgBuf;
+    free(data);
+
+  }
 
   // Save the image
   const char *save_image_file_name = "colorbuf.tga";

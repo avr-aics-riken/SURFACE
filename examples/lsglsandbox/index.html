@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Viewer</title>
+</head>
+<body style="background: #333333">
+
+
+<canvas id="render_window" style="position:absolute; left: 24px; top: 5px; width: 512px; height: 512px;" width=512 height=512></canvas>
+
+    
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+  ////
+  //// Socket.io
+  ////
+  var socket = io.connect();
+
+  socket.on("connect", function() {
+    console.log("connect");
+  });
+
+  socket.on("disconnect", function() {
+    console.log("disconnect");
+  });
+
+  socket.on("image", function(data) {
+    console.log("image");
+
+    console.log(data);
+
+    var canvas = document.getElementById('render_window');
+    var ctx = canvas.getContext('2d');
+    var canvasWidth  = canvas.width;
+    var canvasHeight = canvas.height;
+
+    var img = new Image();
+    img.onload = function() { ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight); };
+    img.src = data; // Assume data is provided as DataURI format
+  });
+
+  function init() {
+    // 
+  }
+  
+</script>
+</body>
+</html>
