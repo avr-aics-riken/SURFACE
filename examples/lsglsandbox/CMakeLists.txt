@@ -1,5 +1,7 @@
 SET(SRCS
   main.cc
+  easywsclient.cpp
+  jpge.cpp
   )
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
