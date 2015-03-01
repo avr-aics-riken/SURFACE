@@ -3,10 +3,29 @@
 
 #include "../common/SimpleTGA.h"
 
+#include "easywsclient.hpp"
+#include "jpge.h"
+
+#ifdef _WIN32
+#pragma comment( lib, "ws2_32" )
+#include <WinSock2.h>
+#endif
+
 int kWindowWidth = 512;
 int kWindowHeight = 512;
+const char* kHost = "localhost";
+int kPort = 8080;
 
 namespace {
+
+using easywsclient::WebSocket;
+static WebSocket::pointer ws = NULL;
+
+void handle_message(const std::string & message)
+{
+    printf(">>> %s\n", message.c_str());
+    if (message == "world") { ws->close(); }
+}
 
 bool SaveColorBufferRGBA(const char *savename) {
   void *tgabuffer;
@@ -27,6 +46,27 @@ bool SaveColorBufferRGBA(const char *savename) {
   free(tgabuffer);
 
   return true;
+}
+
+static unsigned char*
+EncodeAsJPEG(int& out_size, unsigned char *rgba, int w, int h)
+{
+    size_t sz = w * h * 4;  // alloc enough size.
+    if (sz <  1024) sz = 1024; // at lest 1K is required.
+    out_size = sz;
+
+
+    //   num_channels must be 1 (Y), 3 (RGB), or 4 (RGBA), image pitch must be width*num_channels.
+    //   bool compress_image_to_jpeg_file(const char *pFilename, int width, int height, int num_channels, 
+    //                                    const uint8 *pImage_data, const params &comp_params = params());
+    jpge::params comp_params = jpge::params();
+    comp_params.m_quality = 100;
+    void *buf = malloc(sz);
+    bool ret = jpge::compress_image_to_jpeg_file_in_memory(buf, out_size, w, h, 4, rgba, comp_params);
+
+    free(buf);
+
+    return reinterpret_cast<unsigned char*>(buf);
 }
 
 bool LoadShader(GLuint &prog, GLuint &fragShader,
@@ -72,12 +112,50 @@ bool LoadShader(GLuint &prog, GLuint &fragShader,
 }  // namespace
 
 int main(int argc, char *argv[]) {
+
+#ifdef _WIN32
+    INT rc;
+    WSADATA wsaData;
+
+    rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (rc) {
+        printf("WSAStartup Failed.\n");
+        return 1;
+    }
+#endif
+
   const char *frag_shader_file_name = NULL;
 
   if (argc < 2) {
     frag_shader_file_name = "default.frag";
   } else {
     frag_shader_file_name = argv[1];
+  }
+
+  if (argc > 2) {
+    kHost = argv[2];
+  }
+
+  if (argc > 3) {
+    kPort = atoi(argv[3]);
+  }
+
+  
+  char buf[8192];
+  sprintf(buf, "ws://%s:%d/", kHost, kPort);
+  std::string addr(buf);
+
+  ws = WebSocket::from_url(addr);
+  if (!ws) {
+    // fail to connect server. save image as jpg as file.
+  } else {
+    ws->send("goodbye");
+    ws->send("hello");
+    while (ws->getReadyState() != WebSocket::CLOSED) {
+      ws->poll();
+      ws->dispatch(handle_message);
+    }
+    delete ws;
   }
 
   GLuint prog = 0, frag_shader = 0;
@@ -158,7 +236,7 @@ int main(int argc, char *argv[]) {
   assert(glGetError() == GL_NO_ERROR);
 
   // Draw
-  glDrawArrays(GL_TRIANGLES, 0, sizeof(vertex_data) / sizeof(vertex_data[0]));
+  glDrawArrays(GL_TRIANGLES, 0, sizeof(vertex_data) / sizeof(vertex_data[0]) / 3);
 
   glFinish();
 
@@ -173,6 +251,10 @@ int main(int argc, char *argv[]) {
   glDeleteRenderbuffers(1, &color_renderbuffer);
   glDeleteRenderbuffers(1, &depth_renderbuffer);
   glDeleteFramebuffers(1, &framebuffer);
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
 
   return 0;
 }
