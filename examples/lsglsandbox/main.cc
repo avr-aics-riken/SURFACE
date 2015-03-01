@@ -76,6 +76,8 @@ int main(int argc, char *argv[]) {
 
   if (argc < 2) {
     frag_shader_file_name = "default.frag";
+  } else {
+    frag_shader_file_name = argv[1];
   }
 
   GLuint prog = 0, frag_shader = 0;
