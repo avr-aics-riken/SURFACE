@@ -289,15 +289,15 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     memcpy(Mv, &uniformView->data.at(0), sizeof(float) * 4 * 4);
 
     double Tw[4][4];
-    double Tp[4][4];
-    double Tv[4][4];
+    //double Tp[4][4];
+    //double Tv[4][4];
 
     // float -> double upcast
     for (int j = 0; j < 4; j++) {
       for (int i = 0; i < 4; i++) {
         Tw[j][i] = Mw[j][i];
-        Tp[j][i] = Mp[j][i];
-        Tv[j][i] = Mv[j][i];
+        //Tp[j][i] = Mp[j][i];
+        //Tv[j][i] = Mv[j][i];
       }
     }
 

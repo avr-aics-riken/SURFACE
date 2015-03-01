@@ -1257,17 +1257,6 @@ void Texture::SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
       }
     }
 
-    int dataSize = -1;
-    if (type_ == GL_UNSIGNED_BYTE) {
-      dataSize = 1;
-    } else if (type_ == GL_FLOAT) {
-      dataSize = 4;
-    } else if (type_ == GL_DOUBLE) {
-      dataSize = 8;
-    } else {
-      assert(0 && "Unsupported data type.");
-    }
-
     // Find region.
     // @todo { optimize region search. }
     for (size_t i = 0; i < regionList_.size(); i++) {
