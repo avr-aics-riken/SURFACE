@@ -58,16 +58,18 @@ Then run GLSL compiler to check it can produce shader module(`shader.so`)
 
 * [x] Efficient ray tracing with GLES2.0 compatible API 
 * [x] Support of GLES2.0 shading language(GLSL)
+  * [ ] Vertex shader
+  * [x] Fragment shader
 * [x] Large scale data-parallel rendering using MPI
-  * Up to 82,944 nodes on K confirmed.
+  * Up to 82,944 nodes on K computer confirmed.
+* [ ] Sort-last image compositing using 234Compositor https://github.com/avr-aics-riken/234Compositor
 
 ### Supported geometric primitives
 
 * [x] Polygon(triangle)
 * [x] Particle(rendered as sphere)
 * [x] Tetrahedron
-  * [ ] Remove rendering artifact
-* [x] Line(rendered as tube)
+* [x] Line(rendered as cylinder)
 * [x] Volume
   * [x] Uniform volume
   * [x] Non-uniform volume

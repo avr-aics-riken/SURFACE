@@ -1,5 +1,7 @@
 //
-// npm install ws
+// Install
+//   npm install ws
+//   npm install socket.io
 //
 
 var WebSocketServer = require('ws').Server;
@@ -57,7 +59,7 @@ io.sockets.on('connection', function (socket) {
 app.listen(port);
 
 function handler (req, res) {
-  console.log(req)
+  //console.log(req)
   var filename = req.url
   var tmp = req.url.split('.');
   var type = tmp[tmp.length-1];
