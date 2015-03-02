@@ -7,6 +7,7 @@
  */
 
 #include <cstring>
+#include <cstdlib>
 
 #include "gles_context.h"
 
