@@ -1,3 +1,7 @@
+#ifdef LSGL_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 #include "../../gles/gles_c_api.h"
 #include <GLES2/gl2ext.h>
 
@@ -111,6 +115,12 @@ bool LoadShader(GLuint &prog, GLuint &fragShader,
 
 int main(int argc, char *argv[]) {
 
+  int rank = 0;
+#ifdef LSGL_ENABLE_MPI
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+
 #ifdef _WIN32
     INT rc;
     WSADATA wsaData;
@@ -143,17 +153,19 @@ int main(int argc, char *argv[]) {
   sprintf(buf, "ws://%s:%d/", kHost, kPort);
   std::string addr(buf);
 
-  ws = WebSocket::from_url(addr);
-  if (!ws) {
-    // fail to connect server. save image as jpg as file.
-  } else {
-    //ws->send("goodbye");
-    //ws->send("hello");
-    //while (ws->getReadyState() != WebSocket::CLOSED) {
-    //  ws->poll();
-    //  ws->dispatch(handle_message);
-    //}
-    //delete ws;
+  if (rank == 0) {
+    ws = WebSocket::from_url(addr);
+    if (!ws) {
+      // fail to connect server. save image as jpg as file.
+    } else {
+      //ws->send("goodbye");
+      //ws->send("hello");
+      //while (ws->getReadyState() != WebSocket::CLOSED) {
+      //  ws->poll();
+      //  ws->dispatch(handle_message);
+      //}
+      //delete ws;
+    }
   }
 
   GLuint prog = 0, frag_shader = 0;
@@ -238,7 +250,7 @@ int main(int argc, char *argv[]) {
 
   glFinish();
 
-  if (ws) {
+  if (rank == 0 && ws) {
 
     int dataLen = 0;
     unsigned char *imgBuf = new unsigned char[kWindowWidth * kWindowHeight * 4];
@@ -265,10 +277,15 @@ int main(int argc, char *argv[]) {
   }
 
   // Save the image
-  const char *save_image_file_name = "colorbuf.tga";
-  if (!SaveColorBufferRGBA(save_image_file_name)) {
+  char namebuf[1024];
+#ifdef LSGL_ENABLE_MPI
+  sprintf(namebuf, "colorbuf_%04d.tga", rank);
+#else
+  sprintf(namebuf, "colorbuf.tga");
+#endif
+  if (!SaveColorBufferRGBA(namebuf)) {
     fprintf(stderr, "failed to save the image to file: %s\n",
-            save_image_file_name);
+            namebuf);
     return 1;
   }
 
@@ -276,8 +293,12 @@ int main(int argc, char *argv[]) {
   glDeleteRenderbuffers(1, &depth_renderbuffer);
   glDeleteFramebuffers(1, &framebuffer);
 
+#ifdef LSG_ENABLE_MPI
+  MPI_Finalize();
+#endif
+
 #ifdef _WIN32
-    WSACleanup();
+  WSACleanup();
 #endif
 
   return 0;

@@ -1,3 +1,7 @@
+#ifdef LSGL_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 #include "../../gles/gles_c_api.h"
 #include <GLES2/gl2ext.h>
 
@@ -9,10 +13,6 @@
 #include <string>
 
 #include "../common/SimpleTGA.h"
-
-#ifdef ENABLE_MPI
-#include <mpi.h>
-#endif
 
 int windowWidth = 512;
 int windowHeight = 512;
@@ -156,7 +156,7 @@ static bool LoadBinaryShader(GLuint &prog, GLuint &fragShader,
 }
 
 int main(int argc, char **argv) {
-#ifdef ENABLE_MPI
+#ifdef LSGL_ENABLE_MPI
   int rank;
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -277,7 +277,7 @@ int main(int argc, char **argv) {
   glFinish();
 
   char buf[1024];
-#ifdef ENABLE_MPI
+#ifdef LSGL_ENABLE_MPI
   sprintf(buf, "colorbuf_%04d.tga", rank);
 #else
   sprintf(buf, "colorbuf.tga");
@@ -289,7 +289,7 @@ int main(int argc, char **argv) {
   glDeleteRenderbuffers(1, &depthRenderbuffer);
   glDeleteFramebuffers(1, &framebuffer);
 
-#ifdef ENABLE_MPI
+#ifdef LSG_ENABLE_MPI
   MPI_Finalize();
 #endif
 
