@@ -131,8 +131,9 @@ void TinyPDB::FixedIdentifier(std::string& identifier, int length) {
     --length;
   }
 
+  // @todo { Read non-space characters. }
   while ((('A' <= Char() && Char() <= 'Z') ||
-         ('0' <= Char() && Char() <= '9')) &&
+         ('0' <= Char() && Char() <= '9') || (Char() == '\'')) &&
          length > 0) {
     identifier += Char();
     Consume();
