@@ -42,7 +42,8 @@ file_hashes = {
 @task
 def prepare():
     puts(green('Prepare tools'))
-    dir_ensure('deploy')
+    if not os.path.exists('./deploy'):
+        os.mkdir('deploy'):
 
     remote_build_dir = config['config'][env.host_string]['remote_build_dir']
     build_cmake = config['config'][env.host_string]['build_cmake']
@@ -76,10 +77,14 @@ def build():
 @task
 def build_surface():
     puts(green('Configuring SURFACE'))
+    if not os.path.exists('./deploy'):
+        os.mkdir('deploy'):
 
     remote_build_dir = config['config'][env.host_string]['remote_build_dir']
     host_type = config['config'][env.host_string]['type']
     build_cmake = config['config'][env.host_string]['build_cmake']
+    c_compiler = config['config'][env.host_string]['c_compiler']
+    cxx_compiler = config['config'][env.host_string]['cxx_compiler']
 
     local('git archive --format=tar.gz --prefix=SURFACE/ HEAD -o SURFACE.tar.gz')
     put('SURFACE.tar.gz', remote_build_dir + '/SURFACE.tar.gz')
@@ -102,6 +107,12 @@ def build_surface():
     if build_cmake == True:
         cmake_bin_path = os.path.join(config['config'][env.host_string]['remote_build_dir'], "tools/bin/cmake")
         setup_script = "CMAKE_BIN=" + cmake_bin_path + ' ' + setup_script
+
+    if c_compiler is not None:
+        setup_script = "CC=" + c_compiler + ' ' + setup_script
+
+    if cxx_compiler is not None:
+        setup_script = "CXX=" + cxx_compiler + ' ' + setup_script
 
     with cd(remote_build_dir + '/SURFACE'):
         run(setup_script)
