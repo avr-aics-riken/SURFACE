@@ -6,8 +6,9 @@
 #ifndef SIMPLE_TGA_HEADER
 #define SIMPLE_TGA_HEADER
 
-#include "string.h"
-#include "stdio.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #ifdef __GNUC__
 #pragma pack(push, 1)

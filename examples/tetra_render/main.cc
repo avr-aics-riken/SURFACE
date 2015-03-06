@@ -1,3 +1,7 @@
+#ifdef LSGL_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 #ifdef _WIN32
 #include <GLES2/gl2.h>
 extern "C" {
@@ -211,7 +215,7 @@ main(
 {
   int numTetras = 1000;
 
-#ifdef ENABLE_MPI
+#ifdef LSGL_ENABLE_MPI
   int rank;
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -339,6 +343,12 @@ main(
   t.end();
   printf("Render time: %d msec\n", (int)t.msec());
 
+  char buf[1024];
+#ifdef LSGL_ENABLE_MPI
+  sprintf(buf, "colorbuf_%06d.tga", rank);
+#else
+  sprintf(buf, "colorbuf.tga");
+#endif
   ret = SaveColorBufferRGBA("colorbuf.tga");
   assert(glGetError() == GL_NO_ERROR);
   assert(ret);
@@ -347,5 +357,8 @@ main(
   glDeleteRenderbuffers(1, &depthRenderbuffer);
   glDeleteFramebuffers(1, &framebuffer);
 
+#ifdef LSGL_ENABLE_MPI
+  MPI_Finalize();
+#endif
   return 0;
 }

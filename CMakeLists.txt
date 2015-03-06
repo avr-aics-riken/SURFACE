@@ -121,6 +121,10 @@ ELSE() # non K cross env
   ENDIF()	  
 ENDIF()
 
+IF (SURFACE_BUILD_WITH_MPI)
+  ADD_DEFINITIONS(-DLSGL_ENABLE_MPI=1) 
+ENDIF()
+
 # Modules
 ADD_SUBDIRECTORY(gles gles)
 ADD_SUBDIRECTORY(glsl glsl)
