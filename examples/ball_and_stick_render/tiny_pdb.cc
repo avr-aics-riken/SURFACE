@@ -84,7 +84,7 @@ Atom TinyPDB::ParseAtom() {
   Trim();
   atom.SetSerialNumber(Integer());                     // 7 - 11
 
-  FixedIdentifier(atom.MutableName(),             5);  // 13 - 16
+  FixedIdentifier(atom.MutableName(),             5, false);  // 13 - 16 // read constant width character for atom name.
   FixedIdentifier(atom.MutableIsomer(),           1);  // 17
   FixedIdentifier(atom.MutableResidueName(),      4);  // 18 - 20
   FixedIdentifier(atom.MutableChainName(),        1);  // 22
@@ -123,26 +123,39 @@ void TinyPDB::Identifier(std::string& identifier) {
   }
 }
 
-void TinyPDB::FixedIdentifier(std::string& identifier, int length) {
+void TinyPDB::FixedIdentifier(std::string& identifier, int length, bool skipWhiteSpace) {
   identifier.clear();
 
-  while (' ' == Char() && length > 0) {
-    Consume();
-    --length;
-  }
+  if (skipWhiteSpace) {
 
-  // @todo { Read non-space characters. }
-  while ((('A' <= Char() && Char() <= 'Z') ||
-         ('0' <= Char() && Char() <= '9') || (Char() == '\'')) &&
-         length > 0) {
-    identifier += Char();
-    Consume();
-    --length;
-  }
+    while (' ' == Char() && length > 0) {
+      Consume();
+      --length;
+    }
 
-  while (' ' == Char() && length > 0) {
-    Consume();
-    --length;
+    // @todo { Read non-space characters. }
+    while ((('A' <= Char() && Char() <= 'Z') ||
+           ('0' <= Char() && Char() <= '9') || (Char() == '\'')) &&
+           length > 0) {
+      identifier += Char();
+      Consume();
+      --length;
+    }
+
+    while (' ' == Char() && length > 0) {
+      Consume();
+      --length;
+    }
+
+  } else {
+
+    // may contain white space
+    while (length > 0) {
+      identifier += Char();
+      Consume();
+      --length;
+    }
+
   }
 }
 

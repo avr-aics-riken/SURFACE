@@ -65,7 +65,7 @@ class Atom {
         pow(GetZ() - target.GetZ(), 2.0));
   }
 
-  const std::vector<Atom*> GetBonds() {
+  const std::vector<Atom*>& GetBonds() {
     return bonds_;
   }
 
@@ -152,7 +152,7 @@ class TinyPDB {
   Atom ParseAtom();
 
   void Identifier(std::string& identifier);
-  void FixedIdentifier(std::string& identifier, int length);
+  void FixedIdentifier(std::string& identifier, int length, bool skipWhiteSpace = true);
   int Integer();
   double Double();
   void Trim();
