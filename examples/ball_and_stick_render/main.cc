@@ -153,7 +153,6 @@ int main(int argc, char **argv) {
   }
 
   // Render Bond as line primitive.
-  // @todo { remove duplicated bonds. }
   std::vector<float> bondLines;
   for (unsigned int i = 0; i < npoints; i++) {
 
@@ -161,6 +160,10 @@ int main(int argc, char **argv) {
 
     for (unsigned int j = 0; j < atom.GetBonds().size(); j++) {
       const tinypdb::Atom* dst = atom.GetBonds()[j];
+
+      if (dst->Visited()) { // Don't add same bond twice.
+        continue;
+      }
 
       bondLines.push_back(atom.GetX()); 
       bondLines.push_back(atom.GetY()); 
@@ -171,6 +174,8 @@ int main(int argc, char **argv) {
       bondLines.push_back(dst->GetZ()); 
       
     }
+
+    atom.SetVisited(true);
 
   }
 

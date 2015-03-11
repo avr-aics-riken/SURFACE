@@ -10,6 +10,9 @@ namespace tinypdb {
 
 class Atom {
  public:
+  Atom() : visited_(false) { }
+  ~Atom() { }
+
   int GetSerialNumber() const {
     return serial_number_;
   }
@@ -116,6 +119,14 @@ class Atom {
     bonds_.push_back(bonded);
   }
 
+  bool Visited() const {
+    return visited_;
+  }
+
+  void SetVisited(bool flag) {
+    visited_ = flag;
+  }
+
  private:
   int serial_number_;
   std::string name_;
@@ -131,6 +142,8 @@ class Atom {
   double t_factor_;
   std::string extra_;
   std::string element_symbol_;
+
+  bool visited_; // flag used for bond traversal.
 
   std::vector<Atom*> bonds_;
 };
