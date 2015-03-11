@@ -81,7 +81,7 @@ inline real GetMax(real a, real b) { return (a > b) ? a : b; }
 
 inline void GetBoundingBoxOfLine(real3 &bmin, real3 &bmax, const Lines *lines,
                                  unsigned int index) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024.0;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 
   real3 p0 = GetPosition(lines, lines->segments[2 * index + 0]);
   real3 p1 = GetPosition(lines, lines->segments[2 * index + 1]);
@@ -107,8 +107,8 @@ inline void GetBoundingBoxOfLine(real3 &bmin, real3 &bmax, const Lines *lines,
 
   // add epsilon
   for (int j = 0; j < 3; j++) {
-    bmin[j] -= kEPS;
-    bmax[j] += kEPS;
+    bmin[j] -= bmin[j]*kEPS;
+    bmax[j] += bmax[j]*kEPS;
   }
 }
 

@@ -191,7 +191,7 @@ IsectD2(double2 &tInOut, double2 &tidInOut, // Use as integer(53bit)
         const double2 &tid,             // Triangle ID as interger(53bit)
         const double2 &doubleSidedMask) // Assume all bits are 1 or 0.
 {
-  const double kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const double kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 
   // e1 = v1 - v0;
   const double2 e1x = _mm_sub_pd(v1x, v0x);
@@ -307,7 +307,7 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const Particles *particles,
   // assert(leftIndex < rightIndex);
   // assert(rightIndex - leftIndex > 0);
 
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 
   {
     size_t idx = indices[leftIndex];
@@ -384,7 +384,7 @@ void ComputeBoundingBox(real3 &bmin, real3 &bmax, const Particles *particles,
   // assert(leftIndex < rightIndex);
   // assert(rightIndex - leftIndex > 0);
 
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 
   {
     size_t idx = indices[leftIndex];
@@ -434,7 +434,7 @@ void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const Particles *particles,
     assert(leftIndex < rightIndex);
   }
 
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 
   size_t i = leftIndex;
   size_t idx = keys[i].index;
@@ -2038,7 +2038,7 @@ inline real vdot(real3 a, real3 b) {
 }
 
 inline real3 vnormalize(real3 a) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 
   real3 v;
   real len = sqrt(vdot(a, a));
@@ -2074,7 +2074,7 @@ inline void SphereIsectD2(double2 &vtInOut,
                           const double2 &rdz,                      // rayDir.zz
                           const double2 &va) // vdot(rayDir, rayDir).xx;
 {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
   const double2 veps = _mm_set_pd(kEPS, kEPS);
 
   // real3 center(v[0], v[1], v[2]);
@@ -2201,7 +2201,7 @@ inline void SphereIsectD2(double2 &vtInOut,
                           const double2 &rdz,                      // rayDir.zz
                           const double2 &va) // vdot(rayDir, rayDir).xx;
 {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
   const double2 veps = _mm_set_pd(kEPS, kEPS);
 
   // real3 center(v[0], v[1], v[2]);
@@ -2320,7 +2320,7 @@ inline void SphereIsectD2(double2 &vtInOut,
 //                         const float4 &rdz, // rayDir.zzzz
 //                         const float4 &va)  // vdot(rayDir, rayDir).xxxx;
 //{
-//  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+//  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 //  const float4 veps = vset1_f4(kEPS);
 //
 //  // real3 center(v[0], v[1], v[2]);
@@ -2421,7 +2421,7 @@ inline void SphereIsectD2(double2 &vtInOut,
 // http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
 inline bool SphereIsect(real &tInOut, const real *v, real radius,
                         const real3 &rayOrg, const real3 &rayDir) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 1024;
+  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 
   real3 center(v[0], v[1], v[2]);
   real3 oc = rayOrg - center;
