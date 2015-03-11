@@ -128,8 +128,8 @@ void Context::glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
   state_.viewportHeight = height;
 }
 
-void Context::lsglSetProgressCallback(LSGLProgressCallback func) {
-  engine_.SetProgressCallback(func);
+void Context::lsglSetProgressCallback(LSGLProgressCallback func, void* userdata) {
+  engine_.SetProgressCallback(func, userdata);
 }
 
 void Context::lsglSetPixelStep(GLint step) { state_.pixelStep = step; }

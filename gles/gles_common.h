@@ -32,7 +32,8 @@
 
 extern "C" {
 
-typedef bool (*LSGLProgressCallback)(int progress, int y, int height);
+// Callback function from LSGL to user program
+typedef bool (*LSGLProgressCallback)(int progress, int y, int height, void* userdata);
 }
 
 namespace lsgl {

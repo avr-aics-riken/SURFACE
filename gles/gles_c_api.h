@@ -655,8 +655,8 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
 
 // Set custom progress report function.
 // LSGLProgressCallback is defined in gles_common.h
-void lsglSetProgressCallback(LSGLProgressCallback func) {
-  Context::GetCurrentContext().lsglSetProgressCallback(func);
+void lsglSetProgressCallback(LSGLProgressCallback func, void *userdata) {
+  Context::GetCurrentContext().lsglSetProgressCallback(func, userdata);
 }
 
 void lsglSetPixelStep(GLint step) {

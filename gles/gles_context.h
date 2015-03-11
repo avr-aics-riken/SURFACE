@@ -256,7 +256,7 @@ public:
   //
   // LSGL extensions.
   //
-  void lsglSetProgressCallback(LSGLProgressCallback func);
+  void lsglSetProgressCallback(LSGLProgressCallback func, void* userdata);
   void lsglSetPixelStep(GLint step);
   GLint lsglGetPixelStep();
   void lsglSetPointSize(GLfloat size);                      // deprecated

@@ -280,7 +280,7 @@ void MergeScreen(int region[4], int masterRank, int rank,
 
 RaytraceEngine::RaytraceEngine()
     : framebuffer_(NULL), numRays_(0), pixelStep_(1),
-      progressCallbackFunc_(NULL) {
+      progressCallbackFunc_(NULL), callbackUserData_(NULL) {
   sRaytraceEngine = this;
 
   // Default = orthographic camera, positioned at (0.0, 0.0, 0.0) and see (0.0,
@@ -631,7 +631,7 @@ bool RaytraceEngine::OnData() {
         if (progress % showCountTick == 0) {
           if (progressCallbackFunc_) {
             bool ok = progressCallbackFunc_(
-                (int)(100.0 * progress / (double)numLines), y, height);
+                (int)(100.0 * progress / (double)numLines), y, height, callbackUserData_);
 
             if (!ok) {
 #pragma omp critical
@@ -646,7 +646,7 @@ bool RaytraceEngine::OnData() {
       if (progress % showCountTick == 0) {
         if (progressCallbackFunc_) {
           bool ok = progressCallbackFunc_(
-              (int)(100.0 * progress / (double)numLines), y, height);
+              (int)(100.0 * progress / (double)numLines), y, height, callbackUserData_);
           if (!ok) {
             canceled = true;
           }

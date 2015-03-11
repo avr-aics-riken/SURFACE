@@ -79,8 +79,9 @@ public:
 
   int GetPixelStep() const { return pixelStep_; }
 
-  void SetProgressCallback(LSGLProgressCallback func) {
+  void SetProgressCallback(LSGLProgressCallback func, void* userdata) {
     progressCallbackFunc_ = func;
+    callbackUserData_ = userdata;
   }
 
 private:
@@ -99,6 +100,7 @@ private:
 
   int pixelStep_;
   LSGLProgressCallback progressCallbackFunc_;
+  void* callbackUserData_;
 };
 
 } // namespace
