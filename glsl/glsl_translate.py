@@ -3,7 +3,6 @@
 #
 # TODO:
 #   o Support array(swizzle) much more cleaner manner.
-#   o vector uniform variable.
 #   o and more...
 #
 
@@ -685,6 +684,7 @@ class RecordRef:
         else:
             return "/*record_ref*/" + "(" + str(self.var) + "." + self.membername + ")"
 
+
 class ArrayRef:
     def __init__(self, varname, indexname):
         assert len(varname) == 2;   # should be ['var_ref', 'str']
@@ -720,39 +720,44 @@ class ArrayRef:
 
     def getExprString(self, slot, i):
 
-        # Look up struct definition
-        sym = GetSymbol(self.recordname)
-        assert sym is not False
+        if IsUniform(self.recordname):
+            # Assume mat3, mat4 or elase
 
-        (ty, n) = sym['type']
-        #print (ty, n)
-        #raise
+            prefix = ".data"
 
-        #struct = FindStruct(sty)
-        #assert struct is not False
+            (ty, n) = GetTypeOfSymbol(self.recordname)
+            tycast = GetTypeCastString(self.recordname)
+            name = renameVariable(self.recordname)
 
+            if IsMatrixType(ty):
+                return "/*array_ref*/" + "(*" + tycast + "(" + name + prefix + (")).v[%s][%d]" % (self.indexname, gSlotToN[slot]))
+            else:
+                print (ty, n)
+                raise
+                #return "/*array_ref*/" + "(" + self.recordname + "[" + self.indexname + "]" + ")"
 
-        # Look up type of member variable
-        #member = struct['members'][self.membername]
-        #assert member is not False
-
-        #(ty, n) = ParseTy(member['ty'])
-
-        # return "/*record_ref*/%s" % struct['name']
-
-        prefix = ""
-
-        if IsVectorType(ty):
-            prefix = ".v"
-        elif IsMatrixType(ty):
-            prefix = ".v"
-
-        if IsVectorType(ty):
-            return "/*array_ref*/" + "(" + self.recordname + "[" + self.indexname + "]" + prefix + ("[%d]" % gSlotToN[slot]) + ")"
-        if IsMatrixType(ty):
-            return "/*array_ref*/" + "(" + self.recordname + prefix + ("[%s][%d]" % (self.indexname, gSlotToN[slot])) + ")"
         else:
-            return "/*array_ref*/" + "(" + self.recordname + "[" + self.indexname + "]" + ")"
+
+            # Look up struct definition
+            sym = GetSymbol(self.recordname)
+            #print sym, self.recordname
+            assert sym is not False
+
+            (ty, n) = sym['type']
+
+            prefix = ""
+
+            if IsVectorType(ty):
+                prefix = ".v"
+            elif IsMatrixType(ty):
+                prefix = ".v"
+
+            if IsVectorType(ty):
+                return "/*array_ref*/" + "(" + self.recordname + "[" + self.indexname + "]" + prefix + ("[%d]" % gSlotToN[slot]) + ")"
+            if IsMatrixType(ty):
+                return "/*array_ref*/" + "(" + self.recordname + prefix + ("[%s][%d]" % (self.indexname, gSlotToN[slot])) + ")"
+            else:
+                return "/*array_ref*/" + "(" + self.recordname + "[" + self.indexname + "]" + ")"
 
 class Constant:
     def __init__(self, ty, n, values):
