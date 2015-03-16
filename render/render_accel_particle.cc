@@ -2995,6 +2995,40 @@ void BuildIntersection(Intersection &isect, const Particles *particles,
   isect.geometric[1] = n[1];
   isect.geometric[2] = n[2];
 
+  // Compute tangent and binormal
+  real tu = (atan2(n[0], n[2]) + M_PI) * 0.5 * (1.0 / M_PI);
+  real tv = acos(n[1]) / M_PI;
+  real xz2 = n[0] * n[0] + n[2] * n[2];
+  if (xz2 > 0.0) {
+    real xz = sqrt(xz2);
+    real inv = 1.0 / xz;
+
+    isect.tangent[0] = -2.0 * M_PI * n[0];
+    isect.tangent[1] = 2.0 * M_PI * n[2];
+    isect.tangent[2] = 0.0;
+
+    isect.binormal[0] = -M_PI * n[2] * inv * n[1];
+    isect.binormal[1] = -M_PI * n[0] * inv * n[1];
+    isect.binormal[2] = M_PI * xz;
+  } else {
+    if (n[1] > 0.0) {
+      isect.tangent[0] = 0.0;
+      isect.tangent[1] = 0.0;
+      isect.tangent[2] = 1.0;
+      isect.binormal[0] = 1.0;
+      isect.binormal[1] = 0.0;
+      isect.binormal[2] = 0.0;
+    } else {
+      isect.tangent[0] = 0.0;
+      isect.tangent[1] = 0.0;
+      isect.tangent[2] = 1.0;
+      isect.binormal[0] = -1.0;
+      isect.binormal[1] = 0.0;
+      isect.binormal[2] = 0.0;
+    }
+  }
+  
+
 #endif
 
   // @todo { U, V }

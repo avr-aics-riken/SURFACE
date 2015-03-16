@@ -162,7 +162,11 @@ typedef struct
     // For trace() function
     float position[3];
     float normal[3];
+    float geometricNormal[3];
+    float tangent[3];
+    float binormal[3];
     float indir[3];
+    float barycentric[2];
     float hitdist;
     int   raydepth;
     float px, py;
@@ -532,16 +536,43 @@ static inline float __glsl_isectinfo(Fragment* frag, vec3 &p, vec3& n, vec3& dir
 
 static inline int __glsl_numIntersects(Fragment* frag, int& n)
 {
-    assert(0); // @todo
-    //depth = frag->raydepth;
-    return 0;
+    // @todo
+    n = 1;
+    return n;
 }
 
 static inline float __glsl_queryIntersect(Fragment* frag, int i, vec3& p, vec3& normal, vec3& geom_normal, vec3& tangent, vec3& binormal, vec3& indir, vec2& barycentric_coord)
 {
-    assert(0); // @todo
-    //depth = frag->raydepth;
-    return 0;
+    // @fixe { look up i'th intersection point. }
+
+    p.v[0] = frag->position[0];
+    p.v[1] = frag->position[1];
+    p.v[2] = frag->position[2];
+
+    normal.v[0] = frag->normal[0];
+    normal.v[1] = frag->normal[1];
+    normal.v[2] = frag->normal[2];
+
+    geom_normal.v[0] = frag->geometricNormal[0];
+    geom_normal.v[1] = frag->geometricNormal[1];
+    geom_normal.v[2] = frag->geometricNormal[2];
+
+    tangent.v[0] = frag->tangent[0];
+    tangent.v[1] = frag->tangent[1];
+    tangent.v[2] = frag->tangent[2];
+
+    binormal.v[0] = frag->binormal[0];
+    binormal.v[1] = frag->binormal[1];
+    binormal.v[2] = frag->binormal[2];
+
+    indir.v[0] = frag->indir[0];
+    indir.v[1] = frag->indir[1];
+    indir.v[2] = frag->indir[2];
+
+    barycentric_coord.v[0] = frag->barycentric[0];
+    barycentric_coord.v[1] = frag->barycentric[1];
+
+    return frag->hitdist;
 }
 
 static inline float __glsl_camerainfo(Fragment* frag, vec3 &eye, vec3& lookat, vec3& up)

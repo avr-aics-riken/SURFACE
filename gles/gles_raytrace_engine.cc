@@ -440,12 +440,29 @@ void RaytraceEngine::ShadeFragment(float shadecol[4], bool &discarded /* out */,
 
     assert(prg->GetFragmentShader(0));
 
+    IntersectionState isectState;
+    isectState.position = isect.position;
+    isectState.normal = isect.normal;
+    isectState.geometricNormal = isect.geometric;
+    isectState.tangent = isect.tangent;
+    isectState.binormal = isect.binormal;
+    isectState.raydir = ray.direction();
+    isectState.raydepth = ray.depth;
+    isectState.px = ray.px;
+    isectState.py = ray.py;
+    isectState.doubleSided = ray.double_sided;
+    isectState.rayattrib = ray.user_attrib;
+    isectState.prev_node = isect.renderElement;
+    isectState.prev_prim_id = isect.prim_id;
+    isectState.u = isect.u;
+    isectState.v = isect.v;
+    isectState.f0 = isect.f0;
+    isectState.f1 = isect.f1;
+    isectState.f2 = isect.f2;
+
     bool ret = prg->GetFragmentShader(0)->Eval(
         fragCol, fragmentState, shadingState, vertexAttributes, fragCoord,
-        isect.position, isect.normal, ray.direction(), ray.depth, ray.px,
-        ray.py, ray.double_sided, ray.user_attrib, isect.renderElement,
-        isect.prim_id, isect.u, isect.v, isect.f0, isect.f1, isect.f2,
-        cameraInfo, thread_id);
+        isectState, cameraInfo, thread_id);
 
     if (ret) {
       shadecol[0] = fragCol[0];

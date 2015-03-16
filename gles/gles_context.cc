@@ -221,16 +221,18 @@ void Context::lsglEvalFragmentShader() {
       fragCoord[2] = 0.0f;
       fragCoord[3] = 0.0f;
 
-      real3 pos, normal, raydir;
-      float px = 0.5f + x;
-      float py = 0.5f + y;
-      float raydepth = 0.0f;
-      float rayattrib = 0.0f;
-      int doubleSided = 1;
+      IntersectionState isectState;
+      isectState.px = 0.5f + x;
+      isectState.py = 0.5f + y;
+      isectState.raydepth = 0.0f;
+      isectState.rayattrib = 0.0f;
+      isectState.doubleSided = 1;
+      isectState.u = 0.0f;
+      isectState.v = 0.0f;
+
       program->GetFragmentShader(0)->Eval(
           fragcol, fragmentState, shadingState, vertexAttributes, fragCoord,
-          pos, normal, raydir, raydepth, px, py, doubleSided, rayattrib, NULL,
-          0, 0.0f, 0.0f, 0, 0, 0, cameraInfo, thread_id);
+          isectState, cameraInfo, thread_id);
 
       image[4 * ((height - y - 1) * width + x) + 0] = fclamp(fragcol[0]);
       image[4 * ((height - y - 1) * width + x) + 1] = fclamp(fragcol[1]);
@@ -263,19 +265,18 @@ void Context::lsglEvalSingleFragmentShader() {
   fragCoord[2] = 0.0f;
   fragCoord[3] = 0.0f;
 
-  real3 pos, normal, raydir;
-  float px = 0.5f;
-  float py = 0.5f;
-  float raydepth = 0.0f;
-  float rayattrib = 0.0f;
-
-  int doubleSided = 1;
   int thread_id = 0;
+
+  IntersectionState isectState;
+  isectState.px = 0.5f;
+  isectState.py = 0.5f;
+  isectState.raydepth = 0.0f;
+  isectState.rayattrib = 0.0f;
+  isectState.doubleSided = 1;
 
   program->GetFragmentShader(0)
       ->Eval(fragcol, fragmentState, shadingState, vertexAttributes, fragCoord,
-             pos, normal, raydir, raydepth, px, py, doubleSided, rayattrib,
-             NULL, 0, 0.0f, 0.0f, 0, 0, 0, cameraInfo, thread_id);
+             isectState, cameraInfo, thread_id);
 }
 
 Framebuffer *Context::GetCurrentFrameBuffer() {

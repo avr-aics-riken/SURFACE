@@ -868,12 +868,8 @@ inline float LerpFloat(float f0, float f1, float f2, float u, float v) {
 bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
                           ShadingState &shadingState,
                           const std::vector<VertexAttribute> &vertexAttributes,
-                          const GLfloat fragCoord[4], const real3 &position,
-                          const real3 &normal, const real3 &raydir,
-                          int raydepth, float px, float py, int doubleSided,
-                          float rayattrib, const unsigned char *prev_node,
-                          unsigned int prev_prim_id, float u, float v,
-                          unsigned int f0, unsigned int f1, unsigned int f2,
+                          const GLfloat fragCoord[4],
+                          const IntersectionState& isectState,
                           const CameraInfo &cameraInfo, int threadID) const {
   if (!method_.shaderEvalFunc) {
     return false;
@@ -915,23 +911,34 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
   frag.fragCoord[2] = fragCoord[2];
   frag.fragCoord[3] = fragCoord[3];
 
-  frag.position[0] = position[0];
-  frag.position[1] = position[1];
-  frag.position[2] = position[2];
-  frag.normal[0] = normal[0];
-  frag.normal[1] = normal[1];
-  frag.normal[2] = normal[2];
-  frag.indir[0] = raydir[0];
-  frag.indir[1] = raydir[1];
-  frag.indir[2] = raydir[2];
-  frag.px = px;
-  frag.py = py;
-  frag.raydepth = raydepth;
-  frag.doubleSided = doubleSided;
-  frag.rayattrib = rayattrib;
+  frag.position[0] = isectState.position[0];
+  frag.position[1] = isectState.position[1];
+  frag.position[2] = isectState.position[2];
+  frag.normal[0] = isectState.normal[0];
+  frag.normal[1] = isectState.normal[1];
+  frag.normal[2] = isectState.normal[2];
+  frag.geometricNormal[0] = isectState.geometricNormal[0];
+  frag.geometricNormal[1] = isectState.geometricNormal[1];
+  frag.geometricNormal[2] = isectState.geometricNormal[2];
+  frag.tangent[0] = isectState.tangent[0];
+  frag.tangent[1] = isectState.tangent[1];
+  frag.tangent[2] = isectState.tangent[2];
+  frag.binormal[0] = isectState.binormal[0];
+  frag.binormal[1] = isectState.binormal[1];
+  frag.binormal[2] = isectState.binormal[2];
+  frag.indir[0] = isectState.raydir[0];
+  frag.indir[1] = isectState.raydir[1];
+  frag.indir[2] = isectState.raydir[2];
+  frag.barycentric[0] = isectState.u;
+  frag.barycentric[1] = isectState.v;
+  frag.px = isectState.px;
+  frag.py = isectState.py;
+  frag.raydepth = isectState.raydepth;
+  frag.doubleSided = isectState.doubleSided;
+  frag.rayattrib = isectState.rayattrib;
+  frag.prev_node = isectState.prev_node;
+  frag.prev_prim_id = isectState.prev_prim_id;
   frag.threadID = threadID;
-  frag.prev_node = prev_node;
-  frag.prev_prim_id = prev_prim_id;
 
   frag.cameraFrame[0][0] = cameraInfo.frame[0][0];
   frag.cameraFrame[0][1] = cameraInfo.frame[0][1];
@@ -950,6 +957,10 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
   frag.shadow = shadow;
   frag.trace = trace;
   frag.random = randomreal;
+
+  unsigned int f0 = isectState.f0;
+  unsigned int f1 = isectState.f1;
+  unsigned int f2 = isectState.f2;
 
   // Fill varying variables.
   // printf("index = %d\n", index);
@@ -984,7 +995,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       }
     } else {
       for (int k = 0; k < elems; k++) {
-        float f = LerpFloat(f0ptr[k], f1ptr[k], f2ptr[k], u, v);
+        float f = LerpFloat(f0ptr[k], f1ptr[k], f2ptr[k], isectState.u, isectState.v);
         dst[k] = f; // store to varying storage
       }
     }

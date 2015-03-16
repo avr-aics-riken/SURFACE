@@ -559,6 +559,28 @@ struct ShadingState {
   }
 };
 
+/// Store intersection state for the shading.
+struct IntersectionState {
+  real3 position;
+  real3 normal;
+  real3 geometricNormal;
+  real3 tangent;
+  real3 binormal;
+  real3 raydir;
+  int   raydepth;
+  float px;
+  float py;
+  int   doubleSided;
+  float rayattrib;
+  const unsigned char *prev_node;
+  unsigned int prev_prim_id;
+  float u;
+  float v;
+  unsigned int f0;
+  unsigned f1;
+  unsigned f2;
+};
+
 /// Base class of vertex and fragment shader.
 class Shader {
   //
@@ -660,11 +682,8 @@ public:
   bool Eval(GLfloat fragColor[4], FragmentState &fragmentState,
             ShadingState &shadingState,
             const std::vector<VertexAttribute> &vertexAttributes,
-            const GLfloat fragCoord[4], const real3 &position,
-            const real3 &normal, const real3 &raydir, int raydepth, float px,
-            float py, int doubleSided, float rayattrib,
-            const unsigned char *prev_node, unsigned int prev_prim_id, float u,
-            float v, unsigned int f0, unsigned f1, unsigned f2,
+            const GLfloat fragCoord[4],
+            const IntersectionState& isectState,
             const CameraInfo &cameraInfo, int threadID) const;
 
 private:
