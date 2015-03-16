@@ -1203,22 +1203,22 @@ inline vec4 __glsl_reflect(vec4 I, vec4 N)
 	return t_vec4;
 }
 
-inline float __glsl_refract(float I, float N, float eta)
+inline vec3 __glsl_refract(vec3 I, vec3 N, float eta)
 {
-	float k;
-	k=1.0-eta*eta*(1.0-N*I*N*I);
-	return k <0.0 ? 0.0 : eta*I-(eta*N*I+sqrtf(k))*N;
-}
+  float k = 1.0f - eta * eta * (1.0f - __glsl_dot(N, I) * __glsl_dot(N, I));
+	vec3 R;
+  if (k < 0.0) {
+    R.v[0] = 0.0f;
+    R.v[1] = 0.0f;
+    R.v[2] = 0.0f;
+  } else {
+    float sqK = sqrtf(k);
+	  R.v[0] = eta * I.v[0] - (eta * N.v[0] * I.v[0] + sqK) * N.v[0];
+	  R.v[1] = eta * I.v[1] - (eta * N.v[1] * I.v[1] + sqK) * N.v[1];
+	  R.v[2] = eta * I.v[2] - (eta * N.v[2] * I.v[2] + sqK) * N.v[2];
+  }
 
-inline vec2 __glsl_refract(vec2 I, vec2 N, vec2 eta)
-{
-	//float k;
-	vec2 t_dotNI = I; //, t_vec2;
-	//t_dotNI=__glsl_dot_v2(
-    assert(0);
-	return t_dotNI;
-	//	k=1.0-eta*eta*(1.0-N*I*N*I);
-	//	return k <0.0 ? 0.0 : eta*I-(eta*N*I+sqrtf(k))*N;
+  return R;
 }
 
 inline mat2 __glsl_matrixCompMult(mat2 x, mat2 y)
