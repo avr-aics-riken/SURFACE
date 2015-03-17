@@ -2930,27 +2930,6 @@ bool TestLeafNodeBlob(Intersection &isect, // [inout]
 }
 #endif
 
-//
-// Z-up
-//
-// inline void XYZToUV(real &theta, real &phi, const real3 &v) {
-//  phi = atan2(v[1], v[0]);
-//  if (phi < 0.0) {
-//    phi += 2.0 * M_PI; // [0, 2PI]
-//  }
-//  if (phi < 0.0)
-//    phi = 0.0;
-//  if (phi > 2.0 * M_PI)
-//    phi = 2.0 * M_PI;
-//
-//  real z = v[2];
-//  if (z < -1.0)
-//    z = -1.0;
-//  if (z > 1.0)
-//    z = 1.0;
-//  theta = acos(z);
-//}
-
 void BuildIntersection(Intersection &isect, const Particles *particles,
                        Ray &ray) {
   isect.position[0] = ray.origin()[0] + isect.t * ray.direction()[0];
@@ -3031,11 +3010,8 @@ void BuildIntersection(Intersection &isect, const Particles *particles,
 
 #endif
 
-  // @todo { U, V }
-  real u = 0.0, v = 0.0;
-  // XYZToUV(u, v, isect.normal);  // @todo
-  isect.u = u;
-  isect.v = v;
+  isect.u = tu;
+  isect.v = tv;
 }
 
 } // namespace
