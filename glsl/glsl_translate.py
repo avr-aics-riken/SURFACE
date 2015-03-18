@@ -973,44 +973,15 @@ class BinaryExpression:
         s += self.lhs.getIntermExprString()
         s += self.rhs.getIntermExprString()
 
-        if self.ty == 'vec' and self.n >= 2: # mat and vec?
-            ops = {
-                '/' : '__div'
-              , '+' : '__add'
-              , '-' : '__sub'
-              , '*' : '__mul'
-              , '>' : '__gt'
-              , '>=' : '__ge'
-              , '<' : '__lt'
-              , '<=' : '__le'
-              , '==' : '__eq'
-              , '&&' : '__and'
-              , '||' : '__or'
-              , '!' : '__not'
-              , 'any_nequal' : '__any_neq'
-              , 'all_equal' : '__all_eq'
-            }
-
-            func = ops[self.op]
-            assert func is not False
-
-            s = ""
-            s += func + "("
-            s += self.lhs.getCExpr()
-            s += ", "
-            s += self.rhs.getCExpr()
-            s += ");\n"
-
-        else:
-            for i in range(self.n):
-                slot = gNToSlot[i]
-                s += Indent()
-                s += self.getExprString(slot, i)
-                s += " = "
-                s += self.lhs.getExprString(slot, i)
-                s += " " + self.op + " "
-                s += self.rhs.getExprString(slot, i)
-                s += ";\n"
+        for i in range(self.n):
+            slot = gNToSlot[i]
+            s += Indent()
+            s += self.getExprString(slot, i)
+            s += " = "
+            s += self.lhs.getExprString(slot, i)
+            s += " " + self.op + " "
+            s += self.rhs.getExprString(slot, i)
+            s += ";\n"
 
         return s
 
