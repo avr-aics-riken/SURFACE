@@ -768,7 +768,7 @@ class Constant:
         self.values = []
         # Consider '10', 'e', '-10' case
         while i < len(values):
-            if i + 2 < len(values) and (values[i+1] == 'e' or value[i+1] == 'E'):     
+            if i + 2 < len(values) and (values[i+1] == 'e' or values[i+1] == 'E'):     
                 val = values[i] + values[i+1] + values[i+2]
                 self.values.append(val)
                 i = i + 3
