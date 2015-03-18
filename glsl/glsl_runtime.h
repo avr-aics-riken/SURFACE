@@ -805,6 +805,19 @@ static inline vec4 __swizzle(int x, int y, int z, int w, float v[4])
     return v4;
 }
 
+static inline void __assign(float a[4], vec4 b)
+{
+    a[0] = b.v[0];
+    a[1] = b.v[1];
+    a[2] = b.v[2];
+    a[3] = b.v[3];
+}
+
+static inline void __assign(vec4& a, vec4 b)
+{
+    a = b;
+}
+
 static inline float __add(float a, float b)
 {
     return a + b;
@@ -1080,19 +1093,19 @@ static inline vec4 __mul(float b, vec4 a)
 static inline vec3 __mul(mat3 a, vec3 b)
 {
     vec3 c;
-    c.v[0] = a.v[0][0] * b.v[0] + a.v[0][1] * b.v[1] + a.v[0][2] * b.v[2];
-    c.v[1] = a.v[1][0] * b.v[0] + a.v[1][1] * b.v[1] + a.v[1][2] * b.v[2];
-    c.v[2] = a.v[2][0] * b.v[0] + a.v[2][1] * b.v[1] + a.v[2][2] * b.v[2];
+    c.v[0] = a.v[0][0] * b.v[0] + a.v[1][0] * b.v[1] + a.v[2][0] * b.v[2];
+    c.v[1] = a.v[0][1] * b.v[0] + a.v[1][1] * b.v[1] + a.v[2][1] * b.v[2];
+    c.v[2] = a.v[0][2] * b.v[0] + a.v[1][2] * b.v[1] + a.v[2][2] * b.v[2];
     return c;
 }
 
 static inline vec4 __mul(mat4 a, vec4 b)
 {
     vec4 c;
-    c.v[0] = a.v[0][0] * b.v[0] + a.v[0][1] * b.v[1] + a.v[0][2] * b.v[2] + a.v[0][3] * b.v[3];
-    c.v[1] = a.v[1][0] * b.v[0] + a.v[1][1] * b.v[1] + a.v[1][2] * b.v[2] + a.v[1][3] * b.v[3];
-    c.v[2] = a.v[2][0] * b.v[0] + a.v[2][1] * b.v[1] + a.v[2][2] * b.v[2] + a.v[2][3] * b.v[3];
-    c.v[3] = a.v[3][0] * b.v[0] + a.v[3][1] * b.v[1] + a.v[3][2] * b.v[2] + a.v[3][3] * b.v[3];
+    c.v[0] = a.v[0][0] * b.v[0] + a.v[1][0] * b.v[1] + a.v[2][0] * b.v[2] + a.v[3][0] * b.v[3];
+    c.v[1] = a.v[0][1] * b.v[0] + a.v[1][1] * b.v[1] + a.v[2][1] * b.v[2] + a.v[3][1] * b.v[3];
+    c.v[2] = a.v[0][2] * b.v[0] + a.v[1][2] * b.v[1] + a.v[2][2] * b.v[2] + a.v[3][2] * b.v[3];
+    c.v[3] = a.v[0][3] * b.v[0] + a.v[1][3] * b.v[1] + a.v[2][3] * b.v[2] + a.v[3][3] * b.v[3];
     return c;
 }
 
