@@ -1086,6 +1086,27 @@ static inline vec3 __mul(mat3 a, vec3 b)
     return c;
 }
 
+static inline vec4 __mul(mat4 a, vec4 b)
+{
+    vec4 c;
+    c.v[0] = a.v[0][0] * b.v[0] + a.v[0][1] * b.v[1] + a.v[0][2] * b.v[2] + a.v[0][3] * b.v[3];
+    c.v[1] = a.v[1][0] * b.v[0] + a.v[1][1] * b.v[1] + a.v[1][2] * b.v[2] + a.v[1][3] * b.v[3];
+    c.v[2] = a.v[2][0] * b.v[0] + a.v[2][1] * b.v[1] + a.v[2][2] * b.v[2] + a.v[2][3] * b.v[3];
+    c.v[3] = a.v[3][0] * b.v[0] + a.v[3][1] * b.v[1] + a.v[3][2] * b.v[2] + a.v[3][3] * b.v[3];
+    return c;
+}
+
+static inline mat4 __mul(mat4 a, float b)
+{
+  mat4 c;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      c.v[i][j] = a.v[i][j] * b;
+    }
+  }
+  return c;
+}
+
 static inline float __div(float a, float b)
 {
     return a / b;

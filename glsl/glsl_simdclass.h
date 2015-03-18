@@ -246,6 +246,10 @@ inline __vec4_f operator*(float f, const __vec4_f& rhs) {
   return __vec4_f(f) * rhs;
 }
 
+inline __vec4_f operator*(const __vec4_f& lhs, float f) {
+  return lhs * __vec4_f(f);
+}
+
 inline __vec4_f vmin(const __vec4_f& a, const __vec4_f& b) {
   return __vec4_f(_mm_min_ps(a.u.v0, b.u.v0));
 }
