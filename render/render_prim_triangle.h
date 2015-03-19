@@ -1,7 +1,7 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
  * All rights reserved.
  *
  */
