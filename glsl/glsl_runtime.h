@@ -1423,10 +1423,35 @@ static inline bool __all_eq(bool a, bool b)
     return a == b;
 }
 
+static inline bool __all_eq(int a, int b)
+{
+    return a == b;
+}
+
+static inline bool __all_eq(float a, float b)
+{
+    return a == b; // @todo { use float eq. }
+}
+
 
 static inline bool __any_neq(bool a, bool b)
 {
     return a != b;
+}
+
+static inline bool __any_neq(int a, int b)
+{
+    return a != b;
+}
+
+static inline bool __any_neq(float a, float b)
+{
+    return a != b; // @todo { use float neq }
+}
+
+static inline bool __gt(int a, int b)
+{
+    return a > b;
 }
 
 static inline bool __gt(float a, float b)
@@ -1434,14 +1459,30 @@ static inline bool __gt(float a, float b)
     return a > b;
 }
 
+static inline bool __ge(int a, int b)
+{
+    return a >= b;
+}
+
+
 static inline bool __ge(float a, float b)
 {
     return a >= b;
 }
 
+static inline bool __lt(int a, int b)
+{
+    return a < b;
+}
+
 static inline bool __lt(float a, float b)
 {
     return a < b;
+}
+
+static inline bool __le(int a, int b)
+{
+    return a <= b;
 }
 
 static inline bool __le(float a, float b)
@@ -1453,4 +1494,10 @@ static inline bool __not(int a)
 {
     return !a;
 }
+
+static inline bool __not(float a)
+{
+    return !a; // ???
+}
+
 #endif  // __GLSL_CC_SHADER_RUNTIME_H__
