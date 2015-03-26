@@ -1,5 +1,11 @@
 SURFACE uses following libraries/codes.
 
+- PCG random http://www.pcg-random.org
+
+(c) 2014 M.E. O'Neill / pcg-random.org
+Apache License 2.0
+
+
 - googletest
 
 Copyright 2008, Google Inc.

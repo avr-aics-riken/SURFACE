@@ -272,6 +272,47 @@ public:
                         GLsizei width, GLsizei height, GLsizei depth,
                         int compos, GLenum type, const GLvoid *data);
 
+  void SetMinFilter(bool filter) {
+    assert(texture_);
+    texture_->setMinFiltering(filter);
+  }
+
+  void SetMagFilter(bool filter) {
+    assert(texture_);
+    texture_->setMagFiltering(filter);
+  }
+
+  void SetWrapS(GLenum mode) {
+    if (mode == GL_REPEAT) {
+      texture_->setWrapS(render::Texture2D::WRAP_REPEAT);
+    } else if (mode == GL_CLAMP_TO_EDGE) {
+      texture_->setWrapS(render::Texture2D::WRAP_CLAMP_TO_EDGE);
+    } else {
+      // @todo 
+    }
+  }
+
+  void SetWrapT(GLenum mode) {
+    if (mode == GL_REPEAT) {
+      texture_->setWrapT(render::Texture2D::WRAP_REPEAT);
+    } else if (mode == GL_CLAMP_TO_EDGE) {
+      texture_->setWrapT(render::Texture2D::WRAP_CLAMP_TO_EDGE);
+    } else {
+      // @todo 
+    }
+  }
+
+  void SetWrapR(GLenum mode) {
+    if (mode == GL_REPEAT) {
+      texture_->setWrapR(render::Texture2D::WRAP_REPEAT);
+    } else if (mode == GL_CLAMP_TO_EDGE) {
+      texture_->setWrapR(render::Texture2D::WRAP_CLAMP_TO_EDGE);
+    } else {
+      // @todo 
+    }
+  }
+
+
   inline void Fetch(float *rgba, float u, float v) const {
     assert(texture_);
     texture_->fetch(rgba, u, v);

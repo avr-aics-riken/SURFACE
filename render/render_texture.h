@@ -66,8 +66,16 @@ public:
     FORMAT_FLOAT64,
   } Format;
 
+  typedef enum {
+    WRAP_REPEAT,
+    WRAP_MIRRORED_REPEAT,
+    WRAP_CLAMP_TO_EDGE,
+    WRAP_CLAMP_TO_BORDER,
+    WRAP_MIRROR_CLAMP_TO_BORDER,
+  } WrapMode;
+
   Texture2D(const unsigned char *image, int width, int height, int components,
-            Format format) {
+            Format format, bool minFiltering = true, bool magFiltering = true, WrapMode wrapMode = WRAP_REPEAT) {
     m_width = width;
     m_height = height;
     m_image = image;
@@ -75,9 +83,34 @@ public:
     m_invHeight = 1.0f / height;
     m_components = components;
     m_format = format;
+    m_minFiltering = minFiltering;
+    m_magFiltering = magFiltering;
+    m_wrapMode[0] = wrapMode;
+    m_wrapMode[1] = wrapMode;
+    m_wrapMode[2] = wrapMode;
   }
 
   ~Texture2D() {}
+
+  void setMinFiltering(bool filter) {
+    m_minFiltering = filter;
+  }
+
+  void setMagFiltering(bool filter) {
+    m_magFiltering = filter;
+  }
+
+  void setWrapS(WrapMode mode) {
+    m_wrapMode[0] = mode;
+  }
+
+  void setWrapT(WrapMode mode) {
+    m_wrapMode[1] = mode;
+  }
+
+  void setWrapR(WrapMode mode) {
+    m_wrapMode[2] = mode;
+  }
 
   int width() const { return m_width; }
 
@@ -89,10 +122,10 @@ public:
 
   const unsigned char *image() const { return m_image; }
 
-  // Bilinear textel fetch.
+  /// Fetch texel color. A texel color may be filtered, depending on the filtering mode.
   void fetch(float *rgba, float u, float v) const;
 
-  // Fetch filtered (i, j), (i+1, j), (i, j+1) texel.
+  /// Fetch (i, j), (i+1, j), (i, j+1) texels.
   void fetchD(float *rgba0, float *rgba1, float *rgba2, float u, float v) const;
 
 private:
@@ -103,6 +136,9 @@ private:
   int m_components;
   const unsigned char *m_image;
   Format m_format;
+  bool m_minFiltering;
+  bool m_magFiltering;
+  WrapMode m_wrapMode[3]; // S, T and R
 };
 
 } // render

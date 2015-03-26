@@ -529,18 +529,23 @@ void Context::glTexParameteri(GLenum target, GLenum pname, GLint param) {
   switch (pname) {
   case GL_TEXTURE_MIN_FILTER:
     assert((param == GL_LINEAR) || (param == GL_NEAREST));
+    tex->SetMinFilter(param);
     break;
   case GL_TEXTURE_MAG_FILTER:
     assert((param == GL_LINEAR) || (param == GL_NEAREST));
+    tex->SetMagFilter(param);
     break;
   case GL_TEXTURE_WRAP_S:
-    assert(param == GL_CLAMP_TO_EDGE);
+    assert(param == GL_CLAMP_TO_EDGE || param == GL_REPEAT);
+    tex->SetWrapS(param);
     break;
   case GL_TEXTURE_WRAP_T:
-    assert(param == GL_CLAMP_TO_EDGE);
+    assert(param == GL_CLAMP_TO_EDGE || param == GL_REPEAT);
+    tex->SetWrapT(param);
     break;
   case GL_TEXTURE_WRAP_R:
-    assert(param == GL_CLAMP_TO_EDGE);
+    assert(param == GL_CLAMP_TO_EDGE || param == GL_REPEAT);
+    tex->SetWrapR(param);
     break;
   default:
     assert(0 && "Unsupported parameter.");

@@ -257,6 +257,8 @@ inline void FilterDouble(float *rgba, const double *image, int i00, int i10,
 } // namespace
 
 void Texture2D::fetch(float *rgba, float u, float v) const {
+  // @todo { Support wrap mode. }
+
   float sx = fasterfloorf(u);
   float sy = fasterfloorf(v);
 
@@ -272,37 +274,94 @@ void Texture2D::fetch(float *rgba, float u, float v) const {
   float px = (m_width - 1) * uu;
   float py = (m_height - 1) * vv;
 
-  int x0 = (int)px;
-  int y0 = (int)py;
-  int x1 = ((x0 + 1) >= m_width) ? (m_width - 1) : (x0 + 1);
-  int y1 = ((y0 + 1) >= m_height) ? (m_height - 1) : (y0 + 1);
+  if (m_magFiltering == false && m_minFiltering == false) {
 
-  float dx = px - (float)x0;
-  float dy = py - (float)y0;
+    int x0 = (int)px;
+    int y0 = (int)py;
 
-  float w[4];
+    int stride = m_components;
 
-  w[0] = (1.0f - dx) * (1.0 - dy);
-  w[1] = (1.0f - dx) * (dy);
-  w[2] = (dx) * (1.0 - dy);
-  w[3] = (dx) * (dy);
+    int i00 = stride * (y0 * m_width + x0);
 
-  int stride = m_components;
+    if (m_format == FORMAT_BYTE) {
+      const unsigned char *image = m_image;
+      for (int i = 0; i < stride; i++) { 
+        rgba[i] = image[i00 + i] / 255.0f;
+      }
 
-  int i00 = stride * (y0 * m_width + x0);
-  int i01 = stride * (y0 * m_width + x1);
-  int i10 = stride * (y1 * m_width + x0);
-  int i11 = stride * (y1 * m_width + x1);
+      if (stride < 4) {
+        rgba[3] = 1.0; // In OpenGL, alpha = 1.0 by default
+      }
 
-  if (m_format == FORMAT_BYTE) {
-    FilterByte(rgba, m_image, i00, i10, i01, i11, w, stride);
-  } else if (m_format == FORMAT_FLOAT32) {
-    FilterFloat(rgba, reinterpret_cast<const float *>(m_image), i00, i10, i01,
-                i11, w, stride);
-  } else if (m_format == FORMAT_FLOAT64) {
-    FilterDouble(rgba, reinterpret_cast<const double *>(m_image), i00, i10, i01,
-                 i11, w, stride);
-  } else { // unknown
+      if (stride == 1) {
+        // splat
+        rgba[1] = rgba[2] = rgba[3] = rgba[0];
+      }
+    } else if (m_format == FORMAT_FLOAT32) {
+      const float *image = reinterpret_cast<const float *>(m_image);
+      for (int i = 0; i < stride; i++) { 
+        rgba[i] = image[i00 + i];
+      }
+
+      if (stride < 4) {
+        rgba[3] = 1.0; // In OpenGL, alpha = 1.0 by default
+      }
+
+      if (stride == 1) {
+        // splat
+        rgba[1] = rgba[2] = rgba[3] = rgba[0];
+      }
+    } else if (m_format == FORMAT_FLOAT64) {
+      const double *image = reinterpret_cast<const double *>(m_image);
+      for (int i = 0; i < stride; i++) { 
+        rgba[i] = image[i00 + i];
+      }
+
+      if (stride < 4) {
+        rgba[3] = 1.0; // In OpenGL, alpha = 1.0 by default
+      }
+
+      if (stride == 1) {
+        // splat
+        rgba[1] = rgba[2] = rgba[3] = rgba[0];
+      }
+    } else { // unknown
+    }
+
+  } else {
+
+    int x0 = (int)px;
+    int y0 = (int)py;
+    int x1 = ((x0 + 1) >= m_width) ? (m_width - 1) : (x0 + 1);
+    int y1 = ((y0 + 1) >= m_height) ? (m_height - 1) : (y0 + 1);
+
+    float dx = px - (float)x0;
+    float dy = py - (float)y0;
+
+    float w[4];
+
+    w[0] = (1.0f - dx) * (1.0 - dy);
+    w[1] = (1.0f - dx) * (dy);
+    w[2] = (dx) * (1.0 - dy);
+    w[3] = (dx) * (dy);
+
+    int stride = m_components;
+
+    int i00 = stride * (y0 * m_width + x0);
+    int i01 = stride * (y0 * m_width + x1);
+    int i10 = stride * (y1 * m_width + x0);
+    int i11 = stride * (y1 * m_width + x1);
+
+    if (m_format == FORMAT_BYTE) {
+      FilterByte(rgba, m_image, i00, i10, i01, i11, w, stride);
+    } else if (m_format == FORMAT_FLOAT32) {
+      FilterFloat(rgba, reinterpret_cast<const float *>(m_image), i00, i10, i01,
+                  i11, w, stride);
+    } else if (m_format == FORMAT_FLOAT64) {
+      FilterDouble(rgba, reinterpret_cast<const double *>(m_image), i00, i10, i01,
+                   i11, w, stride);
+    } else { // unknown
+    }
   }
 }
 
