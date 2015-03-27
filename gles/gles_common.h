@@ -273,13 +273,11 @@ public:
                         int compos, GLenum type, const GLvoid *data);
 
   void SetMinFilter(bool filter) {
-    assert(texture_);
-    texture_->setMinFiltering(filter);
+    minFiltering_ = filter;
   }
 
   void SetMagFilter(bool filter) {
-    assert(texture_);
-    texture_->setMagFiltering(filter);
+    magFiltering_ = filter;
   }
 
   void SetWrapS(GLenum mode) {
@@ -314,8 +312,8 @@ public:
 
 
   inline void Fetch(float *rgba, float u, float v) const {
-    assert(texture_);
-    texture_->fetch(rgba, u, v);
+    if (!texture_) return;
+    texture_->fetch(rgba, u, v, minFiltering_, magFiltering_);
   }
 
   inline void Fetch(float *rgba, float u, float v, float r) const {
@@ -347,7 +345,7 @@ public:
 
     } else {
 
-      assert(texture3D_);
+      if (!texture3D_) return;
 
       float uu = u;
       float vv = v;
@@ -423,6 +421,8 @@ private:
   Texture3D *texture3D_;
   std::vector<GLubyte> data_;
   GLsizeiptr size_;
+  bool minFiltering_;
+  bool magFiltering_;
   bool retained_;
   bool doRemap_[3];                    // x, y and z
   std::vector<GLfloat> remapTable_[3]; // x, y and z

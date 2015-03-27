@@ -256,7 +256,7 @@ inline void FilterDouble(float *rgba, const double *image, int i00, int i10,
 
 } // namespace
 
-void Texture2D::fetch(float *rgba, float u, float v) const {
+void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool magFiltering) const {
   // @todo { Support wrap mode. }
 
   float sx = fasterfloorf(u);
@@ -274,7 +274,7 @@ void Texture2D::fetch(float *rgba, float u, float v) const {
   float px = (m_width - 1) * uu;
   float py = (m_height - 1) * vv;
 
-  if (m_magFiltering == false && m_minFiltering == false) {
+  if (magFiltering == false && minFiltering == false) {
 
     int x0 = (int)px;
     int y0 = (int)py;
@@ -366,19 +366,19 @@ void Texture2D::fetch(float *rgba, float u, float v) const {
 }
 
 void Texture2D::fetchD(float *rgba0, float *rgba1, float *rgba2, float u,
-                       float v) const {
+                       float v, bool minFiltering, bool magFiltering) const {
   // @todo { optimize! }
 
   // fetch (i, j)
-  fetch(rgba0, u, v);
+  fetch(rgba0, u, v, minFiltering, magFiltering);
 
   // fetch (i+1, j)
   float u1 = u + m_invWidth;
-  fetch(rgba1, u1, v);
+  fetch(rgba1, u1, v, minFiltering, magFiltering);
 
   // fetch (i, j+1)
   float v1 = v + m_invHeight;
-  fetch(rgba2, u, v1);
+  fetch(rgba2, u, v1, minFiltering, magFiltering);
 }
 
 inline float D(int x, int y, int z, int comp, int idx, int dim[3],
