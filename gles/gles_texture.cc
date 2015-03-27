@@ -529,11 +529,11 @@ void Context::glTexParameteri(GLenum target, GLenum pname, GLint param) {
   switch (pname) {
   case GL_TEXTURE_MIN_FILTER:
     assert((param == GL_LINEAR) || (param == GL_NEAREST));
-    tex->SetMinFilter(param);
+    tex->SetMinFilter((param == GL_LINEAR) ? true : false);
     break;
   case GL_TEXTURE_MAG_FILTER:
     assert((param == GL_LINEAR) || (param == GL_NEAREST));
-    tex->SetMagFilter(param);
+    tex->SetMagFilter((param == GL_LINEAR) ? true : false);
     break;
   case GL_TEXTURE_WRAP_S:
     assert(param == GL_CLAMP_TO_EDGE || param == GL_REPEAT);
