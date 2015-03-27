@@ -271,13 +271,15 @@ void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool mag
   vv = std::max(vv, 0.0f);
   vv = std::min(vv, 1.0f);
 
-  float px = (m_width - 1) * uu;
-  float py = (m_height - 1) * vv;
+  float px = m_width * uu;
+  float py = m_height * vv;
 
   if (magFiltering == false && minFiltering == false) {
 
     int x0 = (int)px;
     int y0 = (int)py;
+    x0 = (x0 >= m_width) ? (m_width - 1) : x0;
+    y0 = (y0 >= m_height) ? (m_height - 1) : y0;
 
     int stride = m_components;
 
@@ -311,6 +313,7 @@ void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool mag
         // splat
         rgba[1] = rgba[2] = rgba[3] = rgba[0];
       }
+
     } else if (m_format == FORMAT_FLOAT64) {
       const double *image = reinterpret_cast<const double *>(m_image);
       for (int i = 0; i < stride; i++) { 
@@ -332,6 +335,8 @@ void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool mag
 
     int x0 = (int)px;
     int y0 = (int)py;
+    x0 = (x0 >= m_width) ? (m_width - 1) : x0;
+    y0 = (y0 >= m_height) ? (m_height - 1) : y0;
     int x1 = ((x0 + 1) >= m_width) ? (m_width - 1) : (x0 + 1);
     int y1 = ((y0 + 1) >= m_height) ? (m_height - 1) : (y0 + 1);
 
