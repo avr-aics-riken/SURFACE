@@ -323,9 +323,9 @@ inline vec4 __glsl_pow(vec4 x, vec4 y)
 {
     vec4 t_vec4;
     t_vec4.v[0]=powf(x.v[0], y.v[0]);
-    t_vec4.v[0]=powf(x.v[1], y.v[1]);
-    t_vec4.v[0]=powf(x.v[2], y.v[2]);
-    t_vec4.v[0]=powf(x.v[3], y.v[3]);
+    t_vec4.v[1]=powf(x.v[1], y.v[1]);
+    t_vec4.v[2]=powf(x.v[2], y.v[2]);
+    t_vec4.v[3]=powf(x.v[3], y.v[3]);
     return t_vec4;
 }
 
