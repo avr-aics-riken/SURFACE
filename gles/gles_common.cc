@@ -668,6 +668,18 @@ bool FragmentShader::DoCompile() {
   FILE *pfp = popen(cmd, "r");
 #endif
 
+  if (!pfp) {
+    fprintf(stderr, "[LSGL] Failed to open pipe.\n");
+    perror("popen");
+
+    status = unlink(tempFilename.c_str());
+    if (status == -1) {
+      perror("unlink");
+    }
+
+    return false;
+  }
+
   char buf[4096];
   while (fgets(buf, 4095, pfp) != NULL) {
     printf("[glslc] %s", buf);
