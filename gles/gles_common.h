@@ -12,6 +12,7 @@
 #include <set>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #include "../include/GLES2/gl2.h"
 #include "../include/GLES2/gl2ext.h"
@@ -239,7 +240,7 @@ namespace local {
 // Input range must be [0, 1)
 static inline float remap(float x, const float *table, int n) {
   int idx = x * n;
-  idx = std::max(std::min(n - 1, idx), 0);
+  idx = (std::max)((std::min)(n - 1, idx), 0);
 
   return table[idx];
 }

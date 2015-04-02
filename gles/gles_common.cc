@@ -18,6 +18,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cstdlib>
+#include <algorithm>
 
 #include <fstream>
 
@@ -27,7 +28,7 @@
 #include "gles_context.h"
 
 #ifdef _WIN32
-#include "MemoryModule.h" // Load DLL from memory.
+//#include "MemoryModule.h" // Load DLL from memory.
 #else
 #include <dlfcn.h>
 #include <sys/stat.h>
@@ -1319,11 +1320,11 @@ void Texture::BuildSparseTexture() {
   int dim[3] = {0, 0, 0};
   for (size_t i = 0; i < regionList_.size(); i++) {
     dim[0] =
-        std::max(dim[0], regionList_[i].offset[0] + regionList_[i].extent[0]);
+        (std::max)(dim[0], regionList_[i].offset[0] + regionList_[i].extent[0]);
     dim[1] =
-        std::max(dim[1], regionList_[i].offset[1] + regionList_[i].extent[1]);
+		(std::max)(dim[1], regionList_[i].offset[1] + regionList_[i].extent[1]);
     dim[2] =
-        std::max(dim[2], regionList_[i].offset[2] + regionList_[i].extent[2]);
+		(std::max)(dim[2], regionList_[i].offset[2] + regionList_[i].extent[2]);
   }
 
   sparseVolume_->globalDim[0] = dim[0];

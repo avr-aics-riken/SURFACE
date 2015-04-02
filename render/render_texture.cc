@@ -94,7 +94,7 @@ namespace {
 inline float Lerp(float t, float a, float b) { return (1.f - t) * a + t * b; }
 
 inline int Clamp(int v, int low, int high) {
-  return std::min(std::max(v, low), high);
+  return (std::min)((std::max)(v, low), high);
 }
 
 // inline bool myisnan(float a) {
@@ -266,10 +266,10 @@ void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool mag
   float vv = v - sy;
 
   // clamp
-  uu = std::max(uu, 0.0f);
-  uu = std::min(uu, 1.0f);
-  vv = std::max(vv, 0.0f);
-  vv = std::min(vv, 1.0f);
+  uu = (std::max)(uu, 0.0f);
+  uu = (std::min)(uu, 1.0f);
+  vv = (std::max)(vv, 0.0f);
+  vv = (std::min)(vv, 1.0f);
 
   float px = m_width * uu;
   float py = m_height * vv;
@@ -460,9 +460,9 @@ void Texture3D::fetch(float *rgba, float u, float v, float r) const {
   const int vx = Clamp(vx0, 0, dim[0] - 1);
   const int vy = Clamp(vy0, 0, dim[1] - 1);
   const int vz = Clamp(vz0, 0, dim[2] - 1);
-  const int vx1 = std::min(vx0 + 1, dim[0] - 1);
-  const int vy1 = std::min(vy0 + 1, dim[1] - 1);
-  const int vz1 = std::min(vz0 + 1, dim[2] - 1);
+  const int vx1 = (std::min)(vx0 + 1, dim[0] - 1);
+  const int vy1 = (std::min)(vy0 + 1, dim[1] - 1);
+  const int vz1 = (std::min)(vz0 + 1, dim[2] - 1);
   const __vec4_d vxyz0(vx0, vy0, vz0, 0.0);
   const __vec4_d vxyz = vclamp(vxyz0, vzero, vdim - vone);
 
@@ -582,9 +582,9 @@ void Texture3D::fetch(float *rgba, float u, float v, float r) const {
   const int vx = Clamp(vx0, 0, dim[0] - 1);
   const int vy = Clamp(vy0, 0, dim[1] - 1);
   const int vz = Clamp(vz0, 0, dim[2] - 1);
-  const int vx1 = std::min(vx0 + 1, dim[0] - 1);
-  const int vy1 = std::min(vy0 + 1, dim[1] - 1);
-  const int vz1 = std::min(vz0 + 1, dim[2] - 1);
+  const int vx1 = (std::min)(vx0 + 1, dim[0] - 1);
+  const int vy1 = (std::min)(vy0 + 1, dim[1] - 1);
+  const int vz1 = (std::min)(vz0 + 1, dim[2] - 1);
   const __vec4_d vxyz0(vx0, vy0, vz0, 0.0);
   const __vec4_d vxyz = vclamp(vxyz0, vzero, vdim - vone);
 
@@ -652,9 +652,9 @@ void Texture3D::fetch(float *rgba, float u, float v, float r) const {
   const int vx = Clamp(vx0, 0, dim[0] - 1);
   const int vy = Clamp(vy0, 0, dim[1] - 1);
   const int vz = Clamp(vz0, 0, dim[2] - 1);
-  const int vx1 = std::min(vx0 + 1, dim[0] - 1);
-  const int vy1 = std::min(vy0 + 1, dim[1] - 1);
-  const int vz1 = std::min(vz0 + 1, dim[2] - 1);
+  const int vx1 = (std::min)(vx0 + 1, dim[0] - 1);
+  const int vy1 = (std::min)(vy0 + 1, dim[1] - 1);
+  const int vz1 = (std::min)(vz0 + 1, dim[2] - 1);
   const __vec4_f vxyz0(vx0, vy0, vz0, 0.0);
   const __vec4_f vxyz = vclamp(vxyz0, vzero, vdim - vone);
 
@@ -752,9 +752,9 @@ void Texture3D::fetch(float *rgba, float u, float v, float r) const {
   vx = Clamp(vx, 0, dim[0] - 1);
   vy = Clamp(vy, 0, dim[1] - 1);
   vz = Clamp(vz, 0, dim[2] - 1);
-  int vx1 = std::min(vx + 1, dim[0] - 1);
-  int vy1 = std::min(vy + 1, dim[1] - 1);
-  int vz1 = std::min(vz + 1, dim[2] - 1);
+  int vx1 = (std::min)(vx + 1, dim[0] - 1);
+  int vy1 = (std::min)(vy + 1, dim[1] - 1);
+  int vz1 = (std::min)(vz + 1, dim[2] - 1);
 
   float dx = vox[0] - vx, dy = vox[1] - vy, dz = vox[2] - vz;
   //assert(dx <= 1.0);
@@ -856,9 +856,9 @@ void FilterTexture3DByte(float *rgba, const Texture3D *tex, float u, float v,
   vx = Clamp(vx, 0, dim[0] - 1);
   vy = Clamp(vy, 0, dim[1] - 1);
   vz = Clamp(vz, 0, dim[2] - 1);
-  int vx1 = std::min(vx + 1, dim[0] - 1);
-  int vy1 = std::min(vy + 1, dim[1] - 1);
-  int vz1 = std::min(vz + 1, dim[2] - 1);
+  int vx1 = (std::min)(vx + 1, dim[0] - 1);
+  int vy1 = (std::min)(vy + 1, dim[1] - 1);
+  int vz1 = (std::min)(vz + 1, dim[2] - 1);
 
   float dx = vox[0] - vx, dy = vox[1] - vy, dz = vox[2] - vz;
   // assert(dx <= 1.0);
@@ -955,9 +955,9 @@ void FilterTexture3DFloat(float *rgba, const Texture3D *tex, float u, float v,
   vx = Clamp(vx, 0, dim[0] - 1);
   vy = Clamp(vy, 0, dim[1] - 1);
   vz = Clamp(vz, 0, dim[2] - 1);
-  int vx1 = std::min(vx + 1, dim[0] - 1);
-  int vy1 = std::min(vy + 1, dim[1] - 1);
-  int vz1 = std::min(vz + 1, dim[2] - 1);
+  int vx1 = (std::min)(vx + 1, dim[0] - 1);
+  int vy1 = (std::min)(vy + 1, dim[1] - 1);
+  int vz1 = (std::min)(vz + 1, dim[2] - 1);
 
   float dx = vox[0] - vx, dy = vox[1] - vy, dz = vox[2] - vz;
   // assert(dx <= 1.0);
@@ -1054,9 +1054,9 @@ void FilterTexture3DDouble(float *rgba, const Texture3D *tex, float u, float v,
   vx = Clamp(vx, 0, dim[0] - 1);
   vy = Clamp(vy, 0, dim[1] - 1);
   vz = Clamp(vz, 0, dim[2] - 1);
-  int vx1 = std::min(vx + 1, dim[0] - 1);
-  int vy1 = std::min(vy + 1, dim[1] - 1);
-  int vz1 = std::min(vz + 1, dim[2] - 1);
+  int vx1 = (std::min)(vx + 1, dim[0] - 1);
+  int vy1 = (std::min)(vy + 1, dim[1] - 1);
+  int vz1 = (std::min)(vz + 1, dim[2] - 1);
 
   double dx = vox[0] - vx, dy = vox[1] - vy, dz = vox[2] - vz;
   // assert(dx <= 1.0);

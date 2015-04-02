@@ -105,7 +105,7 @@ bool DecideDivPattern(const unsigned int numDiv, const unsigned int size_u,
     return false;
   }
 
-  double minValue = std::numeric_limits<double>::max();
+  double minValue = (std::numeric_limits<double>::max)();
 
   unsigned long div = numDiv;
   unsigned long size[2] = {static_cast<unsigned long>(size_u),
@@ -177,9 +177,9 @@ void StaticallyDivideScreen(int region[4], // left, upper, right, bottom
   printf("[LSGL] dbg: div pattern = %d, %d\n", divPattern[0], divPattern[1]);
 
   unsigned int tileW =
-      std::max((unsigned int)1, (unsigned int)(width / divPattern[0]));
+      (std::max)((unsigned int)1, (unsigned int)(width / divPattern[0]));
   unsigned int tileH =
-      std::max((unsigned int)1, (unsigned int)(height / divPattern[1]));
+      (std::max)((unsigned int)1, (unsigned int)(height / divPattern[1]));
 
   printf("[LSGL] dbg: tile size = %d, %d\n", tileW, tileH);
 
@@ -367,8 +367,8 @@ bool RaytraceEngine::Trace(Intersection &isectRet, Ray &r) {
 
   Intersection isect;
   isect.clear();
-  isect.t = std::numeric_limits<float>::max();
-  float tMax = std::numeric_limits<float>::max();
+  isect.t = (std::numeric_limits<float>::max)();
+  float tMax = (std::numeric_limits<float>::max)();
 
   if ((!renderGraph_) || !renderGraph_->IsBuilt()) {
     assert(0);
@@ -552,10 +552,10 @@ bool RaytraceEngine::OnData() {
 
   // Override render region if scissor test was set.
   if (ctx_->state_.scissorTest) {
-    startX = std::max(0, ctx_->state_.scissorX);
-    startY = std::max(0, ctx_->state_.scissorY);
-    endX = startX + std::max(0, ctx_->state_.scissorWidth);
-    endY = startY + std::max(0, ctx_->state_.scissorHeight);
+    startX = (std::max)(0, ctx_->state_.scissorX);
+    startY = (std::max)(0, ctx_->state_.scissorY);
+    endX = startX + (std::max)(0, ctx_->state_.scissorWidth);
+    endY = startY + (std::max)(0, ctx_->state_.scissorHeight);
   }
 
   printf("[LSGL] DBG: rect (%d, %d) - (%d, %d)\n", startX, startY, endX, endY);

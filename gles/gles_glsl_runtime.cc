@@ -165,7 +165,7 @@ float trace(void *fragptr, vec3 *org, vec3 *dir, vec4 *shadecol,
       shadecol->v[3] = 1.0f;
     }
 
-    return -std::numeric_limits<float>::max(); // -max = no hit.
+    return -(std::numeric_limits<float>::max)(); // -max = no hit.
   }
 }
 
@@ -205,6 +205,6 @@ float shadow(void *fragptr, vec3 *org, vec3 *dir) {
     // no shading. just return distance
     return isect.t;
   } else {
-    return -std::numeric_limits<float>::max(); // -max = no hit.
+    return -(std::numeric_limits<float>::max)(); // -max = no hit.
   }
 }

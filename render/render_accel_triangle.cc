@@ -375,13 +375,13 @@ static inline void GetBoundingBoxOfTriangle(real3 &bmin, real3 &bmax,
   bmax = p[0];
 
   for (int i = 1; i < 3; i++) {
-    bmin[0] = std::min(bmin[0], p[i][0]);
-    bmin[1] = std::min(bmin[1], p[i][1]);
-    bmin[2] = std::min(bmin[2], p[i][2]);
+    bmin[0] = (std::min)(bmin[0], p[i][0]);
+    bmin[1] = (std::min)(bmin[1], p[i][1]);
+    bmin[2] = (std::min)(bmin[2], p[i][2]);
 
-    bmax[0] = std::max(bmax[0], p[i][0]);
-    bmax[1] = std::max(bmax[1], p[i][1]);
-    bmax[2] = std::max(bmax[2], p[i][2]);
+    bmax[0] = (std::max)(bmax[0], p[i][0]);
+    bmax[1] = (std::max)(bmax[1], p[i][1]);
+    bmax[2] = (std::max)(bmax[2], p[i][2]);
   }
 }
 
@@ -502,7 +502,7 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
     //
 
     real minCostPos = bmin[j] + 0.5 * bstep[j];
-    minCost[j] = std::numeric_limits<real>::max();
+    minCost[j] = (std::numeric_limits<real>::max)();
 
     left = 0;
     right = numTriangles;
@@ -664,12 +664,12 @@ static void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const T *vertices,
                                  unsigned int rightIndex, real epsScale = 2.0) {
   const real kEPS = std::numeric_limits<real>::epsilon() * epsScale;
 
-  bmin[0] = std::numeric_limits<real>::max();
-  bmin[1] = std::numeric_limits<real>::max();
-  bmin[2] = std::numeric_limits<real>::max();
-  bmax[0] = -std::numeric_limits<real>::max();
-  bmax[1] = -std::numeric_limits<real>::max();
-  bmax[2] = -std::numeric_limits<real>::max();
+  bmin[0] = (std::numeric_limits<real>::max)();
+  bmin[1] = (std::numeric_limits<real>::max)();
+  bmin[2] = (std::numeric_limits<real>::max)();
+  bmax[0] = -(std::numeric_limits<real>::max)();
+  bmax[1] = -(std::numeric_limits<real>::max)();
+  bmax[2] = -(std::numeric_limits<real>::max)();
 
   if ((rightIndex - leftIndex) == 0) {
     // empty.
@@ -719,12 +719,12 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const T *vertices,
 
   const real kEPS = std::numeric_limits<real>::epsilon() * epsScale;
 
-  bmin[0] = std::numeric_limits<real>::max();
-  bmin[1] = std::numeric_limits<real>::max();
-  bmin[2] = std::numeric_limits<real>::max();
-  bmax[0] = -std::numeric_limits<real>::max();
-  bmax[1] = -std::numeric_limits<real>::max();
-  bmax[2] = -std::numeric_limits<real>::max();
+  bmin[0] = (std::numeric_limits<real>::max)();
+  bmin[1] = (std::numeric_limits<real>::max)();
+  bmin[2] = (std::numeric_limits<real>::max)();
+  bmax[0] = -(std::numeric_limits<real>::max)();
+  bmax[1] = -(std::numeric_limits<real>::max)();
+  bmax[2] = -(std::numeric_limits<real>::max)();
 
   {
     size_t i = leftIndex;
@@ -762,13 +762,13 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const T *vertices,
         real maxval_y = vertices[3 * faces[3 * idx + k] + 1] + kEPS;
         real maxval_z = vertices[3 * faces[3 * idx + k] + 2] + kEPS;
 
-        local_bmin[0] = std::min(local_bmin[0], minval_x);
-        local_bmin[1] = std::min(local_bmin[1], minval_y);
-        local_bmin[2] = std::min(local_bmin[2], minval_z);
+        local_bmin[0] = (std::min)(local_bmin[0], minval_x);
+        local_bmin[1] = (std::min)(local_bmin[1], minval_y);
+        local_bmin[2] = (std::min)(local_bmin[2], minval_z);
 
-        local_bmax[0] = std::max(local_bmax[0], maxval_x);
-        local_bmax[1] = std::max(local_bmax[1], maxval_y);
-        local_bmax[2] = std::max(local_bmax[2], maxval_z);
+        local_bmax[0] = (std::max)(local_bmax[0], maxval_x);
+        local_bmax[1] = (std::max)(local_bmax[1], maxval_y);
+        local_bmax[2] = (std::max)(local_bmax[2], maxval_z);
       }
     }
 
@@ -796,8 +796,8 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const T *vertices,
 #endif
 
 inline void InvalidateBoundingBox(real3 &bmin, real3 &bmax) {
-  bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<real>::max();
-  bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<real>::max();
+  bmin[0] = bmin[1] = bmin[2] = (std::numeric_limits<real>::max)();
+  bmax[0] = bmax[1] = bmax[2] = -(std::numeric_limits<real>::max)();
 }
 
 inline void MergeBoundingBox(real3 &bmin, real3 &bmax, const real3 &leftBMin,
@@ -807,8 +807,8 @@ inline void MergeBoundingBox(real3 &bmin, real3 &bmax, const real3 &leftBMin,
   bmax = leftBMax;
 
   for (int k = 0; k < 3; k++) {
-    bmin[k] = std::min(bmin[k], rightBMin[k]);
-    bmax[k] = std::max(bmax[k], rightBMax[k]);
+    bmin[k] = (std::min)(bmin[k], rightBMin[k]);
+    bmax[k] = (std::max)(bmax[k], rightBMax[k]);
   }
 }
 
@@ -1188,7 +1188,7 @@ size_t TriangleAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
     leaf.bmax[0][1] = bmax[1];
     leaf.bmax[0][2] = bmax[2];
 
-    assert(leftIdx < std::numeric_limits<unsigned int>::max());
+    assert(leftIdx < (std::numeric_limits<unsigned int>::max)());
 
     leaf.flag = 1; // leaf
     leaf.data[0] = n;
@@ -1787,7 +1787,7 @@ inline bool IntersectRayAABB(real &tminOut, // [out]
   tmin = (tmin > tmin_z) ? tmin : tmin_z;
   tmax = (tmax < tmax_z) ? tmax : tmax_z;
 
-  tmax = std::min(tmax, maxT);
+  tmax = (std::min)(tmax, maxT);
 
   //
   // Hit include (tmin == tmax) edge case(hit 2D plane).
@@ -2453,7 +2453,7 @@ void BuildIntersection(Intersection &isect, const Mesh *mesh, Ray &ray) {
 } // namespace
 
 bool TriangleAccel::Traverse(Intersection &isect, Ray &ray) const {
-  real hitT = std::numeric_limits<real>::max(); // far = no hit.
+  real hitT = (std::numeric_limits<real>::max)(); // far = no hit.
 
   int nodeStackIndex = 0;
   std::vector<int> nodeStack(512);
@@ -2604,7 +2604,7 @@ bool TriangleAccel::Traverse(Intersection &isect, Ray &ray) const {
 
   assert(nodeStackIndex < kMaxStackDepth);
 
-  if (isect.t < std::numeric_limits<real>::max()) {
+  if (isect.t < (std::numeric_limits<real>::max)()) {
     BuildIntersection(isect, mesh_, ray);
     return true;
   }
@@ -2614,12 +2614,12 @@ bool TriangleAccel::Traverse(Intersection &isect, Ray &ray) const {
 
 void TriangleAccel::BoundingBox(double bmin[3], double bmax[3]) const {
   if (nodes_.empty()) {
-    bmin[0] = std::numeric_limits<double>::max();
-    bmin[1] = std::numeric_limits<double>::max();
-    bmin[2] = std::numeric_limits<double>::max();
-    bmax[0] = -std::numeric_limits<double>::max();
-    bmax[1] = -std::numeric_limits<double>::max();
-    bmax[2] = -std::numeric_limits<double>::max();
+    bmin[0] = (std::numeric_limits<double>::max)();
+    bmin[1] = (std::numeric_limits<double>::max)();
+    bmin[2] = (std::numeric_limits<double>::max)();
+    bmax[0] = -(std::numeric_limits<double>::max)();
+    bmax[1] = -(std::numeric_limits<double>::max)();
+    bmax[2] = -(std::numeric_limits<double>::max)();
   } else {
     bmin[0] = bmin_[0];
     bmin[1] = bmin_[1];

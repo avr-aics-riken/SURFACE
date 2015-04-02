@@ -220,7 +220,7 @@ GLenum Context::glGetError(void) {
 #define GLBOOLEAN_TO_GLINT(val) ((GLint)val)
 #define GLFLOAT_TO_GLINT(val) ((GLint)val)
 #define GLFLOAT_TO_GLINT_SCALE(val)                                            \
-  ((GLint)(val * std::numeric_limits<int>::max()))
+  ((GLint)(val * (std::numeric_limits<int>::max)()))
 #define GLBOOLEAN_TO_GLFLOAT(val) ((GLfloat)val)
 #define GLINT_TO_GLFLOAT(val) ((GLfloat)val)
 

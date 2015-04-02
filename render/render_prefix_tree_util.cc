@@ -549,20 +549,20 @@ lsgl::render::ConstructBinaryRadixTree30(const IndexKey30 *keys,
   //}
 
   // printf("s = %d, d = %d\n", s, d);
-  int r = i + s * d + std::min(d, 0);
+  int r = i + s * d + (std::min)(d, 0);
 
   NodeInfo32 Ii;
 
   // Output child index
   Ii.childIndex = r;
 
-  if (std::min(i, j) == r) {
+  if ((std::min)(i, j) == r) {
     Ii.leftType = NODE_TYPE_LEAF;
   } else {
     Ii.leftType = NODE_TYPE_INTERMEDIATE;
   }
 
-  if (std::max(i, j) == (r + 1)) {
+  if ((std::max)(i, j) == (r + 1)) {
     Ii.rightType = NODE_TYPE_LEAF;
   } else {
     Ii.rightType = NODE_TYPE_INTERMEDIATE;
@@ -638,20 +638,20 @@ lsgl::render::ConstructBinaryRadixTree60(const IndexKey60 *keys,
   //}
 
   // printf("s = %d, d = %d\n", s, d);
-  int r = i + s * d + std::min(d, 0);
+  int r = i + s * d + (std::min)(d, 0);
 
   NodeInfo64 Ii;
 
   // Output child index
   Ii.index = r;
 
-  if (std::min(i, j) == r) {
+  if ((std::min)(i, j) == r) {
     Ii.leftType = NODE_TYPE_LEAF;
   } else {
     Ii.leftType = NODE_TYPE_INTERMEDIATE;
   }
 
-  if (std::max(i, j) == (r + 1)) {
+  if ((std::max)(i, j) == (r + 1)) {
     Ii.rightType = NODE_TYPE_LEAF;
   } else {
     Ii.rightType = NODE_TYPE_INTERMEDIATE;

@@ -500,7 +500,7 @@ inline bool CylinderIsect(real *pt, real *pu, real *pv, bool &hitCap,
   real dd = vdot(d, d);
 
   hitCap = false;
-  real capT = std::numeric_limits<real>::max(); // far
+  real capT = (std::numeric_limits<real>::max)(); // far
 
   if (cap) {
     real3 dN0 = vnormalize(p0 - p1);
@@ -701,7 +701,7 @@ void BuildIntersection(Intersection &isectRet,
 } // namespace
 
 bool LineAccel::Traverse(Intersection &isectRet, Ray &ray) const {
-  real hitT = std::numeric_limits<real>::max(); // far = no hit.
+  real hitT = (std::numeric_limits<real>::max)(); // far = no hit.
 
   int nodeStackIndex = 0;
   std::vector<int> nodeStack(512);
@@ -764,7 +764,7 @@ bool LineAccel::Traverse(Intersection &isectRet, Ray &ray) const {
 
   assert(nodeStackIndex < kMaxStackDepth);
 
-  if (isect.t < std::numeric_limits<real>::max()) {
+  if (isect.t < (std::numeric_limits<real>::max)()) {
     BuildIntersection(isectRet, isect, lines_, ray);
     return true;
   }
@@ -774,12 +774,12 @@ bool LineAccel::Traverse(Intersection &isectRet, Ray &ray) const {
 
 void LineAccel::BoundingBox(double bmin[3], double bmax[3]) {
   if (nodes_.empty()) {
-    bmin[0] = std::numeric_limits<double>::max();
-    bmin[1] = std::numeric_limits<double>::max();
-    bmin[2] = std::numeric_limits<double>::max();
-    bmax[0] = -std::numeric_limits<double>::max();
-    bmax[1] = -std::numeric_limits<double>::max();
-    bmax[2] = -std::numeric_limits<double>::max();
+    bmin[0] = (std::numeric_limits<double>::max)();
+    bmin[1] = (std::numeric_limits<double>::max)();
+    bmin[2] = (std::numeric_limits<double>::max)();
+    bmax[0] = -(std::numeric_limits<double>::max)();
+    bmax[1] = -(std::numeric_limits<double>::max)();
+    bmax[2] = -(std::numeric_limits<double>::max)();
   } else {
     bmin[0] = nodes_[0].bmin[0];
     bmin[1] = nodes_[0].bmin[1];

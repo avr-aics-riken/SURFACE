@@ -145,8 +145,8 @@ static void CalculateBoundingBox(double *bmin, double *bmax,
 
   for (size_t i = startIndex + 1; i < endIndex; ++i) {
     for (int j = 0; j < 3; ++j) {
-      bmin[j] = std::min(bmin[j], nodes[i].bmin[j]);
-      bmax[j] = std::max(bmax[j], nodes[i].bmax[j]);
+      bmin[j] = (std::min)(bmin[j], nodes[i].bmin[j]);
+      bmax[j] = (std::max)(bmax[j], nodes[i].bmax[j]);
     }
   }
 }
@@ -164,8 +164,8 @@ static void CalcSceneBBox(double *bmin, double *bmax, std::vector<T> &nodes) {
 
   for (size_t i = 1; i < nodes.size(); ++i) {
     for (int j = 0; j < 3; ++j) {
-      bmin[j] = std::min(bmin[j], nodes[i].bmin[j]);
-      bmax[j] = std::max(bmax[j], nodes[i].bmax[j]);
+      bmin[j] = (std::min)(bmin[j], nodes[i].bmin[j]);
+      bmax[j] = (std::max)(bmax[j], nodes[i].bmax[j]);
     }
   }
 }

@@ -62,13 +62,13 @@ static void TransformBoundingBox(double xbmin[3], // out
 
   for (int i = 1; i < 8; i++) {
 
-    xbmin[0] = std::min(xb[i][0], xbmin[0]);
-    xbmin[1] = std::min(xb[i][1], xbmin[1]);
-    xbmin[2] = std::min(xb[i][2], xbmin[2]);
+    xbmin[0] = (std::min)(xb[i][0], xbmin[0]);
+    xbmin[1] = (std::min)(xb[i][1], xbmin[1]);
+    xbmin[2] = (std::min)(xb[i][2], xbmin[2]);
 
-    xbmax[0] = std::max(xb[i][0], xbmax[0]);
-    xbmax[1] = std::max(xb[i][1], xbmax[1]);
-    xbmax[2] = std::max(xb[i][2], xbmax[2]);
+    xbmax[0] = (std::max)(xb[i][0], xbmax[0]);
+    xbmax[1] = (std::max)(xb[i][1], xbmax[1]);
+    xbmax[2] = (std::max)(xb[i][2], xbmax[2]);
   }
 }
 
@@ -147,7 +147,7 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
     return false;
   }
 
-  double maxdist = std::numeric_limits<double>::max();
+  double maxdist = (std::numeric_limits<double>::max)();
   double rayorg[3];
   rayorg[0] = ray.origin()[0];
   rayorg[1] = ray.origin()[1];
@@ -163,7 +163,7 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
 
   if (mayHit) {
 
-    double tMax = std::numeric_limits<double>::max();
+    double tMax = (std::numeric_limits<double>::max)();
     double tNearest = tMax;
     unsigned int hitNodeID;
     bool hasHit = false;
@@ -184,7 +184,7 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
 
       Intersection bottomIsect;
       bottomIsect.clear();
-      bottomIsect.t = std::numeric_limits<float>::max();
+      bottomIsect.t = (std::numeric_limits<float>::max)();
 
       // Transform ray into local space(world -> local)
       double rayOrg[3];

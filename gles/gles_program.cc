@@ -354,7 +354,7 @@ bool Program::SetUniform1iv(GLint location, GLsizei count, const GLint *v) {
     }
 
     int n =
-        std::min(arraySize - (int)uniformLocations_[location].element, count);
+        (std::min)(arraySize - (int)uniformLocations_[location].element, count);
 
     // printf(" n = %d\n", n);
     // printf(" elem = %d\n", uniformLocations_[location].element);
@@ -394,7 +394,7 @@ bool Program::SetUniform1fv(GLint location, GLsizei count, const GLfloat *v) {
     }
 
     int n =
-        std::min(arraySize - (int)uniformLocations_[location].element, count);
+        (std::min)(arraySize - (int)uniformLocations_[location].element, count);
 
     // printf("MATCH:\n");
     // printf(" n = %d\n", n);
@@ -435,7 +435,7 @@ bool Program::SetUniform2fv(GLint location, GLsizei count, const GLfloat *v) {
     }
 
     int n =
-        std::min(arraySize - (int)uniformLocations_[location].element, count);
+        (std::min)(arraySize - (int)uniformLocations_[location].element, count);
 
     // printf(" n = %d\n", n);
     // printf(" elem = %d\n", uniformLocations_[location].element);
@@ -473,7 +473,7 @@ bool Program::SetUniform3fv(GLint location, GLsizei count, const GLfloat *v) {
     }
 
     int n =
-        std::min(arraySize - (int)uniformLocations_[location].element, count);
+        (std::min)(arraySize - (int)uniformLocations_[location].element, count);
 
     // printf(" n = %d\n", n);
     // printf(" elem = %d\n", uniformLocations_[location].element);
@@ -510,7 +510,7 @@ bool Program::SetUniform4fv(GLint location, GLsizei count, const GLfloat *v) {
     }
 
     int n =
-        std::min(arraySize - (int)uniformLocations_[location].element, count);
+        (std::min)(arraySize - (int)uniformLocations_[location].element, count);
 
     // printf(" n = %d\n", n);
     // printf(" elem = %d\n", uniformLocations_[location].element);
@@ -548,7 +548,7 @@ bool Program::SetUniformMatrix2fv(GLint location, GLsizei count,
     }
 
     int n =
-        std::min(arraySize - (int)uniformLocations_[location].element, count);
+        (std::min)(arraySize - (int)uniformLocations_[location].element, count);
 
     // printf("MATCH:\n");
     // printf(" n = %d\n", n);
@@ -588,7 +588,7 @@ bool Program::SetUniformMatrix3fv(GLint location, GLsizei count,
     }
 
     int n =
-        std::min(arraySize - (int)uniformLocations_[location].element, count);
+        (std::min)(arraySize - (int)uniformLocations_[location].element, count);
 
     // printf("MATCH:\n");
     // printf(" n = %d\n", n);
@@ -628,7 +628,7 @@ bool Program::SetUniformMatrix4fv(GLint location, GLsizei count,
     }
 
     int n =
-        std::min(arraySize - (int)uniformLocations_[location].element, count);
+        (std::min)(arraySize - (int)uniformLocations_[location].element, count);
 
     // printf("MATCH:\n");
     // printf(" n = %d\n", n);
