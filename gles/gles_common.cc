@@ -218,6 +218,10 @@ static char *GenerateUniqueTempFilename() {
     }
   }
 
+  char *name = strdup(basename);
+
+  free(basename);
+
 #else
 
 // char *name = tempnam(NULL, prefix);
@@ -238,9 +242,9 @@ static char *GenerateUniqueTempFilename() {
   }
   close(fd);
 
-#endif
-
   char *name = strdup(basename);
+
+#endif
 
   return name;
 }
@@ -326,7 +330,7 @@ Shader::Shader()
 
 Shader::~Shader() {
 #if defined(_WIN32)
-  assert(0 && "TODO");
+  Release();
 #else
   Release();
 #endif
@@ -397,23 +401,22 @@ bool Shader::Release() {
 }
 
 bool Shader::LoadShaderBinary(std::string &filename) {
-  printf("[GLES] loading shader binary file: %s\n", filename.c_str());
 
   void *handle = NULL;
 
 #ifdef _WIN32
   HMODULE module = LoadLibrary(filename.c_str());
   if (module == NULL) {
-    fprintf(stderr, "[GLES] Cannot find/open shader file: %s\n",
+    fprintf(stderr, "[LSGL] Cannot find/open shader file: %s\n",
             filename.c_str());
-    fprintf(stderr, "[GLES] Err = %d\n", GetLastError());
+    fprintf(stderr, "[LSGL] Err = %d\n", GetLastError());
     return false;
   }
 
   // Find shader body function
   method_.shaderEvalFunc = GetProcAddress(module, "shader");
   if (method_.shaderEvalFunc == NULL) {
-    fprintf(stderr, "[GLES] Cannot find shader body function from: %s\n",
+    fprintf(stderr, "[LSGL] Cannot find shader body function from: %s\n",
             filename.c_str());
     FreeLibrary(module);
     return false;
@@ -422,13 +425,13 @@ bool Shader::LoadShaderBinary(std::string &filename) {
   // Find shader info function
   method_.shaderInfoFunc = GetProcAddress(module, "shader_info");
   if (method_.shaderInfoFunc == NULL) {
-    fprintf(stderr, "[GLES] Cannot find shader info function from: %s\n",
+    fprintf(stderr, "[LSGL] Cannot find shader info function from: %s\n",
             filename.c_str());
     FreeLibrary(module);
     return false;
   }
 
-  printf("[GLES] load shader binary OK\n");
+  //printf("[LSGL] load shader binary OK\n");
 
   handle_ = reinterpret_cast<void *>(handle);
   filename_ = filename;
@@ -451,11 +454,11 @@ bool Shader::LoadShaderBinary(std::string &filename) {
       unlink(filename.c_str());
 
       if (handle == NULL) {
-        fprintf(stderr, "[GLES] Cannot find/open shader file: %s\n",
+        fprintf(stderr, "[LSGL] Cannot find/open shader file: %s\n",
                 filepath.c_str());
       }
     } else {
-      fprintf(stderr, "[GLES] Cannot find/open shader file: %s\n",
+      fprintf(stderr, "[LSGL] Cannot find/open shader file: %s\n",
               filename.c_str());
       return false;
     }
@@ -464,7 +467,7 @@ bool Shader::LoadShaderBinary(std::string &filename) {
   // Find shader body function
   method_.shaderEvalFunc = dlsym(handle, "shader");
   if (method_.shaderEvalFunc == NULL) {
-    fprintf(stderr, "[GLES] Cannot find shader body function from: %s\n",
+    fprintf(stderr, "[LSGL] Cannot find shader body function from: %s\n",
             filename.c_str());
     dlclose(handle);
     return false;
@@ -473,13 +476,13 @@ bool Shader::LoadShaderBinary(std::string &filename) {
   // Find shader info function
   method_.shaderInfoFunc = dlsym(handle, "shader_info");
   if (method_.shaderInfoFunc == NULL) {
-    fprintf(stderr, "[GLES] Cannot find shader info function from: %s\n",
+    fprintf(stderr, "[LSGL] Cannot find shader info function from: %s\n",
             filepath.c_str());
     dlclose(handle);
     return false;
   }
 
-  printf("[GLES] load shader binary OK\n");
+  //printf("[LSGL] load shader binary OK\n");
 
   // Store handle & filename for later use.
   handle_ = handle;
@@ -633,7 +636,7 @@ bool FragmentShader::DoCompile() {
     return false;
   }
 
-  printf("Write to file: %s\n", tempFilename.c_str());
+  //printf("Write to file: %s\n", tempFilename.c_str());
 
   fwrite(src, GetSource().size(), 1, fp);
   fclose(fp);
@@ -645,7 +648,7 @@ bool FragmentShader::DoCompile() {
   char *glslc_path = getenv("GLSL_COMPILER");
   if (glslc_path) {
     glslc = glslc_path;
-    printf("glslc = %s\n", glslc);
+    printf("[LSGL] glslc = %s\n", glslc);
   }
 
   // Generate unique filename.
@@ -662,7 +665,7 @@ bool FragmentShader::DoCompile() {
 
   char cmd[4096];
   sprintf(cmd, "%s -o %s %s", glslc, outputFilename, tempFilename.c_str());
-  printf("cmd: %s\n", cmd);
+  printf("[LSGL] cmd: %s\n", cmd);
 #if defined(_WIN32)
   FILE *pfp = _popen(cmd, "r");
 #else
@@ -843,8 +846,6 @@ bool FragmentShader::PrepareEval(
     }
 
     assert(ptr);
-
-    // printf("  data.ptr %p\n", ptr);
 
     VaryingConnection varyingConn;
     varyingConn.srcIndex = i;

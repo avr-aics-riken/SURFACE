@@ -292,7 +292,15 @@ RaytraceEngine::RaytraceEngine()
   SetCamera(eye, target, up, fov);
 }
 
-RaytraceEngine::~RaytraceEngine() { sRaytraceEngine = NULL; }
+RaytraceEngine::~RaytraceEngine() {
+
+  if (camera_) {
+    delete camera_;
+  }
+
+  sRaytraceEngine = NULL;
+
+}
 
 void RaytraceEngine::SetCamera(const GLfloat *eye, const GLfloat *target,
                                const GLfloat *up, GLfloat fov) {
