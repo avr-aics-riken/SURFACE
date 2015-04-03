@@ -275,7 +275,7 @@ static void QuickSortKey30OMP(IndexKey30 *v, int firstIdx, int lastIdx) {
 #pragma omp parallel
     {
 #pragma omp for nowait
-      for (size_t i = 0; i <= 1; i++) {
+      for (int i = 0; i <= 1; i++) {
         QuickSortKey30(v, startIdx[i], endIdx[i]);
       }
     }
@@ -319,7 +319,7 @@ static void RadixSort30OMP(IndexKey30 *begin, IndexKey30 *end) {
 
       unsigned int startIdx = (tid * n) / (MAX_RADIX_SORT_THREADS);
       unsigned int endIdx =
-          std::min(n, ((tid + 1) * n) / (MAX_RADIX_SORT_THREADS));
+          (std::min)(n, ((tid + 1) * n) / (MAX_RADIX_SORT_THREADS));
 
       // printf("range (%d, %d)\n", startIdx, endIdx);
 
@@ -382,7 +382,7 @@ static void RadixSort30OMP(IndexKey30 *begin, IndexKey30 *end) {
 
       unsigned int startIdx = (tid * n) / (MAX_RADIX_SORT_THREADS);
       unsigned int endIdx =
-          std::min(n, ((tid + 1) * n) / (MAX_RADIX_SORT_THREADS));
+          (std::min)(n, ((tid + 1) * n) / (MAX_RADIX_SORT_THREADS));
 
       for (size_t i = startIdx; i < endIdx; i++) {
         IndexKey30 *p = begin + i;
@@ -498,6 +498,14 @@ static void MergeSort30(IndexKey30 *a, IndexKey30 *b, unsigned int low,
       QuickSortKey30(a, low, high);
     } else {
 
+#if defined(_MSC_VER)
+
+	  // Visual Studio doesn't support openmp task yet?
+      MergeSort30(a, b, low, pivot);
+      MergeSort30(a, b, pivot + 1, high);
+
+#else
+
 #pragma omp task
       MergeSort30(a, b, low, pivot);
 
@@ -505,6 +513,9 @@ static void MergeSort30(IndexKey30 *a, IndexKey30 *b, unsigned int low,
       MergeSort30(a, b, pivot + 1, high);
 
 #pragma omp taskwait
+
+#endif
+
     }
 
     Merge30(a, b, low, pivot, high);
@@ -523,7 +534,7 @@ static void RadixSortByMortionCode30LSB(IndexKey30 *firstIdx,
 #endif
 }
 
-#ifdef _OPENMP
+#if defined(_OPENMP) && !defined(_MSC_VER)
 static void RadixSortByMortionCode30MSBTask(IndexKey30 *firstIdx,
                                             IndexKey30 *lastIdx, int msb = 29) {
   if ((firstIdx != lastIdx) && (msb >= 0)) {
@@ -552,7 +563,7 @@ static void RadixSortByMortionCode30MSBTask(IndexKey30 *firstIdx,
 static void RadixSortByMortionCode30MSB(IndexKey30 *firstIdx,
                                         IndexKey30 *lastIdx, int msb = 29) {
 
-#ifdef _OPENMP
+#if defined(_OPENMP) && !defined(_MSC_VER)
 
 #pragma omp parallel
   {

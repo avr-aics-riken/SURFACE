@@ -333,7 +333,7 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const Particles *particles,
   {
 
 #pragma omp for
-    for (size_t i = leftIndex; i < rightIndex; i++) {
+    for (long long i = leftIndex; i < rightIndex; i++) {
 
       size_t idx = indices[i];
       real radius = GetRadius(particles, idx);
@@ -787,7 +787,7 @@ void BottomUpBuildTreeRecursive(std::vector<ParticleNode> &nodes, real3 &bmin,
 }
 #endif
 
-#ifdef _OPENMP
+#if defined(_OPENMP) && !defined(_MSC_VER)
 size_t BuildTreeRecursive32OMP(std::vector<ParticleNode> &nodes, real3 &bmin,
                                real3 &bmax, const std::vector<IndexKey30> &keys,
                                const std::vector<NodeInfo32> &nodeInfos,
@@ -1505,7 +1505,7 @@ bool ParticleAccel::Build(const Particles *particles,
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-  for (size_t i = 0; i < n; i++) {
+  for (long long i = 0; i < n; i++) {
     indices_[i] = i;
   }
   t.end();
@@ -1590,7 +1590,7 @@ bool ParticleAccel::Build32(const Particles *particles,
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-  for (size_t i = 0; i < n; i++) {
+  for (long long i = 0; i < n; i++) {
     indices_[i] = i;
   }
   t.end();
@@ -1636,7 +1636,7 @@ bool ParticleAccel::Build32(const Particles *particles,
 #ifdef _OPENMP
 #pragma omp parallel for if (n > (1024 * 1024))
 #endif
-    for (size_t i = 0; i < n; i++) {
+    for (long long i = 0; i < n; i++) {
       keys[i].index = indices_[i];
       keys[i].code = codes[i];
     }
@@ -1682,7 +1682,7 @@ bool ParticleAccel::Build32(const Particles *particles,
 #ifdef _OPENMP
 #pragma omp parallel for if (n > (1024 * 1024))
 #endif
-      for (size_t i = 0; i < n - 1; i++) {
+      for (long long i = 0; i < n - 1; i++) {
         nodeInfos[i] = ConstructBinaryRadixTree30(&keys.at(0), i, n);
         // printf("I[%d].index   = %d\n", i, nodeInfos[i].index);
         // printf("I[%d].leftTy  = %d\n", i, nodeInfos[i].leftType);
@@ -1725,7 +1725,7 @@ bool ParticleAccel::Build32(const Particles *particles,
 //    midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
 
 //#elif defined(_OPENMP)
-#if defined(_OPENMP)
+#if defined(_OPENMP) && !defined(_MSC_VER)
 
       size_t leftChildIndex = (size_t)(-1), rightChildIndex = (size_t)(-1);
 
