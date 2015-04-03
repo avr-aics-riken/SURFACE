@@ -6,6 +6,16 @@
 #include "tiny_pdb.h"
 #include "tiny_pdb_hashgrid.hxx"
 
+#ifdef _WIN32
+#    ifdef __MINGW32__
+#        define fseeko fseeko64
+#        define ftello ftello64
+#    else
+#        define fseeko _fseeki64
+#        define ftello _ftelli64
+#    endif
+#endif
+
 namespace tinypdb {
 
 TinyPDB::TinyPDB(std::string filename)

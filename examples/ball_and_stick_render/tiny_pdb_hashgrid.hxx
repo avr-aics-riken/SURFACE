@@ -28,6 +28,7 @@
 #include <vector>
 #include <cmath>
 #include <cstring>
+#include <algorithm>
 #include "tiny_pdb_math.hxx"
 
 namespace tinypdb {
@@ -58,8 +59,8 @@ public:
             const Vec3f &pos = aParticles[i].GetPosition();
             for(int j=0; j<3; j++)
             {
-                mBBoxMax.Get(j) = std::max(mBBoxMax.Get(j), pos.Get(j));
-                mBBoxMin.Get(j) = std::min(mBBoxMin.Get(j), pos.Get(j));
+                mBBoxMax.Get(j) = (std::max)(mBBoxMax.Get(j), pos.Get(j));
+                mBBoxMin.Get(j) = (std::min)(mBBoxMin.Get(j), pos.Get(j));
             }
         }
 

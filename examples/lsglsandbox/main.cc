@@ -2,6 +2,11 @@
 #include <mpi.h>
 #endif
 
+#ifdef _WIN32
+#pragma comment( lib, "ws2_32" )
+#include <WinSock2.h>
+#endif
+
 #include "../../gles/gles_c_api.h"
 #include <GLES2/gl2ext.h>
 
@@ -10,10 +15,7 @@
 #include "easywsclient.hpp"
 #include "jpge.h"
 
-#ifdef _WIN32
-#pragma comment( lib, "ws2_32" )
-#include <WinSock2.h>
-#endif
+
 
 int kWindowWidth = 512;
 int kWindowHeight = 512;

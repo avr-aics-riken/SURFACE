@@ -3,12 +3,8 @@
 #endif
 
 #ifdef _WIN32
-#include <GLES2/gl2.h>
-extern "C" {
-__declspec(dllimport) void lsglSetCamera(float eye[3], float lookat[3], float up[3], float fov);
-//__declspec(dllimport) void lsglSetPointSize(float partsize);
-//__declspec(dllimport) void lsglSetPointSizev(int num, const float* partsize);
-};
+#include "../../gles/gles_c_api.h"  // GLES + LSGL EXT.
+//#include <GLES2/gl2.h>
 #else
 #include "../../gles/gles_c_api.h"  // GLES + LSGL EXT.
 //extern void lsglSetCamera(float eye[3], float lookat[3], float up[3], float fov);
