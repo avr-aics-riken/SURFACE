@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -90,17 +91,11 @@ public:
 
   ~Texture2D() {}
 
-  void setWrapS(WrapMode mode) {
-    m_wrapMode[0] = mode;
-  }
+  void setWrapS(WrapMode mode) { m_wrapMode[0] = mode; }
 
-  void setWrapT(WrapMode mode) {
-    m_wrapMode[1] = mode;
-  }
+  void setWrapT(WrapMode mode) { m_wrapMode[1] = mode; }
 
-  void setWrapR(WrapMode mode) {
-    m_wrapMode[2] = mode;
-  }
+  void setWrapR(WrapMode mode) { m_wrapMode[2] = mode; }
 
   int width() const { return m_width; }
 
@@ -113,10 +108,12 @@ public:
   const unsigned char *image() const { return m_image; }
 
   /// Fetch texel color.
-  void fetch(float *rgba, float u, float v, bool minFiltering, bool magFiltering) const;
+  void fetch(float *rgba, float u, float v, bool minFiltering,
+             bool magFiltering) const;
 
   /// Fetch (i, j), (i+1, j), (i, j+1) texels.
-  void fetchD(float *rgba0, float *rgba1, float *rgba2, float u, float v, bool minFiltering, bool magFiltering) const;
+  void fetchD(float *rgba0, float *rgba1, float *rgba2, float u, float v,
+              bool minFiltering, bool magFiltering) const;
 
 private:
   int m_width;

@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -24,11 +25,12 @@ class ResourceManager {
 public:
   ResourceManager(){};
   ~ResourceManager() {
-    for (ShaderMap::iterator it = shaderMap_.begin(); it != shaderMap_.end(); ++it) {
-        if (it->second) {
-            it->second->Release();
-            delete it->second;
-        }
+    for (ShaderMap::iterator it = shaderMap_.begin(); it != shaderMap_.end();
+         ++it) {
+      if (it->second) {
+        it->second->Release();
+        delete it->second;
+      }
     }
   }
 

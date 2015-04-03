@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -91,8 +92,8 @@ AccelBuilder::TriangleAccelerator *AccelBuilder::BuildTriangleAccel(
   ce->builtTime = clock();
 
   // build the mesh accelerator
-  AddTriangleData(&ce->primData, elembuf, arraybuf, isDoublePrecisionPos, &abinfo,
-              count, offset);
+  AddTriangleData(&ce->primData, elembuf, arraybuf, isDoublePrecisionPos,
+                  &abinfo, count, offset);
 
   // if both buffers are marked as static, add this mesh to the static cache
   // list, otherwise add it to the dynamic list instead
@@ -111,7 +112,8 @@ AccelBuilder::TriangleAccelerator *AccelBuilder::BuildTriangleAccel(
   // print current cache usage info and return a pointer to the accelerator
   printf("[LSGL] MeshBuilder cache: %dKB used / %dKB free (%.2f%%)\n",
          GetCacheUsed() / 1024, GetCacheSize() / 1024, GetCachePercent());
-  return reinterpret_cast<AccelBuilder::TriangleAccelerator *>(ce->primData.accel);
+  return reinterpret_cast<AccelBuilder::TriangleAccelerator *>(
+      ce->primData.accel);
 }
 
 AccelBuilder::ParticleAccelerator *AccelBuilder::BuildParticleAccel(
@@ -334,7 +336,7 @@ bool AccelBuilder::AddTriangleData(PrimData *pd, TriangleAccelerator *accel) {
   // add the data for this mesh to the specified mesh data
   const CacheEntry *ce = it->second;
   AddTriangleData(pd, ce->elembuf, ce->arraybuf, ce->isDoublePrecisionPos,
-              &ce->abinfo, ce->count, ce->offset);
+                  &ce->abinfo, ce->count, ce->offset);
   return ce->dynamic;
 }
 
@@ -420,10 +422,10 @@ void AccelBuilder::AddData(DataBuffer<T> &dest, const Buffer *src, GLuint count,
 }
 
 void AccelBuilder::AddTriangleData(PrimData *pd, const Buffer *elembuf,
-                               const Buffer *arraybuf,
-                               bool isDoublePrecisionPos,
-                               const ArrayBufInfo *abinfo, GLsizei count,
-                               GLuint offset) {
+                                   const Buffer *arraybuf,
+                                   bool isDoublePrecisionPos,
+                                   const ArrayBufInfo *abinfo, GLsizei count,
+                                   GLuint offset) {
   GLuint maxIndex;
 
   // first free any existing mesh accelerator
@@ -547,7 +549,8 @@ void AccelBuilder::AddParticleData(PrimData *pd, const Buffer *elembuf,
     if (arraybuf->IsRetained()) {
       // zero-copy vesion.
       assert(abinfo->offsetPosition == 0);
-      pd->points->dpositions = reinterpret_cast<const double *>(arraybuf->GetData());
+      pd->points->dpositions =
+          reinterpret_cast<const double *>(arraybuf->GetData());
       pd->points->positions = NULL;
     } else {
       AddData(pd->dpositionBuffer, arraybuf, (maxIndex + 1) * 3,
@@ -567,7 +570,8 @@ void AccelBuilder::AddParticleData(PrimData *pd, const Buffer *elembuf,
     if (arraybuf->IsRetained()) {
       // zero-copy vesion.
       assert(abinfo->offsetPosition == 0);
-      pd->points->positions = reinterpret_cast<const float *>(arraybuf->GetData());
+      pd->points->positions =
+          reinterpret_cast<const float *>(arraybuf->GetData());
       pd->points->dpositions = NULL;
 
     } else {
@@ -643,7 +647,7 @@ void AccelBuilder::AddLineData(PrimData *pd, const Buffer *elembuf,
   t.start();
   LineAccel *accel = new LineAccel();
 
-  pd->lines = new Lines(); 
+  pd->lines = new Lines();
   // lines->positions = pd->positionBuffer.GetBase();
   if ((widthBuf == NULL) || (widthBufLen == 0)) {
     pd->lines->radius = NULL;
@@ -662,7 +666,8 @@ void AccelBuilder::AddLineData(PrimData *pd, const Buffer *elembuf,
     if (arraybuf->IsRetained()) {
       // zero-copy vesion.
       assert(abinfo->offsetPosition == 0);
-      pd->lines->dpositions = reinterpret_cast<const double *>(arraybuf->GetData());
+      pd->lines->dpositions =
+          reinterpret_cast<const double *>(arraybuf->GetData());
       pd->lines->positions = NULL;
     } else {
       AddData(pd->dpositionBuffer, arraybuf, (maxIndex + 1) * 3,
@@ -682,7 +687,8 @@ void AccelBuilder::AddLineData(PrimData *pd, const Buffer *elembuf,
     if (arraybuf->IsRetained()) {
       // zero-copy vesion.
       assert(abinfo->offsetPosition == 0);
-      pd->lines->positions = reinterpret_cast<const float *>(arraybuf->GetData());
+      pd->lines->positions =
+          reinterpret_cast<const float *>(arraybuf->GetData());
       pd->lines->dpositions = NULL;
 
     } else {
@@ -698,7 +704,9 @@ void AccelBuilder::AddLineData(PrimData *pd, const Buffer *elembuf,
   pd->lines->numLines = pd->indexBuffer.GetCount() / 2; // LINES
   pd->lines->segments = pd->indexBuffer.GetBase();
 
-  accel->Build(pd->lines, options); // @todo { implement parallel BVH builder for line primitive. }
+  accel->Build(
+      pd->lines,
+      options); // @todo { implement parallel BVH builder for line primitive. }
   t.end();
 
   double bmin[3], bmax[3];
@@ -734,7 +742,8 @@ void AccelBuilder::AddTetraData(PrimData *pd, const Buffer *elembuf,
     if (arraybuf->IsRetained()) {
       // zero-copy vesion.
       assert(abinfo->offsetPosition == 0);
-      pd->tetras->dvertices = reinterpret_cast<const double *>(arraybuf->GetData());
+      pd->tetras->dvertices =
+          reinterpret_cast<const double *>(arraybuf->GetData());
       pd->tetras->vertices = NULL;
     } else {
       AddData(pd->dpositionBuffer, arraybuf, (maxIndex + 1) * 3,
@@ -754,7 +763,8 @@ void AccelBuilder::AddTetraData(PrimData *pd, const Buffer *elembuf,
     if (arraybuf->IsRetained()) {
       // zero-copy vesion.
       assert(abinfo->offsetPosition == 0);
-      pd->tetras->vertices = reinterpret_cast<const float *>(arraybuf->GetData());
+      pd->tetras->vertices =
+          reinterpret_cast<const float *>(arraybuf->GetData());
       pd->tetras->dvertices = NULL;
 
     } else {
@@ -782,8 +792,8 @@ void AccelBuilder::AddTetraData(PrimData *pd, const Buffer *elembuf,
   t.start();
   TetraAccel *accel = new TetraAccel();
 
-  //accel->Build(pd->tetras, options);  // slower but rather high quality BVH
-  accel->Build32(pd->tetras, options);  // faster but rather low quality BVH
+  // accel->Build(pd->tetras, options);  // slower but rather high quality BVH
+  accel->Build32(pd->tetras, options); // faster but rather low quality BVH
 
   t.end();
 

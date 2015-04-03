@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -40,8 +41,8 @@ void Context::glDrawArrays(GLenum mode, GLint first, GLsizei count) {
   std::vector<GLint> indices;
 
   int n = 0;
-  
-  // Truncate # of indices depending on primitive type. 
+
+  // Truncate # of indices depending on primitive type.
   if (mode == GL_TRIANGLES) {
     n = (count / 3) * 3;
   } else if (mode == GL_POINTS) {
@@ -144,10 +145,11 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
 
   unsigned char *accel = NULL;
   if (mode == GL_TRIANGLES) {
-    AccelBuilder::TriangleAccelerator *meshAccel = accelBuilder_.BuildTriangleAccel(
-        elembuf, posbuf, isDoublePrecisionPos,
-        &state_.vertexAttributes[k].at(0), state_.texture2D, count,
-        (GLubyte *)indices - (GLubyte *)NULL);
+    AccelBuilder::TriangleAccelerator *meshAccel =
+        accelBuilder_.BuildTriangleAccel(elembuf, posbuf, isDoublePrecisionPos,
+                                         &state_.vertexAttributes[k].at(0),
+                                         state_.texture2D, count,
+                                         (GLubyte *)indices - (GLubyte *)NULL);
     assert(meshAccel);
     meshAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(meshAccel);
@@ -289,15 +291,15 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     memcpy(Mv, &uniformView->data.at(0), sizeof(float) * 4 * 4);
 
     double Tw[4][4];
-    //double Tp[4][4];
-    //double Tv[4][4];
+    // double Tp[4][4];
+    // double Tv[4][4];
 
     // float -> double upcast
     for (int j = 0; j < 4; j++) {
       for (int i = 0; i < 4; i++) {
         Tw[j][i] = Mw[j][i];
-        //Tp[j][i] = Mp[j][i];
-        //Tv[j][i] = Mv[j][i];
+        // Tp[j][i] = Mp[j][i];
+        // Tv[j][i] = Mv[j][i];
       }
     }
 

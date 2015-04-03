@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -256,7 +257,7 @@ public:
   //
   // LSGL extensions.
   //
-  void lsglSetProgressCallback(LSGLProgressCallback func, void* userdata);
+  void lsglSetProgressCallback(LSGLProgressCallback func, void *userdata);
   void lsglSetPixelStep(GLint step);
   GLint lsglGetPixelStep();
   void lsglSetPointSize(GLfloat size);                      // deprecated

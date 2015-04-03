@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -31,7 +32,8 @@ typedef struct {
   const float *vertices;   /// float precision. [xyz] * numTetrahedrons
   const double *dvertices; /// float precision. [xyz] * numParticles
   bool isDoublePrecisionPos;
-  uint32_t *faces; /// 1 tetrahedron face = 4 vertex indices. up to 2^32 - 1 primitives.
+  uint32_t *faces; /// 1 tetrahedron face = 4 vertex indices. up to 2^32 - 1
+                   /// primitives.
 } Tetrahedron;
 
 } // namespace render

@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -123,7 +124,6 @@ inline real3 cross(const real3 &lhs, const real3 &rhs) {
                lhs[0] * rhs[1] - lhs[1] * rhs[0]  // zxyyx
                );
 }
-
 
 } // namespace render
 } // namespace lsgl

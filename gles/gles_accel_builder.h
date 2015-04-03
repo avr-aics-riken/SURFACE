@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -50,10 +51,10 @@ public:
   };
 
   struct PrimData {
-    Mesh    mesh;   // for triangle data
-    Lines*  lines;  // for line data
-    Particles* points;  // for point data
-    Tetrahedron* tetras;  // for tetra data
+    Mesh mesh;           // for triangle data
+    Lines *lines;        // for line data
+    Particles *points;   // for point data
+    Tetrahedron *tetras; // for tetra data
 
     DataBuffer<GLuint> indexBuffer;
     DataBuffer<GLfloat> positionBuffer;
@@ -62,7 +63,9 @@ public:
     unsigned char *accel;
     PrimitiveType type;
 
-    inline PrimData() : accel(NULL), type(PRIMITIVE_INVALID), lines(NULL), points(NULL), tetras(NULL) {}
+    inline PrimData()
+        : accel(NULL), type(PRIMITIVE_INVALID), lines(NULL), points(NULL),
+          tetras(NULL) {}
 
     inline ~PrimData() {
       // clear pointers inside mesh structure so it doesn't try to free our
@@ -87,11 +90,11 @@ public:
   AccelBuilder(GLuint maxCacheSize = (8192 * 1024));
   ~AccelBuilder();
 
-  TriangleAccelerator *BuildTriangleAccel(const Buffer *elembuf, const Buffer *arraybuf,
-                                  bool isDoublePrecisionPos,
-                                  const VertexAttribute *vertexAttributes,
-                                  const GLuint *texture2D, GLsizei count,
-                                  GLuint offset);
+  TriangleAccelerator *
+  BuildTriangleAccel(const Buffer *elembuf, const Buffer *arraybuf,
+                     bool isDoublePrecisionPos,
+                     const VertexAttribute *vertexAttributes,
+                     const GLuint *texture2D, GLsizei count, GLuint offset);
 
   ParticleAccelerator *BuildParticleAccel(
       const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
@@ -151,9 +154,9 @@ private:
   //                       GLuint adjust = 0, T *maxValue = NULL);
 
   static void AddTriangleData(PrimData *md, const Buffer *elembuf,
-                          const Buffer *arraybuf, bool isDoublePrecisionPos,
-                          const ArrayBufInfo *abinfo, GLsizei count,
-                          GLuint offset);
+                              const Buffer *arraybuf, bool isDoublePrecisionPos,
+                              const ArrayBufInfo *abinfo, GLsizei count,
+                              GLuint offset);
   static void AddParticleData(PrimData *md, const Buffer *elembuf,
                               const Buffer *arraybuf, bool isDoublePrecisionPos,
                               const ArrayBufInfo *abinfo, GLsizei count,

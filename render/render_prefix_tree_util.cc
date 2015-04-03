@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -342,7 +343,6 @@ void lsgl::render::CalculateMortonCodesTetraDouble30(
     codes[i] = MortionCode30(p_i, bmin, invx, invy, invz);
   }
 }
-
 
 void lsgl::render::CalculateMortonCodes60(uint64_t *codes, const float *points,
                                           const real3 &bmin, const real3 &bmax,

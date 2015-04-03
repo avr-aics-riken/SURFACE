@@ -84,12 +84,12 @@ bool SparseVolumeAccel::Sample(double value[4],
     double x = position[0] - block.offset[0];
     double y = position[1] - block.offset[1];
     double z = position[2] - block.offset[2];
-    int ix =
-        (std::max)((std::min)(block.offset[0] + block.extent[0] - 1, (int)x), 0);
-    int iy =
-        (std::max)((std::min)(block.offset[1] + block.extent[1] - 1, (int)y), 1);
-    int iz =
-        (std::max)((std::min)(block.offset[2] + block.extent[2] - 1, (int)z), 2);
+    int ix = (std::max)(
+        (std::min)(block.offset[0] + block.extent[0] - 1, (int)x), 0);
+    int iy = (std::max)(
+        (std::min)(block.offset[1] + block.extent[1] - 1, (int)y), 1);
+    int iz = (std::max)(
+        (std::min)(block.offset[2] + block.extent[2] - 1, (int)z), 2);
 
     if (sparseVolume_->format == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) { // uint8
       const unsigned char *voxel = block.data;

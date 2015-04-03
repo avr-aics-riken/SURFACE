@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -1936,9 +1937,9 @@ inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
 }
 
 static bool TestLeafNode(Intersection &isect, // [inout]
-                                     const TriangleNode &node,
-                                     const std::vector<unsigned int> &indices,
-                                     const Mesh *mesh, const Ray &ray) {
+                         const TriangleNode &node,
+                         const std::vector<unsigned int> &indices,
+                         const Mesh *mesh, const Ray &ray) {
 
   bool hit = false;
 

@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -83,7 +84,8 @@ public:
   double3 d; // direction
   double3 c; // cross
 
-  Pluecker(const double3 &v0, const double3 &v1) : d(v1 - v0), c(vcrossd(v1, v0)) {}
+  Pluecker(const double3 &v0, const double3 &v1)
+      : d(v1 - v0), c(vcrossd(v1, v0)) {}
 };
 
 // Inner product
@@ -120,11 +122,11 @@ void ComputeParametricDist(const double3 &orig, const double3 &dir,
   }
 }
 
-bool RayTetraPluecker(const double3 &orig, const double3 &dir, const double3 vert[],
-                      int &enterFace, int &leaveFace, double3 &enterPoint,
-                      double3 &leavePoint, double &uEnter1, double &uEnter2,
-                      double &uLeave1, double &uLeave2, double &tEnter,
-                      double &tLeave) {
+bool RayTetraPluecker(const double3 &orig, const double3 &dir,
+                      const double3 vert[], int &enterFace, int &leaveFace,
+                      double3 &enterPoint, double3 &leavePoint, double &uEnter1,
+                      double &uEnter2, double &uLeave1, double &uLeave2,
+                      double &tEnter, double &tLeave) {
   enterFace = -1;
   leaveFace = -1;
 
@@ -997,8 +999,8 @@ int GetSplitAxis(uint32_t key) {
   int clz = CountLeadingZeros32(key);
 
   int n = clz - 2;
-  //assert(n >= 0);
-  //assert(n < 30);
+  // assert(n >= 0);
+  // assert(n < 30);
 
   // 0 -> x, 1 -> y, 2 -> z, 3 -> x, ...
   return n % 3;
@@ -1049,7 +1051,7 @@ size_t BuildTreeRecursive32(std::vector<TetraNode> &nodes, real3 &bmin,
   // rootIndex, leftIndex, rightIndex, isLeaf, n);
 
   if (isLeaf || (n <= MAX_LEAF_ELEMENTS) || (depth > MAX_TREE_DEPTH_32BIT)) {
-    //printf("  makeLeaf: range (%d - %d)\n", leftIndex, rightIndex);
+    // printf("  makeLeaf: range (%d - %d)\n", leftIndex, rightIndex);
 
     uint32_t endIndex = rightIndex + 1;
     // if (leftIndex == rightIndex) { // this would be OK. 1 tri in 1 leaf case.
@@ -1142,7 +1144,7 @@ size_t BuildTreeRecursive32OMP(std::vector<TetraNode> &nodes, real3 &bmin,
 
   if (isLeaf || (n <= MAX_LEAF_ELEMENTS) || (depth > MAX_TREE_DEPTH_32BIT)) {
     // if (isLeaf || (n <= 0)) {
-    //printf("  makeLeaf: range (%d - %d)\n", leftIndex, rightIndex);
+    // printf("  makeLeaf: range (%d - %d)\n", leftIndex, rightIndex);
 
     uint32_t endIndex = rightIndex + 1;
 
@@ -1519,7 +1521,6 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       ComputeBoundingBox(bmin, bmax, tetras->vertices, tetras->faces,
                          &indices_.at(0), 0, n);
 #endif
-
     }
 
     t.end();
@@ -1537,7 +1538,7 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 
       if (tetras->isDoublePrecisionPos) {
         CalculateMortonCodesTetraDouble30(&codes.at(0), tetras->dvertices,
-                                         tetras->faces, bmin, bmax, 0, n);
+                                          tetras->faces, bmin, bmax, 0, n);
       } else {
         CalculateMortonCodesTetraFloat30(&codes.at(0), tetras->vertices,
                                          tetras->faces, bmin, bmax, 0, n);
@@ -1545,7 +1546,7 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       t.end();
       trace("[LSGL] [3:morton calculation] %d msec\n", (int)t.msec());
 
-      //for (size_t i = 0; i < n; i++) {
+      // for (size_t i = 0; i < n; i++) {
       //  printf("code[%d] = %d\n", i, codes[i]);
       //}
     }
@@ -1628,8 +1629,8 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       real3 leftBMin, leftBMax;
       real3 rightBMin, rightBMax;
 
-      //printf("root: midIndex = %d, range (%d, %d), flag = %d/%d\n", midIndex,
-      //0, n-1, isLeftLeaf, isRightLeaf);
+      // printf("root: midIndex = %d, range (%d, %d), flag = %d/%d\n", midIndex,
+      // 0, n-1, isLeftLeaf, isRightLeaf);
 
       size_t leftChildIndex = (size_t)(-1), rightChildIndex = (size_t)(-1);
 
@@ -1649,8 +1650,9 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 #pragma omp single
           {
             rightChildIndex = BuildTreeRecursive32OMP(
-                nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->dvertices,
-                tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+                nodes_, rightBMin, rightBMax, keys, nodeInfos,
+                tetras->dvertices, tetras->faces, midIndex + 1, midIndex + 1,
+                n - 1, isRightLeaf, 0);
           }
         }
 #pragma omp barrier
@@ -1670,11 +1672,11 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
           {
             rightChildIndex = BuildTreeRecursive32OMP(
                 nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->vertices,
-                tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+                tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf,
+                0);
           }
         }
 #pragma omp barrier
-
       }
 
       assert(leftChildIndex != (size_t)(-1));
@@ -1699,8 +1701,6 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
         rightChildIndex = BuildTreeRecursive32(
             nodes_, rightBMin, rightBMax, keys, nodeInfos, tetras->vertices,
             tetras->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
-
-
       }
 
       assert(leftChildIndex != (size_t)(-1));
@@ -1708,16 +1708,17 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
 
 #endif
 
-      //printf("  leftbmin = %f, %f, %f\n", leftBMin[0], leftBMin[1],
-      //leftBMin[2]);
-      //printf("  leftbmax = %f, %f, %f\n", leftBMax[0], leftBMax[1],
-      //leftBMax[2]);
-      //printf("  rightbmin = %f, %f, %f\n", rightBMin[0], rightBMin[1],
-      //rightBMin[2]);
-      //printf("  rightbmax = %f, %f, %f\n", rightBMax[0], rightBMax[1],
-      //rightBMax[2]);
-      //printf("  leftIndex = %d, rightIndex = %d\n", leftChildIndex, rightChildIndex);
-      //printf("  isLeaf = %d, %d\n", isLeftLeaf, isRightLeaf);
+      // printf("  leftbmin = %f, %f, %f\n", leftBMin[0], leftBMin[1],
+      // leftBMin[2]);
+      // printf("  leftbmax = %f, %f, %f\n", leftBMax[0], leftBMax[1],
+      // leftBMax[2]);
+      // printf("  rightbmin = %f, %f, %f\n", rightBMin[0], rightBMin[1],
+      // rightBMin[2]);
+      // printf("  rightbmax = %f, %f, %f\n", rightBMax[0], rightBMax[1],
+      // rightBMax[2]);
+      // printf("  leftIndex = %d, rightIndex = %d\n", leftChildIndex,
+      // rightChildIndex);
+      // printf("  isLeaf = %d, %d\n", isLeftLeaf, isRightLeaf);
 
       real3 rootBMin, rootBMax;
 
@@ -1748,8 +1749,10 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
       // printf("[%d] -> (%d, %d)\n", 0, leftChildIndex, rightChildIndex);
       trace("[LSGL] [6:Construct final AABB tree: %d msec\n", (int)t.msec());
 
-      trace("[LSGL]   bmin = %f, %f, %f\n", rootBMin[0], rootBMin[1], rootBMin[2]);
-      trace("[LSGL]   bmax = %f, %f, %f\n", rootBMax[0], rootBMax[1], rootBMax[2]);
+      trace("[LSGL]   bmin = %f, %f, %f\n", rootBMin[0], rootBMin[1],
+            rootBMin[2]);
+      trace("[LSGL]   bmax = %f, %f, %f\n", rootBMax[0], rootBMax[1],
+            rootBMax[2]);
     }
 
     {

@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -431,7 +432,7 @@ bool Shader::LoadShaderBinary(std::string &filename) {
     return false;
   }
 
-  //printf("[LSGL] load shader binary OK\n");
+  // printf("[LSGL] load shader binary OK\n");
 
   handle_ = reinterpret_cast<void *>(handle);
   filename_ = filename;
@@ -482,7 +483,7 @@ bool Shader::LoadShaderBinary(std::string &filename) {
     return false;
   }
 
-  //printf("[LSGL] load shader binary OK\n");
+  // printf("[LSGL] load shader binary OK\n");
 
   // Store handle & filename for later use.
   handle_ = handle;
@@ -636,7 +637,7 @@ bool FragmentShader::DoCompile() {
     return false;
   }
 
-  //printf("Write to file: %s\n", tempFilename.c_str());
+  // printf("Write to file: %s\n", tempFilename.c_str());
 
   fwrite(src, GetSource().size(), 1, fp);
   fclose(fp);
@@ -883,7 +884,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
                           ShadingState &shadingState,
                           const std::vector<VertexAttribute> &vertexAttributes,
                           const GLfloat fragCoord[4],
-                          const IntersectionState& isectState,
+                          const IntersectionState &isectState,
                           const CameraInfo &cameraInfo, int threadID) const {
   if (!method_.shaderEvalFunc) {
     return false;
@@ -1009,7 +1010,8 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       }
     } else {
       for (int k = 0; k < elems; k++) {
-        float f = LerpFloat(f0ptr[k], f1ptr[k], f2ptr[k], isectState.u, isectState.v);
+        float f =
+            LerpFloat(f0ptr[k], f1ptr[k], f2ptr[k], isectState.u, isectState.v);
         dst[k] = f; // store to varying storage
       }
     }
@@ -1054,7 +1056,8 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
 //
 Texture::Texture()
     : texture_(NULL), texture3D_(NULL), retained_(false),
-      sparseVolumeAccel_(NULL), sparseVolume_(NULL), isSparse_(false), minFiltering_(true), magFiltering_(true) {
+      sparseVolumeAccel_(NULL), sparseVolume_(NULL), isSparse_(false),
+      minFiltering_(true), magFiltering_(true) {
   doRemap_[0] = false;
   doRemap_[1] = false;
   doRemap_[2] = false;
@@ -1335,9 +1338,9 @@ void Texture::BuildSparseTexture() {
     dim[0] =
         (std::max)(dim[0], regionList_[i].offset[0] + regionList_[i].extent[0]);
     dim[1] =
-		(std::max)(dim[1], regionList_[i].offset[1] + regionList_[i].extent[1]);
+        (std::max)(dim[1], regionList_[i].offset[1] + regionList_[i].extent[1]);
     dim[2] =
-		(std::max)(dim[2], regionList_[i].offset[2] + regionList_[i].extent[2]);
+        (std::max)(dim[2], regionList_[i].offset[2] + regionList_[i].extent[2]);
   }
 
   sparseVolume_->globalDim[0] = dim[0];
