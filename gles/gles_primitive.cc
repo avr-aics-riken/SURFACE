@@ -144,7 +144,7 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
 
   unsigned char *accel = NULL;
   if (mode == GL_TRIANGLES) {
-    AccelBuilder::MeshAccelerator *meshAccel = accelBuilder_.BuildMeshAccel(
+    AccelBuilder::TriangleAccelerator *meshAccel = accelBuilder_.BuildTriangleAccel(
         elembuf, posbuf, isDoublePrecisionPos,
         &state_.vertexAttributes[k].at(0), state_.texture2D, count,
         (GLubyte *)indices - (GLubyte *)NULL);

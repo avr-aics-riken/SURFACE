@@ -219,8 +219,8 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
       // @todo { optimzie }
       switch (renderElement->GetPrimType()) {
       case AccelBuilder::PRIMITIVE_TRIANGLES: {
-        const AccelBuilder::MeshAccelerator *accel =
-            reinterpret_cast<const AccelBuilder::MeshAccelerator *>(
+        const AccelBuilder::TriangleAccelerator *accel =
+            reinterpret_cast<const AccelBuilder::TriangleAccelerator *>(
                 renderElement->GetAccel());
         if (accel) {
           hit = accel->Traverse(bottomIsect, localRay);
