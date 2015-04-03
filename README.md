@@ -23,7 +23,7 @@ An software implementation of high performance ray tracer with GLES2.0 compatibl
   * gcc 4.8 or later required for OpenMP build
 * [ ] Windows 7 x64
   * [ ] Visual Studio 2012
-  * [x] Visual Studio 2013
+  * [x] Visual Studio 2013 Win64 (Library build only)
 
 ### K cross compiling 
 
