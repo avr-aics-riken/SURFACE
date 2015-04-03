@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -34,7 +35,8 @@
 extern "C" {
 
 // Callback function from LSGL to user program
-typedef bool (*LSGLProgressCallback)(int progress, int y, int height, void* userdata);
+typedef bool (*LSGLProgressCallback)(int progress, int y, int height,
+                                     void *userdata);
 }
 
 namespace lsgl {
@@ -273,13 +275,9 @@ public:
                         GLsizei width, GLsizei height, GLsizei depth,
                         int compos, GLenum type, const GLvoid *data);
 
-  void SetMinFilter(bool filter) {
-    minFiltering_ = filter;
-  }
+  void SetMinFilter(bool filter) { minFiltering_ = filter; }
 
-  void SetMagFilter(bool filter) {
-    magFiltering_ = filter;
-  }
+  void SetMagFilter(bool filter) { magFiltering_ = filter; }
 
   void SetWrapS(GLenum mode) {
     if (mode == GL_REPEAT) {
@@ -287,7 +285,7 @@ public:
     } else if (mode == GL_CLAMP_TO_EDGE) {
       texture_->setWrapS(render::Texture2D::WRAP_CLAMP_TO_EDGE);
     } else {
-      // @todo 
+      // @todo
     }
   }
 
@@ -297,7 +295,7 @@ public:
     } else if (mode == GL_CLAMP_TO_EDGE) {
       texture_->setWrapT(render::Texture2D::WRAP_CLAMP_TO_EDGE);
     } else {
-      // @todo 
+      // @todo
     }
   }
 
@@ -307,13 +305,13 @@ public:
     } else if (mode == GL_CLAMP_TO_EDGE) {
       texture_->setWrapR(render::Texture2D::WRAP_CLAMP_TO_EDGE);
     } else {
-      // @todo 
+      // @todo
     }
   }
 
-
   inline void Fetch(float *rgba, float u, float v) const {
-    if (!texture_) return;
+    if (!texture_)
+      return;
     texture_->fetch(rgba, u, v, minFiltering_, magFiltering_);
   }
 
@@ -346,7 +344,8 @@ public:
 
     } else {
 
-      if (!texture3D_) return;
+      if (!texture3D_)
+        return;
 
       float uu = u;
       float vv = v;
@@ -609,10 +608,10 @@ struct IntersectionState {
   real3 tangent;
   real3 binormal;
   real3 raydir;
-  int   raydepth;
+  int raydepth;
   float px;
   float py;
-  int   doubleSided;
+  int doubleSided;
   float rayattrib;
   const unsigned char *prev_node;
   unsigned int prev_prim_id;
@@ -724,8 +723,7 @@ public:
   bool Eval(GLfloat fragColor[4], FragmentState &fragmentState,
             ShadingState &shadingState,
             const std::vector<VertexAttribute> &vertexAttributes,
-            const GLfloat fragCoord[4],
-            const IntersectionState& isectState,
+            const GLfloat fragCoord[4], const IntersectionState &isectState,
             const CameraInfo &cameraInfo, int threadID) const;
 
 private:

@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -292,7 +293,14 @@ RaytraceEngine::RaytraceEngine()
   SetCamera(eye, target, up, fov);
 }
 
-RaytraceEngine::~RaytraceEngine() { sRaytraceEngine = NULL; }
+RaytraceEngine::~RaytraceEngine() {
+
+  if (camera_) {
+    delete camera_;
+  }
+
+  sRaytraceEngine = NULL;
+}
 
 void RaytraceEngine::SetCamera(const GLfloat *eye, const GLfloat *target,
                                const GLfloat *up, GLfloat fov) {
@@ -648,7 +656,8 @@ bool RaytraceEngine::OnData() {
         if (progress % showCountTick == 0) {
           if (progressCallbackFunc_) {
             bool ok = progressCallbackFunc_(
-                (int)(100.0 * progress / (double)numLines), y, height, callbackUserData_);
+                (int)(100.0 * progress / (double)numLines), y, height,
+                callbackUserData_);
 
             if (!ok) {
 #pragma omp critical
@@ -662,8 +671,9 @@ bool RaytraceEngine::OnData() {
 #else
       if (progress % showCountTick == 0) {
         if (progressCallbackFunc_) {
-          bool ok = progressCallbackFunc_(
-              (int)(100.0 * progress / (double)numLines), y, height, callbackUserData_);
+          bool ok =
+              progressCallbackFunc_((int)(100.0 * progress / (double)numLines),
+                                    y, height, callbackUserData_);
           if (!ok) {
             canceled = true;
           }

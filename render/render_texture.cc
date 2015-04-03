@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -256,7 +257,8 @@ inline void FilterDouble(float *rgba, const double *image, int i00, int i10,
 
 } // namespace
 
-void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool magFiltering) const {
+void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering,
+                      bool magFiltering) const {
   // @todo { Support wrap mode. }
 
   float sx = fasterfloorf(u);
@@ -287,7 +289,7 @@ void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool mag
 
     if (m_format == FORMAT_BYTE) {
       const unsigned char *image = m_image;
-      for (int i = 0; i < stride; i++) { 
+      for (int i = 0; i < stride; i++) {
         rgba[i] = image[i00 + i] / 255.0f;
       }
 
@@ -301,7 +303,7 @@ void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool mag
       }
     } else if (m_format == FORMAT_FLOAT32) {
       const float *image = reinterpret_cast<const float *>(m_image);
-      for (int i = 0; i < stride; i++) { 
+      for (int i = 0; i < stride; i++) {
         rgba[i] = image[i00 + i];
       }
 
@@ -316,7 +318,7 @@ void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool mag
 
     } else if (m_format == FORMAT_FLOAT64) {
       const double *image = reinterpret_cast<const double *>(m_image);
-      for (int i = 0; i < stride; i++) { 
+      for (int i = 0; i < stride; i++) {
         rgba[i] = image[i00 + i];
       }
 
@@ -363,8 +365,8 @@ void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering, bool mag
       FilterFloat(rgba, reinterpret_cast<const float *>(m_image), i00, i10, i01,
                   i11, w, stride);
     } else if (m_format == FORMAT_FLOAT64) {
-      FilterDouble(rgba, reinterpret_cast<const double *>(m_image), i00, i10, i01,
-                   i11, w, stride);
+      FilterDouble(rgba, reinterpret_cast<const double *>(m_image), i00, i10,
+                   i01, i11, w, stride);
     } else { // unknown
     }
   }

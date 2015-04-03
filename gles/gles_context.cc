@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -128,7 +129,8 @@ void Context::glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
   state_.viewportHeight = height;
 }
 
-void Context::lsglSetProgressCallback(LSGLProgressCallback func, void* userdata) {
+void Context::lsglSetProgressCallback(LSGLProgressCallback func,
+                                      void *userdata) {
   engine_.SetProgressCallback(func, userdata);
 }
 
@@ -230,9 +232,9 @@ void Context::lsglEvalFragmentShader() {
       isectState.u = 0.0f;
       isectState.v = 0.0f;
 
-      program->GetFragmentShader(0)->Eval(
-          fragcol, fragmentState, shadingState, vertexAttributes, fragCoord,
-          isectState, cameraInfo, thread_id);
+      program->GetFragmentShader(0)->Eval(fragcol, fragmentState, shadingState,
+                                          vertexAttributes, fragCoord,
+                                          isectState, cameraInfo, thread_id);
 
       image[4 * ((height - y - 1) * width + x) + 0] = fclamp(fragcol[0]);
       image[4 * ((height - y - 1) * width + x) + 1] = fclamp(fragcol[1]);
@@ -274,9 +276,9 @@ void Context::lsglEvalSingleFragmentShader() {
   isectState.rayattrib = 0.0f;
   isectState.doubleSided = 1;
 
-  program->GetFragmentShader(0)
-      ->Eval(fragcol, fragmentState, shadingState, vertexAttributes, fragCoord,
-             isectState, cameraInfo, thread_id);
+  program->GetFragmentShader(0)->Eval(fragcol, fragmentState, shadingState,
+                                      vertexAttributes, fragCoord, isectState,
+                                      cameraInfo, thread_id);
 }
 
 Framebuffer *Context::GetCurrentFrameBuffer() {

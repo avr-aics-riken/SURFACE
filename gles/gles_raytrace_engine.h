@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -79,7 +80,7 @@ public:
 
   int GetPixelStep() const { return pixelStep_; }
 
-  void SetProgressCallback(LSGLProgressCallback func, void* userdata) {
+  void SetProgressCallback(LSGLProgressCallback func, void *userdata) {
     progressCallbackFunc_ = func;
     callbackUserData_ = userdata;
   }
@@ -100,7 +101,7 @@ private:
 
   int pixelStep_;
   LSGLProgressCallback progressCallbackFunc_;
-  void* callbackUserData_;
+  void *callbackUserData_;
 };
 
 } // namespace

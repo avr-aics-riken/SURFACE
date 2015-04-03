@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -3006,7 +3007,6 @@ void BuildIntersection(Intersection &isect, const Particles *particles,
       isect.binormal[2] = 0.0;
     }
   }
-  
 
 #endif
 

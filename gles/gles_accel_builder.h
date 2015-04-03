@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -32,7 +33,7 @@ public:
   typedef ParticleAccel ParticleAccelerator;
   typedef LineAccel LineAccelerator;
   typedef TetraAccel TetraAccelerator;
-  typedef TriangleAccel MeshAccelerator;
+  typedef TriangleAccel TriangleAccelerator;
 
   typedef enum {
     PRIMITIVE_INVALID,
@@ -49,9 +50,12 @@ public:
     }
   };
 
-  struct MeshData {
-    // @toto { varying }
-    Mesh mesh;
+  struct PrimData {
+    Mesh mesh;           // for triangle data
+    Lines *lines;        // for line data
+    Particles *points;   // for point data
+    Tetrahedron *tetras; // for tetra data
+
     DataBuffer<GLuint> indexBuffer;
     DataBuffer<GLfloat> positionBuffer;
     DataBuffer<double> dpositionBuffer;
@@ -59,9 +63,11 @@ public:
     unsigned char *accel;
     PrimitiveType type;
 
-    inline MeshData() : accel(NULL), type(PRIMITIVE_INVALID) {}
+    inline PrimData()
+        : accel(NULL), type(PRIMITIVE_INVALID), lines(NULL), points(NULL),
+          tetras(NULL) {}
 
-    inline ~MeshData() {
+    inline ~PrimData() {
       // clear pointers inside mesh structure so it doesn't try to free our
       // internal data buffers in it's destructor
       mesh.faces = NULL;
@@ -70,7 +76,7 @@ public:
 
       assert(type != PRIMITIVE_INVALID);
 
-      // For some reason, accel shold be already deleted in FreeMesh(), not
+      // For some reason, accel shold be already deleted in FreePrim(), not
       // here.
     }
 
@@ -84,11 +90,11 @@ public:
   AccelBuilder(GLuint maxCacheSize = (8192 * 1024));
   ~AccelBuilder();
 
-  MeshAccelerator *BuildMeshAccel(const Buffer *elembuf, const Buffer *arraybuf,
-                                  bool isDoublePrecisionPos,
-                                  const VertexAttribute *vertexAttributes,
-                                  const GLuint *texture2D, GLsizei count,
-                                  GLuint offset);
+  TriangleAccelerator *
+  BuildTriangleAccel(const Buffer *elembuf, const Buffer *arraybuf,
+                     bool isDoublePrecisionPos,
+                     const VertexAttribute *vertexAttributes,
+                     const GLuint *texture2D, GLsizei count, GLuint offset);
 
   ParticleAccelerator *BuildParticleAccel(
       const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
@@ -106,9 +112,9 @@ public:
                                     bool isDoublePrecisionPos,
                                     const VertexAttribute *vertexAttributes,
                                     GLsizei count, GLuint offset);
-  static bool AddMeshData(MeshData *md, MeshAccelerator *accel);
-  static bool AddParticleData(MeshData *md, ParticleAccelerator *accel);
-  static bool AddTetraData(MeshData *md, TetraAccelerator *accel);
+  static bool AddTriangleData(PrimData *md, TriangleAccelerator *accel);
+  static bool AddParticleData(PrimData *md, ParticleAccelerator *accel);
+  static bool AddTetraData(PrimData *md, TetraAccelerator *accel);
   void Invalidate(const Buffer *buf);
   void EndFrame();
 
@@ -119,7 +125,7 @@ public:
     return ((float)GetCacheUsed() / (float)GetCacheSize()) * 100.0f;
   }
 
-  static clock_t GetBuiltTime(MeshAccelerator *accel);
+  static clock_t GetBuiltTime(TriangleAccelerator *accel);
 
 private:
   struct CacheEntry {
@@ -132,7 +138,7 @@ private:
     GLuint hitCount;
     clock_t builtTime;
     bool dynamic;
-    MeshData meshData;
+    PrimData primData;
   };
 
 private:
@@ -147,21 +153,21 @@ private:
   //                       const Buffer *src, GLuint count, GLuint offset = 0,
   //                       GLuint adjust = 0, T *maxValue = NULL);
 
-  static void AddMeshData(MeshData *md, const Buffer *elembuf,
-                          const Buffer *arraybuf, bool isDoublePrecisionPos,
-                          const ArrayBufInfo *abinfo, GLsizei count,
-                          GLuint offset);
-  static void AddParticleData(MeshData *md, const Buffer *elembuf,
+  static void AddTriangleData(PrimData *md, const Buffer *elembuf,
+                              const Buffer *arraybuf, bool isDoublePrecisionPos,
+                              const ArrayBufInfo *abinfo, GLsizei count,
+                              GLuint offset);
+  static void AddParticleData(PrimData *md, const Buffer *elembuf,
                               const Buffer *arraybuf, bool isDoublePrecisionPos,
                               const ArrayBufInfo *abinfo, GLsizei count,
                               GLuint offset, GLfloat constantWidth,
                               const GLfloat *widthBuf, GLsizei widthBufLen);
-  static void AddLineData(MeshData *md, const Buffer *elembuf,
+  static void AddLineData(PrimData *md, const Buffer *elembuf,
                           const Buffer *arraybuf, const ArrayBufInfo *abinfo,
                           GLsizei count, GLuint offset, GLfloat constantWidth,
                           const GLfloat *widthBuf, GLsizei widthBufLen,
                           bool cap);
-  static void AddTetraData(MeshData *md, const Buffer *elembuf,
+  static void AddTetraData(PrimData *md, const Buffer *elembuf,
                            const Buffer *arraybuf, bool isDoublePrecisionPos,
                            const ArrayBufInfo *abinfo, GLsizei count,
                            GLuint offset);
@@ -170,12 +176,12 @@ private:
   unsigned char *Locate(const Buffer *elembuf, const Buffer *arraybuf,
                         const ArrayBufInfo *abinfo, GLsizei count,
                         GLuint offset) const;
-  void FreeMesh(CacheEntry *ce);
+  void FreePrim(CacheEntry *ce);
 
   std::vector<CacheEntry *> staticList_, dynamicList_;
 
-  typedef std::map<unsigned char *, CacheEntry *> MeshDataMap;
-  static MeshDataMap meshDataMap_;
+  typedef std::map<unsigned char *, CacheEntry *> PrimDataMap;
+  static PrimDataMap primDataMap_;
 
   GLuint maxCacheSize_;
   GLuint cacheSizeUsed_;

@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -602,14 +603,14 @@ void CalculateMortonCodesTriangleFloat30(uint32_t *codes, const float *vertices,
                                          int64_t startIdx, int64_t endIdx);
 
 void CalculateMortonCodesTetraFloat30(uint32_t *codes, const float *vertices,
-                                         const uint32_t *faces,
-                                         const real3 &bmin, const real3 &bmax,
-                                         int64_t startIdx, int64_t endIdx);
+                                      const uint32_t *faces, const real3 &bmin,
+                                      const real3 &bmax, int64_t startIdx,
+                                      int64_t endIdx);
 
 void CalculateMortonCodesTetraDouble30(uint32_t *codes, const double *vertices,
-                                       const uint32_t *faces,
-                                       const real3 &bmin, const real3 &bmax,
-                                       int64_t startIdx, int64_t endIdx);
+                                       const uint32_t *faces, const real3 &bmin,
+                                       const real3 &bmax, int64_t startIdx,
+                                       int64_t endIdx);
 
 void CalculateMortonCodes60(uint64_t *codes, const float *points,
                             const real3 &bmin, const real3 &bmax,

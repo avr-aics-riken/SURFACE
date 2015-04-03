@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -107,8 +108,8 @@ inline void GetBoundingBoxOfLine(real3 &bmin, real3 &bmax, const Lines *lines,
 
   // add epsilon
   for (int j = 0; j < 3; j++) {
-    bmin[j] -= bmin[j]*kEPS;
-    bmax[j] += bmax[j]*kEPS;
+    bmin[j] -= bmin[j] * kEPS;
+    bmax[j] += bmax[j] * kEPS;
   }
 }
 

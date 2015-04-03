@@ -1,7 +1,8 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science, RIKEN.
+ * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ *RIKEN.
  * All rights reserved.
  *
  */
@@ -31,9 +32,9 @@ typedef struct {
   const float *positions;   /// float precision. [xyz] * numLines * 2
   const double *dpositions; /// double precision. [xyz] * numLines * 2.
   bool isDoublePrecisionPos;
-  const real *radius;       /// particle radius
-  real constantRadius;      /// Valid if radius == NULL
-  uint32_t *segments;       /// Line segments(2 * numLines)
+  const real *radius;  /// particle radius
+  real constantRadius; /// Valid if radius == NULL
+  uint32_t *segments;  /// Line segments(2 * numLines)
 } Lines;
 
 } // namespace render
