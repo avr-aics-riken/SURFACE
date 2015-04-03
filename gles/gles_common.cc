@@ -667,6 +667,11 @@ bool FragmentShader::DoCompile() {
   char cmd[4096];
   sprintf(cmd, "%s -o %s %s", glslc, outputFilename, tempFilename.c_str());
   printf("[LSGL] cmd: %s\n", cmd);
+
+
+  // See popen(3) manual for details why calling fflush(NULL) here
+  fflush(NULL);
+
 #if defined(_WIN32)
   FILE *pfp = _popen(cmd, "r");
 #else
