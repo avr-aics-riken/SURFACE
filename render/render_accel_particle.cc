@@ -53,7 +53,7 @@ using namespace lsgl::render;
   (22) // FYI, log2(1G/16) ~= 25.897, log2(1G/32) ~= 21
 
 #define USE_BLOB (0)
-#define ENABLE_SIMD_ISECTOR (1)
+#define ENABLE_SIMD_ISECTOR (0) // Disabled for a while. @todo { Implement self-intersection check in SIMD path }
 
 #define ENABLE_TRACE_PRINT (0)
 #define ENABLE_DEBUG_PRINT (0)
@@ -2421,7 +2421,7 @@ inline void SphereIsectD2(double2 &vtInOut,
 
 // http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
 inline bool SphereIsect(real &tInOut, const real *v, real radius,
-                        const real3 &rayOrg, const real3 &rayDir) {
+                        const real3 &rayOrg, const real3 &rayDir, double prevT, const real3& prevN, bool selfIntersection = false) {
   const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
 
   real3 center(v[0], v[1], v[2]);
@@ -2433,21 +2433,25 @@ inline bool SphereIsect(real &tInOut, const real *v, real radius,
 
   real disc = b * b - 4.0 * a * c;
 
-  if (disc < 0) { // no roots
+  real t0, t1;
+
+  if (disc < 0.0) { // no roots
     return false;
+  } else if (disc == 0.0) {
+    t0 = t1 = -0.5 * (b / a);
+  } else {
+    // compute q as described above
+    real distSqrt = sqrt(disc);
+    real q;
+    if (b < 0)
+      q = (-b - distSqrt) / 2.0;
+    else
+      q = (-b + distSqrt) / 2.0;
+
+    // compute t0 and t1
+    t0 = q / a;
+    t1 = c / q;
   }
-
-  // compute q as described above
-  real distSqrt = sqrt(disc);
-  real q;
-  if (b < 0)
-    q = (-b - distSqrt) / 2.0;
-  else
-    q = (-b + distSqrt) / 2.0;
-
-  // compute t0 and t1
-  real t0 = q / a;
-  real t1 = c / q;
 
   // make sure t0 is smaller than t1
   if (t0 > t1) {
@@ -2463,20 +2467,44 @@ inline bool SphereIsect(real &tInOut, const real *v, real radius,
     return false;
   }
 
-  // if t0 is less than zero, the intersection point is at t1
-  if (t0 < 0) {
+  if (selfIntersection) {
+
+    // self-intersection check.
+    //if (numIsects < 2) {
+      // Probably we already visited the same intersection point.
+      //return false;
+    //}
+
+    // choose far hit.
     real t = t1;
-    if (t < tInOut) {
+    //if (tInOut < 0.0) {
+    //printf("t0 = %f, t1 = %f, tInout = %f\n", t0, t1, tInOut);
+    //}
+    // normal check
+    real3 normal = (rayOrg + t * rayDir) - center; // unnormalized
+    if ((t < tInOut) && (t < prevT) && (vdot(normal, prevN) <= 0.0)) {
+      //printf("update: t = %f\n", t);
       tInOut = t;
       return true;
     }
-  }
-  // else the intersection point is at t0
-  else {
-    real t = t0;
-    if (t < tInOut) {
-      tInOut = t;
-      return true;
+
+  } else {
+
+    // if t0 is less than zero, the intersection point is at t1
+    if (t0 < 0) {
+      real t = t1;
+      if (t < tInOut) {
+        tInOut = t;
+        return true;
+      }
+    }
+    // else the intersection point is at t0
+    else {
+      real t = t0;
+      if (t < tInOut) {
+        tInOut = t;
+        return true;
+      }
     }
   }
 
@@ -2561,6 +2589,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
       // double has enough precision to store integer(53bit)
       double2 tid = _mm_set_pd(i + 2 * k + 0, i + 2 * k + 1);
 
+      // @todo {self-intersection test}
       SphereIsectD2(tInOut[k], tidInOut[k], tid, vx, vy, vz, vr, rox, roy, roz,
                     rdx, rdy, rdz, va);
 
@@ -2684,6 +2713,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
       // double has enough precision to store integer(53bit)
       double2 tid = _mm_set_pd(i + 2 * k + 0, i + 2 * k + 1);
 
+      // @todo {self-intersection test}
       SphereIsectD2(tInOut[k], tidInOut[k], tid, vx, vy, vz, vr, rox, roy, roz,
                     rdx, rdy, rdz, va);
 
@@ -2741,7 +2771,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
       const real *p = &particles->positions[3 * partIdx];
       real radius = GetRadius(particles, partIdx);
 
-      if (SphereIsect(t, p, radius, rayorg, raydir)) {
+      if (SphereIsect(t, p, radius, rayorg, raydir, ray.prev_hit_t, ray.prev_hit_normal, (ray.prev_prim_id == partIdx))) {
         // Update isect state
         isect.t = t;
 
@@ -2763,7 +2793,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
     const real *p = &particles->positions[3 * partIdx];
     real radius = GetRadius(particles, partIdx);
 
-    if (SphereIsect(t, p, radius, rayorg, raydir)) {
+    if (SphereIsect(t, p, radius, rayorg, raydir, ray.prev_hit_t, ray.prev_hit_normal, (ray.prev_prim_id == partIdx))) {
       // Update isect state
       isect.t = t;
 
@@ -2784,7 +2814,11 @@ bool TestLeafNode(Intersection &isect, // [inout]
     const real *p = &particles->positions[3 * partIdx];
     real radius = GetRadius(particles, partIdx);
 
-    if (SphereIsect(t, p, radius, rayorg, raydir)) {
+    //if (ray.prev_prim_id != (unsigned int)(-1)) {
+    //  printf("ray.prev_prim_id = %d\n", ray.prev_prim_id);
+    //}
+
+    if (SphereIsect(t, p, radius, rayorg, raydir, ray.prev_hit_t, ray.prev_hit_normal, (ray.prev_prim_id == partIdx))) {
       // Update isect state
       isect.t = t;
 

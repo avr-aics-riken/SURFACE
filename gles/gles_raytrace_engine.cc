@@ -462,6 +462,8 @@ void RaytraceEngine::ShadeFragment(float shadecol[4], bool &discarded /* out */,
     isectState.rayattrib = ray.user_attrib;
     isectState.prev_node = isect.renderElement;
     isectState.prev_prim_id = isect.prim_id;
+    isectState.prev_hit_t = isect.t;
+    isectState.prev_hit_normal = isect.normal;
     isectState.u = isect.u;
     isectState.v = isect.v;
     isectState.f0 = isect.f0;

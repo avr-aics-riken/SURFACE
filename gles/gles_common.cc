@@ -958,6 +958,10 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
   frag.rayattrib = isectState.rayattrib;
   frag.prev_node = isectState.prev_node;
   frag.prev_prim_id = isectState.prev_prim_id;
+  frag.prev_hit_t = isectState.prev_hit_t;
+  frag.prev_hit_normal[0] = isectState.prev_hit_normal[0];
+  frag.prev_hit_normal[1] = isectState.prev_hit_normal[1];
+  frag.prev_hit_normal[2] = isectState.prev_hit_normal[2];
   frag.threadID = threadID;
 
   frag.cameraFrame[0][0] = cameraInfo.frame[0][0];

@@ -215,6 +215,8 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
            reinterpret_cast<const unsigned char *>(renderElement))) {
         localRay.prev_node = ray.prev_node;
         localRay.prev_prim_id = ray.prev_prim_id;
+        localRay.prev_hit_t = ray.prev_hit_t;
+        localRay.prev_hit_normal = ray.prev_hit_normal;
       }
 
       // @todo { optimzie }
