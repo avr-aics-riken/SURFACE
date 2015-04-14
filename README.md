@@ -9,6 +9,7 @@ An software implementation of high performance ray tracer with GLES2.0 compatibl
 * CMake 2.8 or later
 * OpenMP-supported compiler(optional)
 * MPI compiler(optional)
+* MinGW gcc(for Windows only)
 
 ## Building with CMake
 
@@ -22,7 +23,6 @@ An software implementation of high performance ray tracer with GLES2.0 compatibl
 * [x] MacOSX 10.8 or later
   * gcc 4.8 or later required for OpenMP build
 * [ ] Windows 7 x64
-  * [ ] Visual Studio 2012
   * [x] Visual Studio 2013 Win64 (Library build only)
 
 ### K cross compiling 
