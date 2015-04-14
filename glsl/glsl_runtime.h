@@ -173,6 +173,8 @@ typedef struct
     int   doubleSided;
     unsigned int prev_prim_id;
     const unsigned char* prev_node; 
+    float prev_hit_t; 
+    float prev_hit_normal[3];
   
     float rayattrib;                    // User ray attribute
 

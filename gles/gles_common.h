@@ -615,6 +615,8 @@ struct IntersectionState {
   float rayattrib;
   const unsigned char *prev_node;
   unsigned int prev_prim_id;
+  double prev_hit_t;
+  real3 prev_hit_normal;
   float u;
   float v;
   unsigned int f0;

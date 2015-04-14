@@ -44,28 +44,8 @@ inline float sse_fastinv(float x) { return 1.0f / x; }
 
 class Ray;
 
-typedef int32_t Ray_id_t;
-inline Ray_id_t get_Ray_id(const real3 &org, const real3 &dir) {
-  return 0; // @todo
-}
-
 class Ray {
 public:
-  inline static int get_phase(const real3 &dir) {
-    int phase = 0;
-    if (dir[0] < 0)
-      phase |= 1;
-    if (dir[1] < 0)
-      phase |= 2;
-    if (dir[2] < 0)
-      phase |= 4;
-    return phase;
-  }
-
-  inline static Ray_id_t get_Ray_data(const real3 &org, const real3 &dir) {
-    Ray_id_t n = get_Ray_id(org, dir) | get_phase(dir);
-    return n;
-  }
 
   inline static float safe_invert(float x) {
 #if 0 // This will produce some black pixels in the rendered image.
@@ -103,37 +83,35 @@ public:
     dir_[2] = dir[2];
 
     idir_ = safe_invert3(dir_);
-    data_ = get_Ray_data(org_, dir_);
 
     double_sided = 1; // default: Do double-sided intersection
 
     prev_prim_id = (unsigned int)(-1);
+    prev_hit_t = 0.0;
+    prev_hit_normal[0] = 0.0;
+    prev_hit_normal[1] = 0.0;
+    prev_hit_normal[2] = 0.0;
     prev_node = NULL;
   }
 
   Ray(const Ray &rhs)
-      : org_(rhs.org_), dir_(rhs.dir_), idir_(rhs.idir_), data_(rhs.data_),
+      : org_(rhs.org_), dir_(rhs.dir_), idir_(rhs.idir_),
         double_sided(rhs.double_sided), prev_prim_id(rhs.prev_prim_id),
-        prev_node(rhs.prev_node) {}
+        prev_node(rhs.prev_node), prev_hit_t(rhs.prev_hit_t), prev_hit_normal(rhs.prev_hit_normal) {
+  }
 
-  // Ray(const Ray &rhs, float progress)
-  //    : org_(rhs.org_ + rhs.dir_ * progress), dir_(rhs.dir_), idir_(rhs.idir_)
-  // {
-  //  data_ = get_Ray_id(org_, dir_) | rhs.phase();
-  //}
   Ray(const real3 &org, const real3 &dir)
       : org_(org), dir_(dir), idir_(safe_invert3(dir)),
-        data_(get_Ray_data(org, dir)), double_sided(1),
-        prev_prim_id((unsigned int)(-1)), prev_node(NULL) {}
+        double_sided(1),
+        prev_prim_id((unsigned int)(-1)), prev_node(NULL), prev_hit_t(0.0) {}
   Ray(const real3 &org, const real3 &dir, const real3 &idir)
-      : org_(org), dir_(dir), idir_(idir), data_(get_Ray_data(org, dir)),
-        double_sided(1), prev_prim_id((unsigned int)(-1)), prev_node(NULL) {}
+      : org_(org), dir_(dir), idir_(idir),
+        double_sided(1), prev_prim_id((unsigned int)(-1)), prev_node(NULL), prev_hit_t(0.0) {}
 
   Ray &operator=(const Ray &rhs) {
     org_ = rhs.org_;
     dir_ = rhs.dir_;
     idir_ = rhs.idir_;
-    data_ = rhs.data_;
     double_sided = rhs.double_sided;
     return *this;
   }
@@ -146,10 +124,6 @@ public:
 
   // real3& inversed_direction()           {return idir_;}
   const real3 &inversed_direction() const { return idir_; }
-
-  Ray_id_t phase() const { return data_ & 0x7; }
-  Ray_id_t id() const { return data_; }
-  Ray_id_t data() const { return data_; }
 
   // Pixel position
   float px;
@@ -167,12 +141,13 @@ public:
   // Variables to avoid self-intersection.
   unsigned int prev_prim_id;
   const unsigned char *prev_node;
+  real3 prev_hit_normal;
+  double prev_hit_t;
 
 protected:
   real3 org_;
   real3 dir_;
   real3 idir_;
-  Ray_id_t data_;
 };
 
 } // namespace render

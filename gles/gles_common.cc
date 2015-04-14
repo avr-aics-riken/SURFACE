@@ -667,6 +667,11 @@ bool FragmentShader::DoCompile() {
   char cmd[4096];
   sprintf(cmd, "%s -o %s %s", glslc, outputFilename, tempFilename.c_str());
   printf("[LSGL] cmd: %s\n", cmd);
+
+
+  // See popen(3) manual for details why calling fflush(NULL) here
+  fflush(NULL);
+
 #if defined(_WIN32)
   FILE *pfp = _popen(cmd, "r");
 #else
@@ -953,6 +958,10 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
   frag.rayattrib = isectState.rayattrib;
   frag.prev_node = isectState.prev_node;
   frag.prev_prim_id = isectState.prev_prim_id;
+  frag.prev_hit_t = isectState.prev_hit_t;
+  frag.prev_hit_normal[0] = isectState.prev_hit_normal[0];
+  frag.prev_hit_normal[1] = isectState.prev_hit_normal[1];
+  frag.prev_hit_normal[2] = isectState.prev_hit_normal[2];
   frag.threadID = threadID;
 
   frag.cameraFrame[0][0] = cameraInfo.frame[0][0];
