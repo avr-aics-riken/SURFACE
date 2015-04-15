@@ -1064,7 +1064,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
 // Texture(X)
 //
 Texture::Texture()
-    : texture_(NULL), texture3D_(NULL), retained_(false),
+    : texture2D_(NULL), texture3D_(NULL), retained_(false),
       sparseVolumeAccel_(NULL), sparseVolume_(NULL), isSparse_(false),
       minFiltering_(true), magFiltering_(true) {
   doRemap_[0] = false;
@@ -1104,7 +1104,7 @@ void Texture::Data2D(const void *data, GLuint width, GLuint height, int compos,
   }
 
   // create a new texture object
-  texture_ = new render::Texture2D(&data_[0], width, height, compos, format);
+  texture2D_ = new render::Texture2D(&data_[0], width, height, compos, format);
   texture3D_ = NULL;
 }
 
@@ -1138,7 +1138,7 @@ void Texture::Data3D(const void *data, GLuint width, GLuint height,
   }
 
   // create a new texture object
-  texture_ = NULL;
+  texture2D_ = NULL;
   texture3D_ = (Texture3D *)malloc(sizeof(Texture3D));
   assert(texture3D_);
 
@@ -1148,6 +1148,9 @@ void Texture::Data3D(const void *data, GLuint width, GLuint height,
   texture3D_->depth = depth;
   texture3D_->components = compos;
   texture3D_->data_type = data_type;
+  texture3D_->wrapS = LSGL_RENDER_TEXTURE3D_WRAP_REPEAT;
+  texture3D_->wrapT = LSGL_RENDER_TEXTURE3D_WRAP_REPEAT;
+  texture3D_->wrapR = LSGL_RENDER_TEXTURE3D_WRAP_REPEAT;
 }
 
 void Texture::Retain3D(const void *data, GLuint width, GLuint height,
@@ -1172,7 +1175,7 @@ void Texture::Retain3D(const void *data, GLuint width, GLuint height,
 
   // create a new texture object. Texture data is sent to internal object
   // directly(zero-copy).
-  texture_ = NULL;
+  texture2D_ = NULL;
   texture3D_ = (Texture3D *)malloc(sizeof(Texture3D));
   assert(texture3D_);
 
@@ -1183,14 +1186,17 @@ void Texture::Retain3D(const void *data, GLuint width, GLuint height,
   texture3D_->depth = depth;
   texture3D_->components = compos;
   texture3D_->data_type = data_type;
+  texture3D_->wrapS = LSGL_RENDER_TEXTURE3D_WRAP_REPEAT;
+  texture3D_->wrapT = LSGL_RENDER_TEXTURE3D_WRAP_REPEAT;
+  texture3D_->wrapR = LSGL_RENDER_TEXTURE3D_WRAP_REPEAT;
   retained_ = true;
 }
 
 void Texture::Free() {
 
   // release the texture object
-  delete texture_;
-  texture_ = NULL;
+  delete texture2D_;
+  texture2D_ = NULL;
 
   delete texture3D_;
   texture3D_ = NULL;

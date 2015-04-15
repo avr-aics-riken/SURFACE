@@ -829,7 +829,7 @@ void Texture3D::fetch(float *rgba, float u, float v, float r) const {
 #endif
 
 void FilterTexture3DByte(float *rgba, const Texture3D *tex, float u, float v,
-                         float r) {
+                         float r, bool clampToEdgeS, bool clampToEdgeT, bool clampToEdgeR) {
 
   rgba[0] = rgba[1] = rgba[2] = rgba[3] = 0.0f;
 
@@ -844,10 +844,25 @@ void FilterTexture3DByte(float *rgba, const Texture3D *tex, float u, float v,
   }
 #endif
 
-  // @fixme { REPEAT only }
-  float u01 = u - fasterfloorf(u);
-  float v01 = v - fasterfloorf(v);
-  float r01 = r - fasterfloorf(r);
+  // @todo { Support more wrapping mode }
+  float uu, vv, rr;
+  if (clampToEdgeS) {
+    uu = u;
+  } else {
+    uu = u - fasterfloorf(u);
+  }
+
+  if (clampToEdgeT) {
+    vv = v;
+  } else {
+    vv = v - fasterfloorf(v);
+  }
+
+  if (clampToEdgeR) {
+    rr = r;
+  } else {
+    rr = r - fasterfloorf(r);
+  }
 
   int dim[3];
   dim[0] = tex->width;
@@ -858,9 +873,9 @@ void FilterTexture3DByte(float *rgba, const Texture3D *tex, float u, float v,
   // vox[0] = u01 * dim[0] - .5f;
   // vox[1] = v01 * dim[1] - .5f;
   // vox[2] = r01 * dim[2] - .5f;
-  vox[0] = u01 * (dim[0] - 1.0f);
-  vox[1] = v01 * (dim[1] - 1.0f);
-  vox[2] = r01 * (dim[2] - 1.0f);
+  vox[0] = uu * (dim[0] - 1.0f);
+  vox[1] = vv * (dim[1] - 1.0f);
+  vox[2] = rr * (dim[2] - 1.0f);
 
   const unsigned char *density = reinterpret_cast<unsigned char *>(tex->image);
 
@@ -928,7 +943,7 @@ void FilterTexture3DByte(float *rgba, const Texture3D *tex, float u, float v,
 }
 
 void FilterTexture3DFloat(float *rgba, const Texture3D *tex, float u, float v,
-                          float r) {
+                          float r, bool clampToEdgeS, bool clampToEdgeT, bool clampToEdgeR) {
 
   rgba[0] = rgba[1] = rgba[2] = rgba[3] = 0.0f;
 
@@ -943,10 +958,25 @@ void FilterTexture3DFloat(float *rgba, const Texture3D *tex, float u, float v,
   }
 #endif
 
-  // @fixme { REPEAT only }
-  float u01 = u - fasterfloorf(u);
-  float v01 = v - fasterfloorf(v);
-  float r01 = r - fasterfloorf(r);
+  // @todo { Support more wrapping mode }
+  float uu, vv, rr;
+  if (clampToEdgeS) {
+    uu = u;
+  } else {
+    uu = u - fasterfloorf(u);
+  }
+
+  if (clampToEdgeT) {
+    vv = v;
+  } else {
+    vv = v - fasterfloorf(v);
+  }
+
+  if (clampToEdgeR) {
+    rr = r;
+  } else {
+    rr = r - fasterfloorf(r);
+  }
 
   int dim[3];
   dim[0] = tex->width;
@@ -957,9 +987,9 @@ void FilterTexture3DFloat(float *rgba, const Texture3D *tex, float u, float v,
   // vox[0] = u01 * dim[0] - .5f;
   // vox[1] = v01 * dim[1] - .5f;
   // vox[2] = r01 * dim[2] - .5f;
-  vox[0] = u01 * (dim[0] - 1.0f);
-  vox[1] = v01 * (dim[1] - 1.0f);
-  vox[2] = r01 * (dim[2] - 1.0f);
+  vox[0] = uu * (dim[0] - 1.0f);
+  vox[1] = vv * (dim[1] - 1.0f);
+  vox[2] = rr * (dim[2] - 1.0f);
 
   const float *density = reinterpret_cast<float *>(tex->image);
 
@@ -1027,7 +1057,7 @@ void FilterTexture3DFloat(float *rgba, const Texture3D *tex, float u, float v,
 }
 
 void FilterTexture3DDouble(float *rgba, const Texture3D *tex, float u, float v,
-                           float r) {
+                           float r, bool clampToEdgeS, bool clampToEdgeT, bool clampToEdgeR) {
 
   rgba[0] = rgba[1] = rgba[2] = rgba[3] = 0.0f;
 
@@ -1042,10 +1072,25 @@ void FilterTexture3DDouble(float *rgba, const Texture3D *tex, float u, float v,
   }
 #endif
 
-  // @fixme { REPEAT only }
-  float u01 = u - fasterfloorf(u);
-  float v01 = v - fasterfloorf(v);
-  float r01 = r - fasterfloorf(r);
+  // @todo { Support more wrapping mode }
+  float uu, vv, rr;
+  if (clampToEdgeS) {
+    uu = u;
+  } else {
+    uu = u - fasterfloorf(u);
+  }
+
+  if (clampToEdgeT) {
+    vv = v;
+  } else {
+    vv = v - fasterfloorf(v);
+  }
+
+  if (clampToEdgeR) {
+    rr = r;
+  } else {
+    rr = r - fasterfloorf(r);
+  }
 
   int dim[3];
   dim[0] = tex->width;
@@ -1056,9 +1101,9 @@ void FilterTexture3DDouble(float *rgba, const Texture3D *tex, float u, float v,
   // vox[0] = u01 * dim[0] - .5f;
   // vox[1] = v01 * dim[1] - .5f;
   // vox[2] = r01 * dim[2] - .5f;
-  vox[0] = u01 * (dim[0] - 1.0f);
-  vox[1] = v01 * (dim[1] - 1.0f);
-  vox[2] = r01 * (dim[2] - 1.0f);
+  vox[0] = uu * (dim[0] - 1.0f);
+  vox[1] = vv * (dim[1] - 1.0f);
+  vox[2] = rr * (dim[2] - 1.0f);
 
   const double *density = reinterpret_cast<double *>(tex->image);
 

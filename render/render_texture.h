@@ -20,6 +20,10 @@ extern "C" {
 #define LSGL_RENDER_TEXTURE3D_FORMAT_FLOAT (1 << 3)
 #define LSGL_RENDER_TEXTURE3D_FORMAT_DOUBLE (1 << 4)
 
+#define LSGL_RENDER_TEXTURE3D_WRAP_REPEAT         (0)
+#define LSGL_RENDER_TEXTURE3D_WRAP_CLAMP_TO_EDGE  (1)
+// @todo { More wrap modes }
+
 #ifdef __GNUC__
 #pragma pack(push, 1)
 #define ALIGNMENT __attribute__((packed))
@@ -34,6 +38,9 @@ typedef struct _Texture3D {
   int depth;
   int components;
   int data_type; // one of LSGL_RENDER_TEXTURE3D_FORMAT_***
+  int wrapS;  // one of LSGL_RENDER_TEXTURE3D_WRAP_***
+  int wrapT;
+  int wrapR;
 } Texture3D;
 #ifdef __GNUC__
 #pragma pack(pop)
@@ -43,15 +50,15 @@ typedef struct _Texture3D {
 
 // Trilinear textel fetch for byte format 3D texture.
 extern void FilterTexture3DByte(float *rgba, const Texture3D *tex, float u,
-                                float v, float r);
+                                float v, float r, bool clampToEdgeS, bool clampToEdgeT, bool clampToEdgeR);
 
 // Trilinear textel fetch for float format 3D texture.
 extern void FilterTexture3DFloat(float *rgba, const Texture3D *tex, float u,
-                                 float v, float r);
+                                 float v, float r, bool clampToEdgeS, bool clampToEdgeT, bool clampToEdgeR);
 
 // Trilinear textel fetch for double format 3D texture.
 extern void FilterTexture3DDouble(float *rgba, const Texture3D *tex, float u,
-                                  float v, float r);
+                                  float v, float r, bool clampToEdgeS, bool clampToEdgeT, bool clampToEdgeR);
 }
 
 namespace lsgl {

@@ -281,9 +281,11 @@ public:
 
   void SetWrapS(GLenum mode) {
     if (mode == GL_REPEAT) {
-      texture_->setWrapS(render::Texture2D::WRAP_REPEAT);
+      if (texture2D_) texture2D_->setWrapS(render::Texture2D::WRAP_REPEAT);
+      if (texture3D_) texture3D_->wrapS = LSGL_RENDER_TEXTURE3D_WRAP_REPEAT;
     } else if (mode == GL_CLAMP_TO_EDGE) {
-      texture_->setWrapS(render::Texture2D::WRAP_CLAMP_TO_EDGE);
+      if (texture2D_) texture2D_->setWrapS(render::Texture2D::WRAP_CLAMP_TO_EDGE);
+      if (texture3D_) texture3D_->wrapS = LSGL_RENDER_TEXTURE3D_WRAP_CLAMP_TO_EDGE;
     } else {
       // @todo
     }
@@ -291,9 +293,11 @@ public:
 
   void SetWrapT(GLenum mode) {
     if (mode == GL_REPEAT) {
-      texture_->setWrapT(render::Texture2D::WRAP_REPEAT);
+      if (texture2D_) texture2D_->setWrapT(render::Texture2D::WRAP_REPEAT);
+      if (texture3D_) texture3D_->wrapT = LSGL_RENDER_TEXTURE3D_WRAP_REPEAT;
     } else if (mode == GL_CLAMP_TO_EDGE) {
-      texture_->setWrapT(render::Texture2D::WRAP_CLAMP_TO_EDGE);
+      if (texture2D_) texture2D_->setWrapT(render::Texture2D::WRAP_CLAMP_TO_EDGE);
+      if (texture3D_) texture3D_->wrapT = LSGL_RENDER_TEXTURE3D_WRAP_CLAMP_TO_EDGE;
     } else {
       // @todo
     }
@@ -301,18 +305,18 @@ public:
 
   void SetWrapR(GLenum mode) {
     if (mode == GL_REPEAT) {
-      texture_->setWrapR(render::Texture2D::WRAP_REPEAT);
+      if (texture3D_) texture3D_->wrapR = LSGL_RENDER_TEXTURE3D_WRAP_REPEAT;
     } else if (mode == GL_CLAMP_TO_EDGE) {
-      texture_->setWrapR(render::Texture2D::WRAP_CLAMP_TO_EDGE);
+      if (texture3D_) texture3D_->wrapR = LSGL_RENDER_TEXTURE3D_WRAP_CLAMP_TO_EDGE;
     } else {
       // @todo
     }
   }
 
   inline void Fetch(float *rgba, float u, float v) const {
-    if (!texture_)
+    if (!texture2D_)
       return;
-    texture_->fetch(rgba, u, v, minFiltering_, magFiltering_);
+    texture2D_->fetch(rgba, u, v, minFiltering_, magFiltering_);
   }
 
   inline void Fetch(float *rgba, float u, float v, float r) const {
@@ -366,11 +370,11 @@ public:
       }
 
       if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_DOUBLE) {
-        FilterTexture3DDouble(rgba, texture3D_, uu, vv, rr);
+        FilterTexture3DDouble(rgba, texture3D_, uu, vv, rr, texture3D_->wrapS, texture3D_->wrapT, texture3D_->wrapR);
       } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_FLOAT) {
-        FilterTexture3DFloat(rgba, texture3D_, uu, vv, rr);
+        FilterTexture3DFloat(rgba, texture3D_, uu, vv, rr, texture3D_->wrapS, texture3D_->wrapT, texture3D_->wrapR);
       } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) {
-        FilterTexture3DByte(rgba, texture3D_, uu, vv, rr);
+        FilterTexture3DByte(rgba, texture3D_, uu, vv, rr, texture3D_->wrapS, texture3D_->wrapT, texture3D_->wrapR);
       } else {
         assert(0); // && "Unknown 3D texture format");
       }
@@ -417,7 +421,7 @@ private:
   int compos_;
   GLenum type_;
 
-  render::Texture2D *texture_;
+  render::Texture2D *texture2D_;
   Texture3D *texture3D_;
   std::vector<GLubyte> data_;
   GLsizeiptr size_;
