@@ -11,6 +11,7 @@
 #include <cmath>
 #include <algorithm>
 #include <limits>
+//#include <cstdio>
 
 #if defined(LSGL_OPTIMIZE_GLSL)
 #include <emmintrin.h>
@@ -260,14 +261,23 @@ inline void FilterDouble(float *rgba, const double *image, int i00, int i10,
 void Texture2D::fetch(float *rgba, float u, float v, bool minFiltering,
                       bool magFiltering) const {
   // @todo { Support wrap mode. }
+  float uu = 0.0f, vv = 0.0f;
 
-  float sx = fasterfloorf(u);
-  float sy = fasterfloorf(v);
+  if (m_wrapMode[0] == WRAP_CLAMP_TO_EDGE) {
+    uu = u;
+  } else { // Assume WRAP_REPEAT
+    float sx = fasterfloorf(u);
+    uu = u - sx;
+  }
 
-  float uu = u - sx;
-  float vv = v - sy;
+  if (m_wrapMode[1] == WRAP_CLAMP_TO_EDGE) {
+    vv = v;
+  } else { // Assume WRAP_REPEAT
+    float sy = fasterfloorf(v);
+    vv = v - sy;
+  }
 
-  // clamp
+  // clamp to [0.0, 1.0]
   uu = (std::max)(uu, 0.0f);
   uu = (std::min)(uu, 1.0f);
   vv = (std::max)(vv, 0.0f);
