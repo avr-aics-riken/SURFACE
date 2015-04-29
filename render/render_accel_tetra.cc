@@ -25,6 +25,12 @@
 
 using namespace lsgl::render;
 
+#ifdef __FUJITSU
+#define FORCEINLINE __attribute__((always_inline))
+#else
+#define FORCEINLINE  inline
+#endif
+
 #define MAX_LEAF_ELEMENTS (8)
 #define MAX_TREE_DEPTH_32BIT                                                   \
   (22) // FYI, log2(1G/16) ~= 25.897, log2(1G/32) ~= 21
@@ -47,19 +53,19 @@ using namespace lsgl::render;
 
 namespace {
 
-inline real3 vcross(real3 a, real3 b) {
-  real3 c;
-  c[0] = a[1] * b[2] - a[2] * b[1];
-  c[1] = a[2] * b[0] - a[0] * b[2];
-  c[2] = a[0] * b[1] - a[1] * b[0];
-  return c;
-}
+//FORCEINLINE real3 vcross(real3 a, real3 b) {
+//  real3 c;
+//  c[0] = a[1] * b[2] - a[2] * b[1];
+//  c[1] = a[2] * b[0] - a[0] * b[2];
+//  c[2] = a[0] * b[1] - a[1] * b[0];
+//  return c;
+//}
 
-inline real vdot(real3 a, real3 b) {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
+//FORCEINLINE real vdot(real3 a, real3 b) {
+//  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+//}
 
-inline double3 vcrossd(double3 a, double3 b) {
+FORCEINLINE double3 vcrossd(double3 a, double3 b) {
   double3 c;
   c[0] = a[1] * b[2] - a[2] * b[1];
   c[1] = a[2] * b[0] - a[0] * b[2];
@@ -67,12 +73,13 @@ inline double3 vcrossd(double3 a, double3 b) {
   return c;
 }
 
-inline double vdotd(double3 a, double3 b) {
+FORCEINLINE double vdotd(double3 a, double3 b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-inline int fsign(const real x) {
-  real eps = std::numeric_limits<real>::epsilon() * 16;
+FORCEINLINE int fsign(const double x) {
+  //real eps = std::numeric_limits<real>::epsilon() * 16;
+  double eps = DBL_EPSILON;
   return (x > eps ? 1 : (x < -eps ? -1 : 0));
 }
 
@@ -89,7 +96,7 @@ public:
 };
 
 // Inner product
-inline double operator*(const Pluecker &p0, const Pluecker &p1) {
+FORCEINLINE double operator*(const Pluecker &p0, const Pluecker &p1) {
   return vdotd(p0.d, p1.c) + vdotd(p1.d, p0.c);
 }
 
@@ -1793,7 +1800,7 @@ bool TetraAccel::Dump(const char *filename) {
 
   unsigned long long numIndices = indices_.size();
 
-  int r = 0;
+  int r;
   r = fwrite(&numNodes, sizeof(unsigned long long), 1, fp);
   assert(r == 1);
 
@@ -1873,7 +1880,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
 
   real t = isect.t; // current hit distance
 
-  bool doubleSided = (bool)ray.double_sided;
+  //bool doubleSided = (bool)ray.double_sided;
 
   if (tetras->isDoublePrecisionPos) {
 
@@ -2079,7 +2086,8 @@ bool TetraAccel::Traverse(Intersection &isect, Ray &ray) const {
   real hitT = (std::numeric_limits<real>::max)(); // far = no hit.
 
   int nodeStackIndex = 0;
-  std::vector<int> nodeStack(512);
+  //std::vector<int> nodeStack(512);
+  int nodeStack[kMaxStackDepth];
   nodeStack[0] = 0;
 
   // Init isect info as no hit
