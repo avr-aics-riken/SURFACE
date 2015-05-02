@@ -1,5 +1,12 @@
 SURFACE uses following libraries/codes.
 
+- stack_container.h
+
+// Copyright (c) 2006-2008 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
 - PCG random http://www.pcg-random.org
 
 (c) 2014 M.E. O'Neill / pcg-random.org
