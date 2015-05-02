@@ -783,7 +783,7 @@ bool FragmentShader::PrepareEval(
   //
   // Bind slot of varyings
   //
-  shadingState.varyingConnections.clear();
+  shadingState.varyingConnections->clear();
 
   //
   // dst index                           src index
@@ -861,8 +861,8 @@ bool FragmentShader::PrepareEval(
     varyingConn.stride = vertexAttribute.stride;
 
     // Don't forget to clear() in the beginning of PrepareEval();
-    shadingState.varyingConnections.push_back(varyingConn);
-    shadingState.varyings.push_back(varying);
+    shadingState.varyingConnections->push_back(varyingConn);
+    shadingState.varyings->push_back(varying);
   }
 
   // if (state_) {
@@ -990,7 +990,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
   // printf("index = %d\n", index);
   // printf("f = %d, %d, %d\n", f0, f1, f2);
   // printf("conns = %d\n", shadingState.varyingConnections.size());
-  for (int i = 0; i < shadingState.varyingConnections.size(); i++) {
+  for (int i = 0; i < shadingState.varyingConnections->size(); i++) {
     const VaryingConnection &varyingConn = shadingState.varyingConnections[i];
     const Varying &varying = shadingState.varyings[i];
 

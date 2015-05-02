@@ -502,7 +502,7 @@ void BVHTree::BuildTree() {
   isBuiltTree = true;
 }
 
-bool BVHTree::Trace(std::vector<BVHNodeIntersection> &isects, double rayorg[3],
+bool BVHTree::Trace(StackVector<BVHNodeIntersection, 32> &isects, double rayorg[3],
                     double raydir[3], double maxdist) const {
   uint64_t nodeStack[TREE_MAXDEPTH];
   uint64_t nodeStackIndex = 0;
@@ -538,7 +538,7 @@ bool BVHTree::Trace(std::vector<BVHNodeIntersection> &isects, double rayorg[3],
         isect.nodeID = root->nodeID;
         isect.tMin = tMin;
         isect.tMax = tMax;
-        isects.push_back(isect);
+        isects->push_back(isect);
       }
 
       if (nodeStackIndex < 1)
@@ -581,19 +581,19 @@ bool BVHTree::Trace(std::vector<BVHNodeIntersection> &isects, double rayorg[3],
   //
   // Sort by tMin.
   //
-  std::sort(isects.begin(), isects.end(), sorter_isect);
+  std::sort(isects->begin(), isects->end(), sorter_isect);
 
-  return (isects.size() > 0);
+  return (isects->size() > 0);
 }
 
-bool BVHTree::Locate(std::vector<BVHNodeLocator> &locators,
+bool BVHTree::Locate(StackVector<BVHNodeLocator, 32> &locators,
                      const double position[3]) const {
   uint64_t nodeStack[TREE_MAXDEPTH];
   uint64_t nodeStackIndex = 0;
 
   assert(isBuiltTree);
 
-  locators.clear();
+  locators->clear();
 
   if (m_nodes.size() == 0) { // empty tree
     return false;
@@ -611,7 +611,7 @@ bool BVHTree::Locate(std::vector<BVHNodeLocator> &locators,
 
         BVHNodeLocator locator;
         locator.nodeID = root->nodeID;
-        locators.push_back(locator);
+        locators->push_back(locator);
       }
 
       if (nodeStackIndex < 1) {
@@ -651,7 +651,7 @@ bool BVHTree::Locate(std::vector<BVHNodeLocator> &locators,
     }
   }
 
-  return (locators.size() > 0);
+  return (locators->size() > 0);
 }
 
 void BVHTree::BoundingBox(double bmin[3], double bmax[3]) const {

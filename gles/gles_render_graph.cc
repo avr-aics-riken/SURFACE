@@ -12,6 +12,7 @@
 
 #include "gles_render_graph.h"
 #include "../render/render_matrix.h"
+#include "../render/stack_container.h"
 
 using namespace lsgl;
 
@@ -142,7 +143,7 @@ bool RenderGraph::Build() {
 }
 
 bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
-  std::vector<render::BVHNodeIntersection> isects;
+  StackVector<render::BVHNodeIntersection, 32> isects;
 
   if (!tree_ || !isBuiltGraph_) {
     return false;
@@ -172,7 +173,7 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
 
     // Find detailed intersection.
     // Note that intersection list are already sorted in its distance.
-    for (size_t i = 0; i < isects.size(); i++) {
+    for (size_t i = 0; i < isects->size(); i++) {
 
       // Early cull test.
       if (tNearest < isects[i].tMin) {

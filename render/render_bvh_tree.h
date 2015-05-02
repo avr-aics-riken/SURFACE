@@ -11,7 +11,9 @@
 #define __LSGL_RENDER_BVH_TREE_H__
 
 #include "render_common.h"
-//#include "matrix.h"
+
+// Use StackVector for optimization
+#include "stack_container.h"
 
 //
 // Generic BVH tree class.
@@ -73,16 +75,17 @@ public:
   void BuildTree();
 
   // Trace ray into toplevel BVH tree and list up possible intersection list.
-  bool Trace(std::vector<BVHNodeIntersection> &isects, double rayorg[3],
+  bool Trace(StackVector<BVHNodeIntersection, 32> &isects, double rayorg[3],
              double raydir[3], double maxdist) const;
 
   // Find intersecting BVHNode for a given position.
-  bool Locate(std::vector<BVHNodeLocator> &locators,
+  bool Locate(StackVector<BVHNodeLocator, 32> &locators,
               const double position[3]) const;
 
   std::vector<BVHNode> &GetNodesTree() { return m_nodesTree; }
+  const std::vector<BVHNode> &GetNodesTree() const { return m_nodesTree; }
 
-  void SetNodesTree(std::vector<BVHNode> &nodesTree) {
+  void SetNodesTree(const std::vector<BVHNode> &nodesTree) {
     m_nodesTree = nodesTree;
   }
 

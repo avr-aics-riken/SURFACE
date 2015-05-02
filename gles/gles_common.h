@@ -22,6 +22,7 @@
 #include "../render/render_camera.h"
 #include "../render/render_texture.h"
 #include "../render/render_accel_volume.h"
+#include "../render/stack_container.h"
 #include "../glsl/glsl_runtime.h"
 
 #ifdef LSGL_DEBUG_TRACE
@@ -43,6 +44,7 @@ namespace lsgl {
 
 using namespace lsgl::render;
 
+// Value must be less than `glsl/glsl_runtine.h`
 const int kMaxVertexAttribs = 8;
 const int kMaxVertexUniformVectors = 128;
 const int kMaxFragmentUniformVectors = 16;
@@ -338,7 +340,7 @@ public:
         position[0] = u * sparseVolume_->globalDim[0];
         position[1] = v * sparseVolume_->globalDim[1];
         position[2] = r * sparseVolume_->globalDim[2];
-        std::vector<BVHNodeLocator> locators;
+        StackVector<BVHNodeLocator, 32> locators;
         sparseVolumeAccel_->Sample(value, position);
         rgba[0] = value[0];
         rgba[1] = value[1];
@@ -585,21 +587,21 @@ struct VaryingConnection {
 
 /// ShadingState holds runtime shader information
 struct ShadingState {
-  std::vector<VaryingConnection> varyingConnections;
-  std::vector<Varying> varyings; // buffer for varying variables
+  StackVector<VaryingConnection, kMaxVaryingVectors> varyingConnections;
+  StackVector<Varying, kMaxVaryingVectors> varyings; // buffer for varying variables
 
   void Copy(ShadingState &src) {
-    varyingConnections.clear();
+    varyingConnections->clear();
     // printf("sz = %d\n", (int)src.varyingConnections.size());
-    for (size_t i = 0; i < src.varyingConnections.size(); i++) {
+    for (size_t i = 0; i < src.varyingConnections->size(); i++) {
       assert(src.varyingConnections[i].dstIndex < 100);
-      varyingConnections.push_back(src.varyingConnections[i]);
+      varyingConnections->push_back(src.varyingConnections[i]);
     }
 
-    varyings.clear();
+    varyings->clear();
     // printf("varuings.sz = %d\n", (int)src.varyings.size());
-    for (size_t i = 0; i < src.varyings.size(); i++) {
-      varyings.push_back(src.varyings[i]);
+    for (size_t i = 0; i < src.varyings->size(); i++) {
+      varyings->push_back(src.varyings[i]);
     }
   }
 };

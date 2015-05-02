@@ -2457,7 +2457,7 @@ bool TriangleAccel::Traverse(Intersection &isect, Ray &ray) const {
   real hitT = (std::numeric_limits<real>::max)(); // far = no hit.
 
   int nodeStackIndex = 0;
-  std::vector<int> nodeStack(512);
+  int nodeStack[kMaxStackDepth];
   nodeStack[0] = 0;
 
   // Init isect info as no hit

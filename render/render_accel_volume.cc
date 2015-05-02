@@ -61,7 +61,7 @@ bool SparseVolumeAccel::Build(const SparseVolume *sparseVolume) {
 bool SparseVolumeAccel::Sample(double value[4],
                                const double position[3]) const {
 
-  std::vector<BVHNodeLocator> locaters;
+  StackVector<BVHNodeLocator, 32> locaters;
   bool hit = tree_.Locate(locaters, position);
 
   value[0] = 0.0f;
