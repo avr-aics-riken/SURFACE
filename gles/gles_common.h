@@ -340,7 +340,6 @@ public:
         position[0] = u * sparseVolume_->globalDim[0];
         position[1] = v * sparseVolume_->globalDim[1];
         position[2] = r * sparseVolume_->globalDim[2];
-        StackVector<BVHNodeLocator, 32> locators;
         sparseVolumeAccel_->Sample(value, position);
         rgba[0] = value[0];
         rgba[1] = value[1];
