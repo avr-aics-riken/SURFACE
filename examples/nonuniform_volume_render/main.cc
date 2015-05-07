@@ -238,10 +238,11 @@ main(
   ret = LoadVolumeTexture(tex0, voldata, dim);
   assert(ret);
 
-  GLfloat* remapTable = GenCoordMap(dim[1]);
+  // remapTable.length = dim + 1 
+  GLfloat* remapTable = GenCoordMap(dim[1]+1);
 
   glActiveTexture(GL_TEXTURE0);
-  lsglTexCoordRemap(GL_TEXTURE_3D, GL_COORDINATE_Y, dim[1], remapTable);
+  lsglTexCoordRemap(GL_TEXTURE_3D, GL_COORDINATE_Y, dim[1]+1, remapTable);
 
   printf("GenFramebuffer\n");
   GLuint framebuffer;
