@@ -10,6 +10,7 @@ An software implementation of high performance ray tracer with GLES2.0 compatibl
 * OpenMP-supported compiler(optional)
 * MPI compiler(optional)
 * MinGW gcc(for Windows only)
+* jemalloc(optional)
 
 ## Building with CMake
 
@@ -84,10 +85,20 @@ Then run GLSL compiler to check it can produce shader module(`shader.so`)
 * [x] Tetrahedron
 * [x] Line(rendered as cylinder)
 * [x] Volume
-  * [x] Uniform volume
-  * [x] Non-uniform volume
-  * [x] Hierarchical volume(Sparse volume)
+  * [x] Uniform volume(as 3D texture)
+  * [x] Non-uniform volume(as 3D texture + custom coordinate transform table)
+  * [x] Hierarchical volume(as sparse volume representation)
 
 ## Publications
 
 * LSGL: Large Scale Graphics Library for Peta-Scale Computing Environments. HPG 2014 poster.
+
+## Performance notes
+
+We highly encourage to use `jemalloc` (http://www.canonware.com/jemalloc/) for better OpenMP multhreading rendering performance.
+`jemalloc` can be used as an dll replacing method(`LD_PRELOAD`).
+
+    $ export LD_PRELOAD=/path/to/libjemalloc.so
+    $ ./run-application-using-SURFACE
+
+We confirmed `jemalloc` 3.6.0 has been compiled well and working on K(SPARC) platform.
