@@ -17,7 +17,6 @@ newoption {
 }
 
 main_sources = {
-   "main.cc",
    "harness-accel-point.cc",
    "harness-random-points.cc",
    "harness-random-triangles.cc",
@@ -41,15 +40,55 @@ libbenchmark_sources = {
    "./deps/hayai/src/hayai_posix_main.cpp",
 }
 
+function newplatform(plf)
+    local name = plf.name
+    local description = plf.description
+
+    -- Register new platform
+    premake.platforms[name] = {
+        cfgsuffix = "_"..name,
+        iscrosscompiler = true
+    }
+
+    -- Allow use of new platform in --platfroms
+    table.insert(premake.option.list["platform"].allowed, { name, description })
+    table.insert(premake.fields.platforms.allowed, name)
+
+    -- Add compiler support
+    -- gcc
+    premake.gcc.platforms[name] = plf.gcc
+    --other compilers (?)
+end
+
+newplatform {
+    name = "k-cross",
+    description = "K/FX10 cross compiler",
+    gcc = {
+        cc = "fccpx",
+        cxx = "FCCpx",
+        cppflags = "-MMD -Xg"
+    }
+}
+
+newplatform {
+    name = "k-native",
+    description = "K/FX10 native compiler",
+    gcc = {
+        cc = "fcc",
+        cxx = "FCC",
+        cppflags = "-MMD -Xg"
+    }
+}
+
 -- premake4.lua
 solution "RenderBenchmarkSolution"
    configurations { "Release", "Debug" }
 
-   if (os.is("windows")) then
-      platforms { "x32", "x64", "native" }
-   else
-      platforms { "native", "x32", "x64" }
-   end
+   -- default to x64 platform if none has been specified
+   _OPTIONS.platform = _OPTIONS.platform or 'x64'
+
+   -- overwrite the native platform with the options::platform
+   premake.gcc.platforms['Native'] = premake.gcc.platforms[_OPTIONS.platform]
 
    -- A project defines one build target
    project "RenderBenchmark"
@@ -78,10 +117,14 @@ solution "RenderBenchmarkSolution"
             defines { "LSGL_ENABLE_MPI" }
          end
 
-         -- gcc openmp
          if _OPTIONS['with-openmp'] then
-            buildoptions { "-fopenmp" }
-            linkoptions { "-fopenmp" }
+            if (_OPTIONS.platform == 'k-cross' or _OPTIONS.platform == 'k-native') then
+               buildoptions { "-Kopenmp" }
+               linkoptions { "-Kopenmp" }
+            else
+               buildoptions { "-fopenmp" }
+               linkoptions { "-fopenmp" }
+            end
          end
 
       -- Linux specific
@@ -105,10 +148,14 @@ solution "RenderBenchmarkSolution"
             defines { "LSGL_ENABLE_MPI" }
          end
 
-         -- gcc openmp
          if _OPTIONS['with-openmp'] then
-            buildoptions { "-fopenmp" }
-            linkoptions { "-fopenmp" }
+            if (_OPTIONS.platform == 'k-cross' or _OPTIONS.platform == 'k-native') then
+               buildoptions { "-Kopenmp" }
+               linkoptions { "-Kopenmp" }
+            else
+               buildoptions { "-fopenmp" }
+               linkoptions { "-fopenmp" }
+            end
          end
 
       configuration "Debug"
