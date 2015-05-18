@@ -80,6 +80,16 @@ newplatform {
     }
 }
 
+newplatform {
+    name = "icc",
+    description = "Intel C/C++ compiler",
+    gcc = {
+        cc = "icc",
+        cxx = "icpc",
+        cppflags = "-MMD"
+    }
+}
+
 -- premake4.lua
 solution "RenderBenchmarkSolution"
    configurations { "Release", "Debug" }
@@ -130,7 +140,7 @@ solution "RenderBenchmarkSolution"
       -- Linux specific
       configuration { "linux" }
 
-         links { "pthread" }
+         links { "pthread", "rt" }
 
          if _OPTIONS['with-glsl-opt'] then
             defines { 'LSGL_OPTIMIZE_GLSL' }

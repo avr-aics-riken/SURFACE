@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstring>
+#include <cstdio>
 
 char* log_json(const char* title, const char* variant, int64_t cpu_ns)
 {
