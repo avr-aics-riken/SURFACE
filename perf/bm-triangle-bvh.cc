@@ -1,3 +1,5 @@
+#include <hayai.hpp>
+
 #include <cstdio>
 #include <cstdlib>
 
@@ -11,20 +13,30 @@ namespace {
 
 int gSeed = 0;
 
-void BuildTriangleBVH(size_t n) {
-
-  double bmin[3] = {-1.0, -1.0, -1.0};
-  double bmax[3] = { 1.0,  1.0,  1.0};
-
-  float *pts = new float[n * 9];
-  GenerateRandomTrianglesFloat(pts, n, bmin, bmax, gSeed);
-
-  double elap = BM_BuildTriangleBVH(pts, n);
-  delete [] pts;
-
 }
 
-void BuildTriangle32BVH(size_t n) {
+//void BuildTriangleBVH(size_t n) {
+//
+//  double bmin[3] = {-1.0, -1.0, -1.0};
+//  double bmax[3] = { 1.0,  1.0,  1.0};
+//
+//  float *pts = new float[n * 9];
+//  GenerateRandomTrianglesFloat(pts, n, bmin, bmax, gSeed);
+//
+//  double elap = BM_BuildTriangleBVH(pts, n);
+//  delete [] pts;
+//
+//}
+
+BENCHMARK_P(BVH, BuildTriangle32BVH, 2, 3,
+  (int numThreads, std::size_t numPoints))
+{
+  
+  size_t n = numPoints;
+
+#if _OPENMP
+  omp_set_num_threads(numThreads);
+#endif
 
   double bmin[3] = {-1.0, -1.0, -1.0};
   double bmax[3] = { 1.0,  1.0,  1.0};
@@ -35,7 +47,7 @@ void BuildTriangle32BVH(size_t n) {
 
   printf("Start building BVH .\n");
   double elap = BM_BuildTriangle32BVH(pts, n);
-  printf("End building BVH . \n", elap);
+  printf("End building BVH . \n");
 
   int cores = 1;
 #if _OPENMP
@@ -47,29 +59,20 @@ void BuildTriangle32BVH(size_t n) {
 
 }
 
-}
-
-int main(int argc, const char **argv) {
-
-  gSeed = 123456;
-
-  if (argc < 2) {
-    printf("Usage: %s numTris(in kilo)\n", argv[0]);
-  }
-
-  size_t n = 10*1024;
-
-  if (argc > 1) {
-    n = atoi(argv[1]) * 1024; // kilo
-  }
-
-#ifdef _OPENMP
-  printf("OMP Enabled: %d threads\n", omp_get_max_threads());
-#endif
-
-  //BuildTriangleBVH(n);
-  BuildTriangle32BVH(n);
-
-  return EXIT_SUCCESS;
-
-}
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (1, 1024));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (1, 1024*1024));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (1, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (2, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (3, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (4, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (5, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (6, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (7, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (8, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (9, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (10, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (12, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (13, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (14, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (15, 1024ULL*1024ULL*10ULL));
+BENCHMARK_P_INSTANCE(BVH, BuildTriangle32BVH, (16, 1024ULL*1024ULL*10ULL));

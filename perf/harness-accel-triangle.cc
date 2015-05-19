@@ -1,6 +1,6 @@
 #include "harness.h"
-#include "../render/accel_triangle.h"
-#include "../render/timerutil.h"
+#include "../render/render_accel_triangle.h"
+#include "../render/render_timerutil.h"
 
 #include <cassert>
 #include <cstdio>
@@ -10,9 +10,9 @@ using namespace lsgl::render;
 
 double BM_BuildTriangleBVH(const float *points, size_t n)
 {
-  BVHBuildOptions options;
+  TriangleBuildOptions options;
 
-  BVHAccel *accel = new BVHAccel();
+  TriangleAccel *accel = new TriangleAccel();
 
   uint32_t *faces = new uint32_t[3*n];
   for (size_t i = 0; i < 3 * n; i++) {
@@ -58,9 +58,9 @@ double BM_BuildTriangleBVH(const float *points, size_t n)
 
 double BM_BuildTriangle32BVH(const float *points, size_t n)
 {
-  BVHBuildOptions options;
+  TriangleBuildOptions options;
 
-  BVHAccel *accel = new BVHAccel();
+  TriangleAccel *accel = new TriangleAccel();
 
   uint32_t *faces = new uint32_t[3*n];
   for (size_t i = 0; i < 3 * n; i++) {

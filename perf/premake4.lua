@@ -17,11 +17,13 @@ newoption {
 }
 
 benchmark_sources = {
+   "bm-triangle-bvh.cc",
    "bm-point-bvh.cc",
    }
 
 harness_sources = {
    "harness-accel-point.cc",
+   "harness-accel-triangle.cc",
    "harness-random-points.cc",
    "harness-random-triangles.cc",
    "harness-prefix-tree.cc",
