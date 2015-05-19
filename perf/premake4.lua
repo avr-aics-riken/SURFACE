@@ -16,7 +16,11 @@ newoption {
    description = "Use Optimized GLSL codepath."
 }
 
-main_sources = {
+benchmark_sources = {
+   "bm-point-bvh.cc",
+   }
+
+harness_sources = {
    "harness-accel-point.cc",
    "harness-random-points.cc",
    "harness-random-triangles.cc",
@@ -108,7 +112,7 @@ solution "RenderBenchmarkSolution"
       -- dependency
       links "LibRender"
 
-      files { libbenchmark_sources, main_sources }
+      files { libbenchmark_sources, benchmark_sources, harness_sources }
 
       includedirs {
          "./deps/hayai/src/",

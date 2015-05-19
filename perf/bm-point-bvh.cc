@@ -1,3 +1,5 @@
+#include <hayai.hpp>
+
 #include <cstdio>
 #include <cstdlib>
 
@@ -10,6 +12,8 @@
 namespace {
 
 int gSeed = 0;
+
+}
 
 void BuildPointBVH(size_t n) {
 
@@ -24,7 +28,10 @@ void BuildPointBVH(size_t n) {
 
 }
 
-void BuildPoint32BVH(size_t n) {
+BENCHMARK_P(BVH, BuildPoint32BVH, 2, 10,
+  (std::size_t numPoints))
+{
+  size_t n = numPoints;
 
   double bmin[3] = {-1.0, -1.0, -1.0};
   double bmax[3] = { 1.0,  1.0,  1.0};
@@ -47,29 +54,6 @@ void BuildPoint32BVH(size_t n) {
 
 }
 
-}
-
-int main(int argc, const char **argv) {
-
-  gSeed = 123456;
-
-  if (argc < 2) {
-    printf("Usage: %s numPoints(in kilo)\n", argv[0]);
-  }
-
-  size_t n = 100*1024*1024;
-
-  if (argc > 1) {
-    n = atoi(argv[1]) * 1024; // kilo
-  }
-
-#ifdef _OPENMP
-  printf("OMP Enabled: %d threads\n", omp_get_max_threads());
-#endif
-
-  BuildPointBVH(n);
-  //BuildPoint32BVH(n);
-
-  return EXIT_SUCCESS;
-
-}
+BENCHMARK_P_INSTANCE(BVH, BuildPoint32BVH, (1024));
+BENCHMARK_P_INSTANCE(BVH, BuildPoint32BVH, (1024*1024));
+BENCHMARK_P_INSTANCE(BVH, BuildPoint32BVH, (1024ULL*1024ULL*1024ULL));
