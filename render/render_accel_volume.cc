@@ -85,11 +85,11 @@ bool SparseVolumeAccel::Sample(double value[4],
     double y = position[1] - block.offset[1];
     double z = position[2] - block.offset[2];
     int ix = (std::max)(
-        (std::min)(block.offset[0] + block.extent[0] - 1, (int)x), 0);
+        (std::min)(block.extent[0] - 1, (int)x), 0);
     int iy = (std::max)(
-        (std::min)(block.offset[1] + block.extent[1] - 1, (int)y), 1);
+        (std::min)(block.extent[1] - 1, (int)y), 0);
     int iz = (std::max)(
-        (std::min)(block.offset[2] + block.extent[2] - 1, (int)z), 2);
+        (std::min)(block.extent[2] - 1, (int)z), 0);
 
     if (sparseVolume_->format == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) { // uint8
       const unsigned char *voxel = block.data;
@@ -117,6 +117,13 @@ bool SparseVolumeAccel::Sample(double value[4],
         value[c] = (float)voxel[components * idx + c];
       }
     }
+  } else {
+
+    value[0] = 0.0f;
+    value[1] = 0.0f;
+    value[2] = 0.0f;
+    value[3] = 0.0f; // We return (0,0,0,0) to notify users that there's no data in this location.
+
   }
 
   return hit;

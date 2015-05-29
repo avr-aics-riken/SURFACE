@@ -326,7 +326,7 @@ public:
     if (isSparse_) {
 
       rgba[0] = rgba[1] = rgba[2] = 0.0f;
-      rgba[3] = 1.0f;
+      rgba[3] = 0.0f; // Alpha zero = miss
 
       if (!sparseVolumeAccel_) {
         return;
@@ -344,7 +344,7 @@ public:
         rgba[0] = value[0];
         rgba[1] = value[1];
         rgba[2] = value[2];
-        rgba[3] = value[3];
+        rgba[3] = value[3]; // @todo { set alpha to 1.0 might be better. }
       }
 
     } else {
