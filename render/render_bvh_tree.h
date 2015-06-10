@@ -92,6 +92,12 @@ public:
   // Get bounding box of this toplevel BVH tree.
   void BoundingBox(double bmin[3], double bmax[3]) const;
 
+  void Clear() {
+	  m_nodesTree.clear();
+	  m_nodes.clear();
+	  isBuiltTree = false;
+  }
+
 private:
   void ConstructTree(size_t indexRoot, size_t indexLeft, size_t indexRight);
 

@@ -58,6 +58,7 @@ public:
 
   /// Sample sparse volume at specified position.
   /// Volume elements are limited to 4 elements(RGBA)
+  /// Note that input range for `position` must within [bmin, bmax]^3
   bool Sample(double value[4], const double position[3]) const;
 
   /// Get the bounding box of BVH. Valid after Build().
