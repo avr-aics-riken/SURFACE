@@ -85,8 +85,9 @@ public:
     callbackUserData_ = userdata;
   }
 
-  void SetScreenParallelRendering(bool enabled) {
+  void SetScreenParallelRendering(bool enabled, bool mergeScreen) {
 	screenParallelRendering_ = enabled;
+	mergeScreen_ = mergeScreen;
   }
 
 private:
@@ -108,6 +109,7 @@ private:
   void *callbackUserData_;
 
   bool screenParallelRendering_;
+  bool mergeScreen_;
 };
 
 } // namespace

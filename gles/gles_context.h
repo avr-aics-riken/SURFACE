@@ -257,7 +257,7 @@ public:
   //
   // LSGL extensions.
   //
-  void lsglSetScreenParallelRendering(GLboolean enabled);
+  void lsglSetScreenParallelRendering(GLboolean enabled, GLboolean mergeScreen);
   void lsglSetProgressCallback(LSGLProgressCallback func, void *userdata);
   void lsglSetPixelStep(GLint step);
   GLint lsglGetPixelStep();

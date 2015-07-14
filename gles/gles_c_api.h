@@ -655,8 +655,10 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
 //
 // Set flag for screen parallel rendering.
 // Valid if SURFACE is built with MPI support.
-void lsglSetScreenParallelRendering(GLboolean enabled) {
-  Context::GetCurrentContext().lsglSetScreenParallelRendering(enabled);
+// When `mergeScreen` is true, do screeen merging inside of SURFACE.
+// Set false when you use custom image compositor outside of SURFACE(for example, HIVE)
+void lsglSetScreenParallelRendering(GLboolean enabled, GLboolean mergeScreen) {
+  Context::GetCurrentContext().lsglSetScreenParallelRendering(enabled, mergeScreen);
 }
 
 // Set custom progress report function.

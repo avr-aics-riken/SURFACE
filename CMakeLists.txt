@@ -29,7 +29,9 @@ SET(SURFACE_BUILD_UNIT_TEST OFF CACHE BOOL "Build unit test?")
 SET(SURFACE_BUILD_K_CROSS_COMPILE OFF CACHE BOOL "Build for K/FX10 target with corss compiling?")
 SET(SURFACE_BUILD_WITH_MPI OFF CACHE BOOL "Build with MPI support?")
 SET(SURFACE_BUILD_WITH_OPENMP OFF CACHE BOOL "Build with OpenMP support?")
-SET(SURFACE_BUILD_SCREEN_PARALLEL OFF CACHE BOOL "Build with screen parallel support?(Also need to enable SURFACE_BUILD_WITH_MPI option)")
+
+# Deprecated. to be removed.
+SET(SURFACE_BUILD_SCREEN_PARALLEL OFF CACHE BOOL "[DEPRECATED] Build with screen parallel support?(Also need to enable SURFACE_BUILD_WITH_MPI option)")
 
 # K/FX10 native environment
 IF (CMAKE_SYSTEM_PROCESSOR MATCHES "s64fx")

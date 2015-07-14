@@ -296,7 +296,7 @@ void MergeScreen(int region[4], int masterRank, int rank,
 
 RaytraceEngine::RaytraceEngine()
     : framebuffer_(NULL), numRays_(0), pixelStep_(1),
-      progressCallbackFunc_(NULL), callbackUserData_(NULL), screenParallelRendering_(false) {
+      progressCallbackFunc_(NULL), callbackUserData_(NULL), screenParallelRendering_(false), mergeScreen_(false) {
   sRaytraceEngine = this;
 
   // Default = orthographic camera, positioned at (0.0, 0.0, 0.0) and see (0.0,
@@ -863,7 +863,7 @@ bool RaytraceEngine::OnData() {
 
   renderTimer_.end();
 
-  if (screenParallelRendering_) {
+  if (screenParallelRendering_ && mergeScreen_) {
 #if defined(LSGL_ENABLE_MPI)
 
     // Merge color buffer
