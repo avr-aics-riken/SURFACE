@@ -85,6 +85,10 @@ public:
     callbackUserData_ = userdata;
   }
 
+  void SetScreenParallelRendering(bool enabled) {
+	screenParallelRendering_ = enabled;
+  }
+
 private:
   const Context *ctx_;
   Framebuffer *framebuffer_;
@@ -102,6 +106,8 @@ private:
   int pixelStep_;
   LSGLProgressCallback progressCallbackFunc_;
   void *callbackUserData_;
+
+  bool screenParallelRendering_;
 };
 
 } // namespace

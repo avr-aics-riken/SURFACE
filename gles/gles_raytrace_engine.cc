@@ -80,7 +80,7 @@ static inline void WriteColorRGBAF32(char *ptr, float r, float g, float b,
 //
 // Screen division utils
 //
-#if defined(LSGL_ENABLE_MPI) && defined(LSGL_ENABLE_SCREEN_PARALLEL)
+#if defined(LSGL_ENABLE_MPI)
 
 // inline unsigned int CalcAreasize(const unsigned long size_u,
 //                                 const unsigned long size_v) {
@@ -166,7 +166,7 @@ void StaticallyDivideScreen(int region[4], // left, upper, right, bottom
                             int width, int height, int N, int rank) {
   unsigned int divPattern[2];
   if (!DecideDivPattern(N, width, height, &divPattern[0], &divPattern[1])) {
-    fprintf(stderr, "[LSGL] Faild to divide\n");
+    fprintf(stderr, "[LSGL] Failed to divide\n");
     region[0] = 0;
     region[1] = 0;
     region[2] = 0;
@@ -210,32 +210,48 @@ void StaticallyDivideScreen(int region[4], // left, upper, right, bottom
 #endif
 
 void CalculateRenderRegion(int region[4], // left, upper, right, bottom
-                           int width, int height) {
-// Automatic screen-tiling rendering is valid if MPI and SCREEN_PARALLEL flag
-// was set.
-#if defined(LSGL_ENABLE_MPI) && defined(LSGL_ENABLE_SCREEN_PARALLEL)
-  //
-  // @todo { Dynamic division }
-  //
-  int numNodes;
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &numNodes);
+                           int width, int height, bool screenParallel) {
 
-  StaticallyDivideScreen(region, width, height, numNodes, rank);
+  if (screenParallel) {
+    // Automatic screen-tiling rendering is valid if MPI and SCREEN_PARALLEL flag
+    // was set.
+#if defined(LSGL_ENABLE_MPI)
+    //
+    // @todo { Dynamic division }
+    //
+    int numNodes;
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &numNodes);
+
+    if (numNodes <= 1) {
+      region[0] = 0;
+      region[1] = 0;
+      region[2] = width;
+      region[3] = height;
+    } else {
+      StaticallyDivideScreen(region, width, height, numNodes, rank);
+    }
 #else
-  region[0] = 0;
-  region[1] = 0;
-  region[2] = width;
-  region[3] = height;
+    // screen-parallel is not supported for non-MPI environment.
+    region[0] = 0;
+    region[1] = 0;
+    region[2] = width;
+    region[3] = height;
 #endif
+  } else {
+    region[0] = 0;
+    region[1] = 0;
+    region[2] = width;
+    region[3] = height;
+  }
 }
 
-#if defined(LSGL_ENABLE_MPI) && defined(LSGL_ENABLE_SCREEN_PARALLEL)
+#if defined(LSGL_ENABLE_MPI)
 template <typename T>
 void MergeScreen(int region[4], int masterRank, int rank,
                  unsigned char *framebuffer, // [inout]
-                 int width, int height) {
+                 int width, int height, int components) {
   int ret;
 
   //
@@ -245,17 +261,16 @@ void MergeScreen(int region[4], int masterRank, int rank,
   int subWidth = region[2] - region[0];
   int subHeight = region[3] - region[1];
 
-  std::vector<T> buf(subWidth * subHeight * 4);
+  std::vector<T> buf(subWidth * subHeight * components);
   T *ptr = reinterpret_cast<T *>(framebuffer);
 
   int k = 0;
   for (int y = region[1]; y < region[3]; y++) {
     for (int x = region[0]; x < region[2]; x++) {
       int srcIdx = (height - y - 1) * width + x;
-      buf[4 * k + 0] = ptr[4 * srcIdx + 0];
-      buf[4 * k + 1] = ptr[4 * srcIdx + 1];
-      buf[4 * k + 2] = ptr[4 * srcIdx + 2];
-      buf[4 * k + 3] = ptr[4 * srcIdx + 3];
+      for (int c = 0; c < components; c++) {
+        buf[components * k + c] = ptr[components * srcIdx + c];
+      }
       k++;
     }
   }
@@ -265,7 +280,7 @@ void MergeScreen(int region[4], int masterRank, int rank,
   //
   MPI_Barrier(MPI_COMM_WORLD);
 
-  int size = subWidth * subHeight * 4 * sizeof(T);
+  int size = subWidth * subHeight * components * sizeof(T);
   ret = MPI_Gather(&buf.at(0), size, MPI_BYTE, framebuffer, size, MPI_BYTE,
                    masterRank, MPI_COMM_WORLD);
   assert(ret == MPI_SUCCESS);
@@ -281,7 +296,7 @@ void MergeScreen(int region[4], int masterRank, int rank,
 
 RaytraceEngine::RaytraceEngine()
     : framebuffer_(NULL), numRays_(0), pixelStep_(1),
-      progressCallbackFunc_(NULL), callbackUserData_(NULL) {
+      progressCallbackFunc_(NULL), callbackUserData_(NULL), screenParallelRendering_(false) {
   sRaytraceEngine = this;
 
   // Default = orthographic camera, positioned at (0.0, 0.0, 0.0) and see (0.0,
@@ -572,7 +587,7 @@ bool RaytraceEngine::OnData() {
 
   // Calculate actual render region this (compute) node should consider.
   int region[4];
-  CalculateRenderRegion(region, (endX - startX), (endY - startY));
+  CalculateRenderRegion(region, (endX - startX), (endY - startY), screenParallelRendering_);
   region[0] += startX;
   region[1] += startY;
   region[2] += startX;
@@ -848,49 +863,51 @@ bool RaytraceEngine::OnData() {
 
   renderTimer_.end();
 
-#if defined(LSGL_ENABLE_MPI) && defined(LSGL_ENABLE_SCREEN_PARALLEL)
+  if (screenParallelRendering_) {
+#if defined(LSGL_ENABLE_MPI)
 
-  // Merge color buffer
-  if (colorBufferPtr) {
-    timerutil mergeTimer;
-    mergeTimer.start();
+    // Merge color buffer
+    if (colorBufferPtr) {
+      timerutil mergeTimer;
+      mergeTimer.start();
 
-    int masterRank = 0;
-    assert((bytesPerPixel == 4) || (bytesPerPixel == 16));
-    if (bytesPerPixel == 4) { // assume byte RGBA
-      MergeScreen<unsigned char>(region, masterRank, rank,
-                                 (unsigned char *)colorBufferPtr, width,
-                                 height);
-    } else if (bytesPerPixel == 16) { // assume float RGBA
+      int masterRank = 0;
+      assert((bytesPerPixel == 4) || (bytesPerPixel == 16));
+      if (bytesPerPixel == 4) { // assume byte RGBA
+        MergeScreen<unsigned char>(region, masterRank, rank,
+                                   (unsigned char *)colorBufferPtr, width,
+                                   height, 4);
+      } else if (bytesPerPixel == 16) { // assume float RGBA
+        MergeScreen<float>(region, masterRank, rank,
+                           (unsigned char *)colorBufferPtr, width, height, 4);
+      }
+      mergeTimer.end();
+
+      if (rank == masterRank) {
+        printf("\n[LSGL] Color buffer merge time: %d ms\n",
+               (int)mergeTimer.msec());
+        fflush(stdout);
+      }
+    }
+
+    if (depth) {
+      timerutil mergeTimer;
+      mergeTimer.start();
+
+      int masterRank = 0;
+      // Assume 32bit float depth buffer.
       MergeScreen<float>(region, masterRank, rank,
-                         (unsigned char *)colorBufferPtr, width, height);
+                         (unsigned char *)depth, width, height, 1);
+      mergeTimer.end();
+
+      if (rank == masterRank) {
+        printf("\n[LSGL] Depth buffer merge time: %d ms\n",
+               (int)mergeTimer.msec());
+        fflush(stdout);
+      }
     }
-    mergeTimer.end();
-
-    if (rank == masterRank) {
-      printf("\n[LSGL] Color buffer merge time: %d ms\n",
-             (int)mergeTimer.msec());
-      fflush(stdout);
-    }
-  }
-
-  if (depth) {
-    timerutil mergeTimer;
-    mergeTimer.start();
-
-    int masterRank = 0;
-    // Assume 32bit float depth buffer.
-    MergeScreen<float>(region, masterRank, rank,
-                       (unsigned char *)colorBufferPtr, width, height);
-    mergeTimer.end();
-
-    if (rank == masterRank) {
-      printf("\n[LSGL] Depth buffer merge time: %d ms\n",
-             (int)mergeTimer.msec());
-      fflush(stdout);
-    }
-  }
 #endif
+  }
 
 #ifdef LSGL_ENABLE_K_PROFILE
   // fipp_stop();

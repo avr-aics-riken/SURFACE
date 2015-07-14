@@ -129,6 +129,10 @@ void Context::glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
   state_.viewportHeight = height;
 }
 
+void Context::lsglSetScreenParallelRendering(GLboolean enabled) {
+  engine_.SetScreenParallelRendering(enabled);
+}
+
 void Context::lsglSetProgressCallback(LSGLProgressCallback func,
                                       void *userdata) {
   engine_.SetProgressCallback(func, userdata);

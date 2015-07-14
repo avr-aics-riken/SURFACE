@@ -653,6 +653,11 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
 //
 // LSGL extenstions.
 //
+// Set flag for screen parallel rendering.
+// Valid if SURFACE is built with MPI support.
+void lsglSetScreenParallelRendering(GLboolean enabled) {
+  Context::GetCurrentContext().lsglSetScreenParallelRendering(enabled);
+}
 
 // Set custom progress report function.
 // LSGLProgressCallback is defined in gles_common.h
