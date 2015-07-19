@@ -2,7 +2,7 @@
 
 Scalable and Ubiquitous Rendering Framework for Advanced Computing Environments.
 
-An software implementation of high performance ray tracer with GLES2.0 compatible API and GLSL shading language support.
+An software implementation of high performance ray tracer with GLES 2.0 compatible API and GLSL shading language support.
 
 ## Requirements
 
@@ -19,8 +19,8 @@ An software implementation of high performance ray tracer with GLES2.0 compatibl
 * [x] K/FX10(SPARC HPC-ACE)
   * Fujitsu C/C++ compiler
 * [x] Linux x64
-  * gcc 4.8 or later required for OpenMP build
-  * Intel compiler
+  * gcc 4.4 or later
+  * Intel compiler 13 or later
 * [x] MacOSX 10.8 or later
   * gcc 4.8 or later required for OpenMP build
 * [ ] Windows 7 x64
@@ -51,7 +51,6 @@ Solution file will be geneted in `build` directory.
 * BUILD_SHARED_LIBS On/Off Build shared libs or static libs(default: shared)
 * SURFACE_BUILD_K_CROSS_COMPILE On/Off Set cross compile environment using Fujitsu cross compiler.
 * SURFACE_BUILD_WITH_MPI On/Off Enable MPI.
-* SURFACE_BUILD_SCREEN_PARALLEL On/Off Build with screen parallel support?(Also need to enable SURFACE_BUILD_WITH_MPI option)
 * SURFACE_BUILD_WITH_OPENMP On/Off Enable OpenMP.
 
 ## Setup GLSL compiler
@@ -95,7 +94,7 @@ Then run GLSL compiler to check it can produce shader module(`shader.so`)
 
 ## Performance notes
 
-We highly encourage to use `jemalloc` (http://www.canonware.com/jemalloc/) for better OpenMP multhreading rendering performance.
+We highly encourage to use `jemalloc` (http://www.canonware.com/jemalloc/) for better multhreaded rendering performance.
 `jemalloc` can be used as an dll replacing method(`LD_PRELOAD`).
 
     $ export LD_PRELOAD=/path/to/libjemalloc.so
