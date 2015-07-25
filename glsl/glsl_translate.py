@@ -716,7 +716,16 @@ class ArrayRef:
         #structinfo = FindStruct(sty)
         #assert structinfo is not False
 
-        return "/*array_ref*/" + self.recordname + "[%s]" % self.indexname
+        (ty, n) = sym['type']
+
+        prefix = ""
+
+        if IsVectorType(ty):
+            prefix = ".v"
+        elif IsMatrixType(ty):
+            prefix = ".v"
+
+        return "/*array_ref*/" + self.recordname + "%s[%s]" % (prefix, self.indexname)
 
     def getExprString(self, slot, i):
 
