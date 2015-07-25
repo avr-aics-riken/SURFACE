@@ -706,6 +706,14 @@ inline vec2 __glsl_mod(vec2 x, vec2 y)
     return t_vec2;
 }
 
+inline vec2 __glsl_mod(vec2 x, float y)
+{
+    vec2 t_vec2;
+    t_vec2.v[0]=__glsl_mod(x.v[0], y);
+    t_vec2.v[1]=__glsl_mod(x.v[1], y);
+    return t_vec2;
+}
+
 inline vec3 __glsl_mod(vec3 x, vec3 y)
 {
     vec3 t_vec3;
@@ -947,7 +955,7 @@ inline float __glsl_smoothstep(float edge0, float edge1, float x)
     return t * t* (3.0-2.0*t);
 }
 
-inline vec2 __glsl_smoothstep(vec2 edge0, vec2 edge1, vec4 x)
+inline vec2 __glsl_smoothstep(vec2 edge0, vec2 edge1, vec2 x)
 {
     vec2 t_vec2;
     t_vec2.v[0]=__glsl_smoothstep(edge0.v[0], edge1.v[0], x.v[0]);
@@ -955,7 +963,7 @@ inline vec2 __glsl_smoothstep(vec2 edge0, vec2 edge1, vec4 x)
     return t_vec2;
 }
 
-inline vec3 __glsl_smoothstep(vec3 edge0, vec3 edge1, vec4 x)
+inline vec3 __glsl_smoothstep(vec3 edge0, vec3 edge1, vec3 x)
 {
     vec3 t_vec3;
     t_vec3.v[0]=__glsl_smoothstep(edge0.v[0], edge1.v[0], x.v[0]);
