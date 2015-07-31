@@ -1,0 +1,6 @@
+language: cpp
+compiler: gcc
+
+script:
+  - cmake -H. -DCMAKE_INSTALL_PREFIX=dist -DSURFACE_BUILD_WITH_OPENMP=On -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=Release -Bbuild
+  - make -C build
