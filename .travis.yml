@@ -13,4 +13,4 @@ after_install:
 
 script:
   - cmake -H. -DCMAKE_C_COMPILER=gcc-4.8 -DCMAKE_CXX_COMPILER=g++-4.8 -DCMAKE_INSTALL_PREFIX=dist -DSURFACE_BUILD_WITH_OPENMP=On -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=Release -Bbuild
-  - make -C build
+  - make -C build VERBOSE=1
