@@ -11,6 +11,7 @@
 #define __RENDER_COMMON_H__
 
 #include <cmath>
+#include <cfloat>
 
 #define RENDER_USE_DOUBLE_PRECISION (0)
 
@@ -19,8 +20,12 @@ namespace render {
 
 #if RENDER_USE_DOUBLE_PRECISION
 typedef double real; // double don't work at this time
+#define REAL_EPSILON  DBL_EPSILON
+#define REAL_MAX      DBL_MAX
 #else
 typedef float real;
+#define REAL_EPSILON  FLT_EPSILON
+#define REAL_MAX      FLT_MAX
 #endif
 
 struct real3 {

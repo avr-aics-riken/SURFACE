@@ -192,7 +192,7 @@ IsectD2(double2 &tInOut, double2 &tidInOut, // Use as integer(53bit)
         const double2 &tid,             // Triangle ID as interger(53bit)
         const double2 &doubleSidedMask) // Assume all bits are 1 or 0.
 {
-  const double kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const double kEPS = REAL_EPSILON * 16.0;
 
   // e1 = v1 - v0;
   const double2 e1x = _mm_sub_pd(v1x, v0x);
@@ -308,7 +308,7 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const Particles *particles,
   // assert(leftIndex < rightIndex);
   // assert(rightIndex - leftIndex > 0);
 
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const real kEPS = REAL_EPSILON * 16.0;
 
   {
     size_t idx = indices[leftIndex];
@@ -385,7 +385,7 @@ void ComputeBoundingBox(real3 &bmin, real3 &bmax, const Particles *particles,
   // assert(leftIndex < rightIndex);
   // assert(rightIndex - leftIndex > 0);
 
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const real kEPS = REAL_EPSILON * 16.0;
 
   {
     size_t idx = indices[leftIndex];
@@ -418,12 +418,12 @@ void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const Particles *particles,
                           const std::vector<IndexKey30> &keys,
                           uint32_t leftIndex, uint32_t rightIndex) {
 
-  bmin[0] = (std::numeric_limits<real>::max)();
-  bmin[1] = (std::numeric_limits<real>::max)();
-  bmin[2] = (std::numeric_limits<real>::max)();
-  bmax[0] = -(std::numeric_limits<real>::max)();
-  bmax[1] = -(std::numeric_limits<real>::max)();
-  bmax[2] = -(std::numeric_limits<real>::max)();
+  bmin[0] = REAL_MAX;
+  bmin[1] = REAL_MAX;
+  bmin[2] = REAL_MAX;
+  bmax[0] = -REAL_MAX;
+  bmax[1] = -REAL_MAX;
+  bmax[2] = -REAL_MAX;
 
   if ((rightIndex - leftIndex) == 0) {
     // empty.
@@ -435,7 +435,7 @@ void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const Particles *particles,
     assert(leftIndex < rightIndex);
   }
 
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const real kEPS = REAL_MAX * 16.0;
 
   size_t i = leftIndex;
   size_t idx = keys[i].index;
@@ -464,8 +464,8 @@ void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const Particles *particles,
 }
 
 inline void InvalidateBoundingBox(real3 &bmin, real3 &bmax) {
-  bmin[0] = bmin[1] = bmin[2] = (std::numeric_limits<real>::max)();
-  bmax[0] = bmax[1] = bmax[2] = -(std::numeric_limits<real>::max)();
+  bmin[0] = bmin[1] = bmin[2] = REAL_MAX;
+  bmax[0] = bmax[1] = bmax[2] = -REAL_MAX;
 }
 
 inline void MergeBoundingBox(real3 &bmin, real3 &bmax, const real3 &leftBMin,
@@ -2039,7 +2039,7 @@ inline real vdot(real3 a, real3 b) {
 }
 
 inline real3 vnormalize(real3 a) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const real kEPS = REAL_EPSILON * 16.0;
 
   real3 v;
   real len = sqrt(vdot(a, a));
@@ -2075,7 +2075,7 @@ inline void SphereIsectD2(double2 &vtInOut,
                           const double2 &rdz,                      // rayDir.zz
                           const double2 &va) // vdot(rayDir, rayDir).xx;
 {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const real kEPS = REAL_EPSILON * 16.0;
   const double2 veps = _mm_set_pd(kEPS, kEPS);
 
   // real3 center(v[0], v[1], v[2]);
@@ -2202,7 +2202,7 @@ inline void SphereIsectD2(double2 &vtInOut,
                           const double2 &rdz,                      // rayDir.zz
                           const double2 &va) // vdot(rayDir, rayDir).xx;
 {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const real kEPS = REAL_EPSILON * 16.0;
   const double2 veps = _mm_set_pd(kEPS, kEPS);
 
   // real3 center(v[0], v[1], v[2]);
@@ -2422,7 +2422,7 @@ inline void SphereIsectD2(double2 &vtInOut,
 // http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
 inline bool SphereIsect(real &tInOut, const real *v, real radius,
                         const real3 &rayOrg, const real3 &rayDir, double prevT, const real3& prevN, bool selfIntersection = false) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const real kEPS = REAL_EPSILON * 16.0;
 
   real3 center(v[0], v[1], v[2]);
   real3 oc = rayOrg - center;
@@ -3051,7 +3051,7 @@ void BuildIntersection(Intersection &isect, const Particles *particles,
 } // namespace
 
 bool ParticleAccel::Traverse(Intersection &isect, Ray &ray) const {
-  real hitT = (std::numeric_limits<real>::max)(); // far = no hit.
+  real hitT = REAL_MAX; // far = no hit.
 
   int nodeStackIndex = 0;
   int nodeStack[kMaxStackDepth];
@@ -3209,7 +3209,7 @@ bool ParticleAccel::Traverse(Intersection &isect, Ray &ray) const {
 
   assert(nodeStackIndex < kMaxStackDepth);
 
-  if (isect.t < (std::numeric_limits<real>::max)()) {
+  if (isect.t < REAL_MAX) {
     BuildIntersection(isect, particles_, ray);
     return true;
   }
@@ -3219,12 +3219,12 @@ bool ParticleAccel::Traverse(Intersection &isect, Ray &ray) const {
 
 void ParticleAccel::BoundingBox(double bmin[3], double bmax[3]) {
   if (nodes_.empty()) {
-    bmin[0] = (std::numeric_limits<double>::max)();
-    bmin[1] = (std::numeric_limits<double>::max)();
-    bmin[2] = (std::numeric_limits<double>::max)();
-    bmax[0] = -(std::numeric_limits<double>::max)();
-    bmax[1] = -(std::numeric_limits<double>::max)();
-    bmax[2] = -(std::numeric_limits<double>::max)();
+    bmin[0] = DBL_MAX;
+    bmin[1] = DBL_MAX;
+    bmin[2] = DBL_MAX;
+    bmax[0] = -DBL_MAX;
+    bmax[1] = -DBL_MAX;
+    bmax[2] = -DBL_MAX;
   } else {
     bmin[0] = bmin_[0];
     bmin[1] = bmin_[1];

@@ -82,7 +82,7 @@ inline real GetMax(real a, real b) { return (a > b) ? a : b; }
 
 inline void GetBoundingBoxOfLine(real3 &bmin, real3 &bmax, const Lines *lines,
                                  unsigned int index) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const real kEPS = REAL_EPSILON * 16.0;
 
   real3 p0 = GetPosition(lines, lines->segments[2 * index + 0]);
   real3 p1 = GetPosition(lines, lines->segments[2 * index + 1]);
@@ -437,7 +437,7 @@ inline real3 vneg(real3 a) {
 }
 
 inline real3 vnormalize(real3 a) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16.0;
+  const real kEPS = REAL_EPSILON * 16.0;
 
   real3 v;
   real len = sqrt(vdot(a, a));
@@ -454,7 +454,7 @@ inline real3 vnormalize(real3 a) {
 }
 
 int solve2e(real root[], real A, real B, real C) {
-  if (fabs(A) <= std::numeric_limits<real>::epsilon()) {
+  if (fabs(A) <= REAL_EPSILON) {
     real x = -C / B;
     root[0] = x;
     return 1;
@@ -501,7 +501,7 @@ inline bool CylinderIsect(real *pt, real *pu, real *pv, bool &hitCap,
   real dd = vdot(d, d);
 
   hitCap = false;
-  real capT = (std::numeric_limits<real>::max)(); // far
+  real capT = REAL_MAX; // far
 
   if (cap) {
     real3 dN0 = vnormalize(p0 - p1);
@@ -702,7 +702,7 @@ void BuildIntersection(Intersection &isectRet,
 } // namespace
 
 bool LineAccel::Traverse(Intersection &isectRet, Ray &ray) const {
-  real hitT = (std::numeric_limits<real>::max)(); // far = no hit.
+  real hitT = REAL_MAX; // far = no hit.
 
   int nodeStackIndex = 0;
   int nodeStack[kMaxStackDepth];
@@ -765,7 +765,7 @@ bool LineAccel::Traverse(Intersection &isectRet, Ray &ray) const {
 
   assert(nodeStackIndex < kMaxStackDepth);
 
-  if (isect.t < (std::numeric_limits<real>::max)()) {
+  if (isect.t < REAL_MAX) {
     BuildIntersection(isectRet, isect, lines_, ray);
     return true;
   }

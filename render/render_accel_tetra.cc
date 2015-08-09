@@ -527,7 +527,7 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
                                 const Tetrahedron *tetras,
                                 unsigned int *indices, unsigned int leftIdx,
                                 unsigned int rightIdx) {
-  static const real EPS = std::numeric_limits<real>::epsilon() * 16;
+  static const real EPS = REAL_EPSILON * 16;
 
   real binSize = (real)bins->binSize;
 
@@ -603,7 +603,7 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
                                  const real3 &bmax, size_t numPrims,
                                  real costTaabb) // should be in [0.0, 1.0]
 {
-  const real eps = std::numeric_limits<real>::epsilon() * 16;
+  const real eps = REAL_EPSILON * 16;
 
   size_t left, right;
   real3 bsize, bstep;
@@ -639,7 +639,7 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
     //
 
     real minCostPos = bmin[j] + 0.5 * bstep[j];
-    minCost[j] = (std::numeric_limits<real>::max)();
+    minCost[j] = REAL_MAX;
 
     left = 0;
     right = numPrims;
@@ -771,14 +771,14 @@ static void ComputeBoundingBox(real3 &bmin, real3 &bmax, const T *vertices,
                                unsigned int *faces, unsigned int *indices,
                                unsigned int leftIndex,
                                unsigned int rightIndex) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16;
+  const real kEPS = REAL_EPSILON * 16;
 
-  bmin[0] = (std::numeric_limits<real>::max)();
-  bmin[1] = (std::numeric_limits<real>::max)();
-  bmin[2] = (std::numeric_limits<real>::max)();
-  bmax[0] = -(std::numeric_limits<real>::max)();
-  bmax[1] = -(std::numeric_limits<real>::max)();
-  bmax[2] = -(std::numeric_limits<real>::max)();
+  bmin[0] = REAL_MAX;
+  bmin[1] = REAL_MAX;
+  bmin[2] = REAL_MAX;
+  bmax[0] = -REAL_MAX;
+  bmax[1] = -REAL_MAX;
+  bmax[2] = -REAL_MAX;
 
   if (rightIndex <= leftIndex) {
     return;
@@ -815,14 +815,14 @@ static void
 ComputeBoundingBox30(real3 &bmin, real3 &bmax, const T *vertices,
                      const uint32_t *faces, const std::vector<IndexKey30> &keys,
                      unsigned int leftIndex, unsigned int rightIndex) {
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16;
+  const real kEPS = REAL_EPSILON * 16;
 
-  bmin[0] = (std::numeric_limits<real>::max)();
-  bmin[1] = (std::numeric_limits<real>::max)();
-  bmin[2] = (std::numeric_limits<real>::max)();
-  bmax[0] = -(std::numeric_limits<real>::max)();
-  bmax[1] = -(std::numeric_limits<real>::max)();
-  bmax[2] = -(std::numeric_limits<real>::max)();
+  bmin[0] = REAL_MAX;
+  bmin[1] = REAL_MAX;
+  bmin[2] = REAL_MAX;
+  bmax[0] = -REAL_MAX;
+  bmax[1] = -REAL_MAX;
+  bmax[2] = -REAL_MAX;
 
   if ((rightIndex - leftIndex) == 0) {
     // empty.
@@ -869,7 +869,7 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const T *vertices,
   // assert(leftIndex < rightIndex);
   // assert(rightIndex - leftIndex > 0);
 
-  const real kEPS = std::numeric_limits<real>::epsilon() * 16;
+  const real kEPS = REAL_EPSILON * 16;
 
   bmin[0] = (std::numeric_limits<real>::max)();
   bmin[1] = (std::numeric_limits<real>::max)();
@@ -2083,7 +2083,7 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
 } // namespace
 
 bool TetraAccel::Traverse(Intersection &isect, Ray &ray) const {
-  real hitT = (std::numeric_limits<real>::max)(); // far = no hit.
+  real hitT = REAL_MAX; // far = no hit.
 
   int nodeStackIndex = 0;
   int nodeStack[kMaxStackDepth];
@@ -2143,7 +2143,7 @@ bool TetraAccel::Traverse(Intersection &isect, Ray &ray) const {
 
   assert(nodeStackIndex < kMaxStackDepth);
 
-  if (isect.t < (std::numeric_limits<real>::max)()) {
+  if (isect.t < REAL_MAX) {
     BuildIntersection(isect, tetras_, ray);
     return true;
   }

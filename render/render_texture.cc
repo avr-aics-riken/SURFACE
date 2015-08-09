@@ -11,6 +11,7 @@
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <cfloat>
 //#include <cstdio>
 
 #if defined(LSGL_OPTIMIZE_GLSL)
@@ -110,7 +111,7 @@ inline int fasterfloorf(const float x) {
   }
 
   int y = (int)x;
-  if (std::abs(x - y) <= std::numeric_limits<float>::epsilon()) {
+  if (std::abs(x - y) <= FLT_EPSILON) {
     // Do nothing.
   } else {
     y = y - 1;
