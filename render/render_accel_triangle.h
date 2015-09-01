@@ -92,7 +92,7 @@ public:
 private:
   /// Builds Triangle BVH tree recursively.
   size_t BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
-                   unsigned int leftIdx, unsigned int rightIdx, int depth);
+                   unsigned int leftIdx, unsigned int rightIdx, int depth, double epsScale);
 
   TriangleBuildOptions options_;
   std::vector<TriangleNode> nodes_;

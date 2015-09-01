@@ -112,7 +112,7 @@ IsectD2(double2 &tInOut, double2 &tidInOut, // Use as integer(53bit)
         const double2 &rdz,
         const double2 &tid,             // Triangle ID as interger(53bit)
         const double2 &doubleSidedMask, // Assume all bits are 1 or 0.
-        double epsScale = 2.0) {
+        double epsScale) {
   const double kEPS = DBL_EPSILON * epsScale;
 
   // e1 = v1 - v0;
@@ -239,7 +239,7 @@ IsectD2(double2 &tInOut, double2 &tidInOut, // Use as integer(53bit)
         const double2 &rdz,
         const double2 &tid,             // Triangle ID as interger(53bit)
         const double2 &doubleSidedMask, // Assume all bits are 1 or 0.
-        double epsScale = 2.0) {
+        double epsScale) {
   const double kEPS = DBL_EPSILON * epsScale;
 
   // e1 = v1 - v0;
@@ -390,7 +390,7 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
                                 const real3 &sceneMin, const real3 &sceneMax,
                                 const Mesh *mesh, unsigned int *indices,
                                 unsigned int leftIdx, unsigned int rightIdx,
-                                real epsScale = 2.0) {
+                                real epsScale) {
   static const real EPS = REAL_EPSILON * epsScale;
 
   real binSize = (real)bins->binSize;
@@ -466,7 +466,7 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
                                  const BinBuffer *bins, const real3 &bmin,
                                  const real3 &bmax, size_t numTriangles,
                                  real costTaabb, // should be in [0.0, 1.0]
-                                 real epsScale = 2.0) {
+                                 real epsScale) {
   const real eps = REAL_EPSILON * epsScale;
 
   size_t left, right;
@@ -628,7 +628,7 @@ template <typename T>
 static void ComputeBoundingBox(real3 &bmin, real3 &bmax, const T *vertices,
                                unsigned int *faces, unsigned int *indices,
                                unsigned int leftIndex, unsigned int rightIndex,
-                               real epsScale = 2.0) {
+                               real epsScale) {
   const real kEPS = REAL_EPSILON * epsScale;
 
   size_t i = leftIndex;
@@ -662,7 +662,7 @@ static void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const T *vertices,
                                  const uint32_t *faces,
                                  const std::vector<IndexKey30> &keys,
                                  unsigned int leftIndex,
-                                 unsigned int rightIndex, real epsScale = 2.0) {
+                                 unsigned int rightIndex, real epsScale) {
   const real kEPS = REAL_EPSILON * epsScale;
 
   bmin[0] = (std::numeric_limits<real>::max)();
@@ -713,7 +713,7 @@ template <typename T>
 void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, const T *vertices,
                            const uint32_t *faces, unsigned int *indices,
                            unsigned int leftIndex, unsigned int rightIndex,
-                           real epsScale = 1.0) {
+                           real epsScale) {
 
   // assert(leftIndex < rightIndex);
   // assert(rightIndex - leftIndex > 0);
@@ -865,11 +865,11 @@ int GetSplitAxis(uint32_t key) {
 template <typename T>
 void MakeLeaf32(TriangleNode &leaf, const T *vertices, const uint32_t *faces,
                 real3 &bmin, real3 &bmax, const std::vector<IndexKey30> &keys,
-                uint32_t leftIndex, uint32_t rightIndex) {
+                uint32_t leftIndex, uint32_t rightIndex, double epsScale) {
 
   // 1. Compute leaf AABB
   ComputeBoundingBox30(bmin, bmax, vertices, faces, keys, leftIndex,
-                       rightIndex);
+                       rightIndex, epsScale);
 
   // 2. Create leaf node. `n' may be null(create empty leaf node for that case.)
   int n = rightIndex - leftIndex;
@@ -898,7 +898,7 @@ size_t BuildTreeRecursive32(std::vector<TriangleNode> &nodes, real3 &bmin,
                             const std::vector<NodeInfo32> &nodeInfos,
                             const T *vertices, const uint32_t *faces,
                             uint32_t rootIndex, uint32_t leftIndex,
-                            uint32_t rightIndex, bool isLeaf, int depth) {
+                            uint32_t rightIndex, bool isLeaf, int depth, double epsScale) {
   InvalidateBoundingBox(bmin, bmax);
 
   uint32_t n = rightIndex - leftIndex;
@@ -915,7 +915,7 @@ size_t BuildTreeRecursive32(std::vector<TriangleNode> &nodes, real3 &bmin,
     //}
 
     TriangleNode leaf;
-    MakeLeaf32(leaf, vertices, faces, bmin, bmax, keys, leftIndex, endIndex);
+    MakeLeaf32(leaf, vertices, faces, bmin, bmax, keys, leftIndex, endIndex, epsScale);
 
     size_t offset = nodes.size();
     nodes.push_back(leaf); // need atomic update.
@@ -958,10 +958,10 @@ size_t BuildTreeRecursive32(std::vector<TriangleNode> &nodes, real3 &bmin,
 
   size_t leftChildIndex = BuildTreeRecursive32(
       nodes, leftBMin, leftBMax, keys, nodeInfos, vertices, faces, midIndex,
-      leftIndex, midIndex, isLeftLeaf, depth + 1);
+      leftIndex, midIndex, isLeftLeaf, depth + 1, epsScale);
   size_t rightChildIndex = BuildTreeRecursive32(
       nodes, rightBMin, rightBMax, keys, nodeInfos, vertices, faces,
-      midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1);
+      midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1, epsScale);
 
   MergeBoundingBox(bmin, bmax, leftBMin, leftBMax, rightBMin, rightBMax);
 
@@ -1154,7 +1154,7 @@ size_t BuildTreeRecursive32OMP(std::vector<TriangleNode> &nodes, real3 &bmin,
 
 size_t TriangleAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
                                 unsigned int leftIdx, unsigned int rightIdx,
-                                int depth) {
+                                int depth, double epsScale) {
   assert(leftIdx <= rightIdx);
 
   debug("d: %d, l: %d, r: %d\n", depth, leftIdx, rightIdx);
@@ -1167,10 +1167,10 @@ size_t TriangleAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
 
   if (mesh->isDoublePrecisionPos) {
     ComputeBoundingBox<double>(bmin, bmax, mesh->dvertices, mesh->faces,
-                               &indices_.at(0), leftIdx, rightIdx);
+                               &indices_.at(0), leftIdx, rightIdx, epsScale);
   } else {
     ComputeBoundingBox<float>(bmin, bmax, mesh->vertices, mesh->faces,
-                              &indices_.at(0), leftIdx, rightIdx);
+                              &indices_.at(0), leftIdx, rightIdx, epsScale);
   }
 
   debug(" bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
@@ -1214,9 +1214,9 @@ size_t TriangleAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
 
   BinBuffer bins(options_.binSize);
   ContributeBinBuffer(&bins, bmin, bmax, mesh, &indices_.at(0), leftIdx,
-                      rightIdx);
+                      rightIdx, epsScale);
   FindCutFromBinBuffer(cutPos, minCutAxis, &bins, bmin, bmax, n,
-                       options_.costTaabb);
+                       options_.costTaabb, epsScale);
 
   debug("depth: %d, cutPos: (%f, %f, %f), cutAxis: %d\n", depth, cutPos[0],
         cutPos[1], cutPos[2], minCutAxis);
@@ -1269,9 +1269,9 @@ size_t TriangleAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
   real3 leftBMin, leftBMax;
   real3 rightBMin, rightBMax;
   unsigned int leftChildIndex =
-      BuildTree(mesh, leftBMin, leftBMax, leftIdx, midIdx, depth + 1);
+      BuildTree(mesh, leftBMin, leftBMax, leftIdx, midIdx, depth + 1, epsScale);
   unsigned int rightChildIndex =
-      BuildTree(mesh, rightBMin, rightBMax, midIdx, rightIdx, depth + 1);
+      BuildTree(mesh, rightBMin, rightBMax, midIdx, rightIdx, depth + 1, epsScale);
 
   nodes_[offset].data[0] = leftChildIndex;
   nodes_[offset].data[1] = rightChildIndex;
@@ -1319,10 +1319,44 @@ bool TriangleAccel::Build(const Mesh *mesh,
   }
 
   //
-  // 2. Build tree
+  // 2. Compute bounding box for eps scale.
+  //
+  double epsScale = 0.0;
+  {
+    real3 bmin, bmax;
+    if (mesh->isDoublePrecisionPos) {
+      ComputeBoundingBox<double>(bmin, bmax, mesh->dvertices, mesh->faces,
+                                 &indices_.at(0), 0, n, epsScale);
+    } else {
+      ComputeBoundingBox<float>(bmin, bmax, mesh->vertices, mesh->faces,
+                                &indices_.at(0), 0, n, epsScale);
+    }
+
+    printf(" bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
+    printf(" bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
+
+    // Compute epsScale
+    double bsize[3];
+    bsize[0] = bmax[0] - bmin[0];
+    bsize[1] = bmax[1] - bmin[1];
+    bsize[2] = bmax[2] - bmin[2];
+
+    epsScale = bsize[0];
+    if (epsScale < bsize[1]) {
+      epsScale = bsize[1];
+    }
+    if (epsScale < bsize[2]) {
+      epsScale = bsize[2];
+    }
+
+    printf(" epsScale = %e\n", epsScale);
+  }
+
+  //
+  // 3. Build tree
   //
   real3 rootBMin, rootBMax;
-  BuildTree(mesh, rootBMin, rootBMax, 0, n, 0);
+  BuildTree(mesh, rootBMin, rootBMax, 0, n, 0, epsScale);
 
   // Tree will be null if input triangle count == 0.
   if (!nodes_.empty()) {
@@ -1343,6 +1377,8 @@ bool TriangleAccel::Build(const Mesh *mesh,
   bmax_[0] = rootBMax[0];
   bmax_[1] = rootBMax[1];
   bmax_[2] = rootBMax[2];
+
+  epsScale_ = epsScale;
 
   // Store pointer for later use.
   mesh_ = mesh;
@@ -1391,6 +1427,7 @@ bool TriangleAccel::Build32(const Mesh *mesh,
   t.end();
   printf("[1:indexing] %d msec\n", (int)t.msec());
 
+  double epsScale = 0.0;
   {
     timerutil t;
     t.start();
@@ -1399,10 +1436,10 @@ bool TriangleAccel::Build32(const Mesh *mesh,
 
 #ifdef _OPENMP
     ComputeBoundingBoxOMP(bmin, bmax, mesh->vertices, mesh->faces,
-                          &indices_.at(0), 0, n);
+                          &indices_.at(0), 0, n, epsScale);
 #else
     ComputeBoundingBox(bmin, bmax, mesh->vertices, mesh->faces, &indices_.at(0),
-                       0, n);
+                       0, n, epsScale);
 #endif
 
     t.end();
@@ -1410,6 +1447,22 @@ bool TriangleAccel::Build32(const Mesh *mesh,
 
     printf(" bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
     printf(" bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
+
+    // Compute epsScale
+    double bsize[3];
+    bsize[0] = bmax[0] - bmin[0];
+    bsize[1] = bmax[1] - bmin[1];
+    bsize[2] = bmax[2] - bmin[2];
+
+    epsScale = bsize[0];
+    if (epsScale < bsize[1]) {
+      epsScale = bsize[1];
+    }
+    if (epsScale < bsize[2]) {
+      epsScale = bsize[2];
+    }
+
+    printf(" epsScale = %e\n", epsScale);
 
     std::vector<uint32_t> codes(n);
     assert(sizeof(real) == sizeof(float));
@@ -1530,7 +1583,7 @@ bool TriangleAccel::Build32(const Mesh *mesh,
         {
           rightChildIndex = BuildTreeRecursive32OMP(
               nodes_, rightBMin, rightBMax, keys, nodeInfos, mesh->vertices,
-              mesh->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+              mesh->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0, epsScale);
         }
       }
 #pragma omp barrier
@@ -1542,10 +1595,10 @@ bool TriangleAccel::Build32(const Mesh *mesh,
 
       size_t leftChildIndex = BuildTreeRecursive32(
           nodes_, leftBMin, leftBMax, keys, nodeInfos, mesh->vertices,
-          mesh->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
+          mesh->faces, midIndex, 0, midIndex, isLeftLeaf, 0, epsScale);
       size_t rightChildIndex = BuildTreeRecursive32(
           nodes_, rightBMin, rightBMax, keys, nodeInfos, mesh->vertices,
-          mesh->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+          mesh->faces, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0, epsScale);
 
 #endif
 
@@ -1627,6 +1680,8 @@ bool TriangleAccel::Build32(const Mesh *mesh,
   bmax_[0] = rootBMax[0];
   bmax_[1] = rootBMax[1];
   bmax_[2] = rootBMax[2];
+
+  epsScale_ = epsScale;
 
   // Store pointer for later use.
   mesh_ = mesh;
@@ -1832,7 +1887,7 @@ inline double vdotd(double3 a, double3 b) {
 inline bool TriangleIsect(real &tInOut, real &uOut, real &vOut, const real3 &v0,
                           const real3 &v1, const real3 &v2, const real3 &rayOrg,
                           const real3 &rayDir, bool doubleSided,
-                          real epsScale = 2.0) {
+                          real epsScale) {
   const real kEPS = REAL_EPSILON * epsScale;
 
   real3 p0(v0[0], v0[1], v0[2]);
@@ -1886,7 +1941,7 @@ inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
                            const double3 &v0, const double3 &v1,
                            const double3 &v2, const double3 &rayOrg,
                            const double3 &rayDir, bool doubleSided,
-                           real epsScale = 2.0) {
+                           real epsScale) {
   const real kEPS = REAL_EPSILON * epsScale;
 
   double3 p0(v0[0], v0[1], v0[2]);
@@ -1939,7 +1994,7 @@ inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
 static bool TestLeafNode(Intersection &isect, // [inout]
                          const TriangleNode &node,
                          const std::vector<unsigned int> &indices,
-                         const Mesh *mesh, const Ray &ray) {
+                         const Mesh *mesh, const Ray &ray, double epsScale) {
 
   bool hit = false;
 
@@ -1988,7 +2043,7 @@ static bool TestLeafNode(Intersection &isect, // [inout]
       v2[2] = mesh->dvertices[3 * f2 + 2];
 
       real u, v;
-      if (TriangleIsectD(t, u, v, v0, v1, v2, rayOrg, rayDir, doubleSided)) {
+      if (TriangleIsectD(t, u, v, v0, v1, v2, rayOrg, rayDir, doubleSided, epsScale)) {
         // Update isect state
         isect.t = t;
         isect.u = u;
@@ -2081,7 +2136,7 @@ static bool TestLeafNode(Intersection &isect, // [inout]
 
         IsectD2(tInOut[k], tidInOut[k], uOut[k], vOut[k], v0x, v0y, v0z, v1x,
                 v1y, v1z, v2x, v2y, v2z, rox, roy, roz, rdx, rdy, rdz, tid,
-                doubleSidedMask);
+                doubleSidedMask, epsScale);
       }
     }
 
@@ -2243,7 +2298,7 @@ static bool TestLeafNode(Intersection &isect, // [inout]
 
         IsectD2(tInOut[k], tidInOut[k], uOut[k], vOut[k], v0x, v0y, v0z, v1x,
                 v1y, v1z, v2x, v2y, v2z, rox, roy, roz, rdx, rdy, rdz, tid,
-                doubleSidedMask);
+                doubleSidedMask, epsScale);
       }
     }
 
@@ -2366,7 +2421,7 @@ static bool TestLeafNode(Intersection &isect, // [inout]
       v2[2] = mesh->vertices[3 * f2 + 2];
 
       real u, v;
-      if (TriangleIsect(t, u, v, v0, v1, v2, rayOrg, rayDir, doubleSided)) {
+      if (TriangleIsect(t, u, v, v0, v1, v2, rayOrg, rayDir, doubleSided, epsScale)) {
         // Update isect state
         isect.t = t;
         isect.u = u;
@@ -2592,7 +2647,7 @@ bool TriangleAccel::Traverse(Intersection &isect, Ray &ray) const {
 
     } else { // leaf node
 
-      if (TestLeafNode(isect, node, indices_, mesh_, ray)) {
+      if (TestLeafNode(isect, node, indices_, mesh_, ray, epsScale_)) {
         hitT = isect.t;
 
 #if ENABLE_SIMD_ISECTOR
