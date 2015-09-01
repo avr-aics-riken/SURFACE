@@ -998,7 +998,7 @@ size_t BuildTreeRecursive32OMP(std::vector<TriangleNode> &nodes, real3 &bmin,
                                const std::vector<NodeInfo32> &nodeInfos,
                                const T *vertices, const uint32_t *faces,
                                uint32_t rootIndex, uint32_t leftIndex,
-                               uint32_t rightIndex, bool isLeaf, int depth) {
+                               uint32_t rightIndex, bool isLeaf, int depth, double epsScale) {
   InvalidateBoundingBox(bmin, bmax);
 
   uint32_t n = rightIndex - leftIndex;
@@ -1013,7 +1013,7 @@ size_t BuildTreeRecursive32OMP(std::vector<TriangleNode> &nodes, real3 &bmin,
     uint32_t endIndex = rightIndex + 1;
 
     TriangleNode leaf;
-    MakeLeaf32(leaf, vertices, faces, bmin, bmax, keys, leftIndex, endIndex);
+    MakeLeaf32(leaf, vertices, faces, bmin, bmax, keys, leftIndex, endIndex, epsScale);
 
     // @{ critical section }
     size_t offset;
@@ -1054,11 +1054,11 @@ size_t BuildTreeRecursive32OMP(std::vector<TriangleNode> &nodes, real3 &bmin,
 
     leftChildIndex = BuildTreeRecursive32(
         sub_nodes, leftBMin, leftBMax, keys, nodeInfos, vertices, faces,
-        midIndex, leftIndex, midIndex, isLeftLeaf, depth + 1);
+        midIndex, leftIndex, midIndex, isLeftLeaf, depth + 1, epsScale);
 
     rightChildIndex = BuildTreeRecursive32(
         sub_nodes, rightBMin, rightBMax, keys, nodeInfos, vertices, faces,
-        midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1);
+        midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1, epsScale);
 
 #pragma omp critical
     {
@@ -1101,14 +1101,14 @@ size_t BuildTreeRecursive32OMP(std::vector<TriangleNode> &nodes, real3 &bmin,
                         faces) firstprivate(midIndex) if (depth < 10)
     leftChildIndex = BuildTreeRecursive32OMP(
         nodes, leftBMin, leftBMax, keys, nodeInfos, vertices, faces, midIndex,
-        leftIndex, midIndex, isLeftLeaf, depth + 1);
+        leftIndex, midIndex, isLeftLeaf, depth + 1, epsScale);
 
 #pragma omp task shared(leftIndex, rightChildIndex, nodes, rightBMin,          \
                         rightBMax, keys, nodeInfos, vertices,                  \
                         faces) firstprivate(midIndex) if (depth < 10)
     rightChildIndex = BuildTreeRecursive32OMP(
         nodes, rightBMin, rightBMax, keys, nodeInfos, vertices, faces,
-        midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1);
+        midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1, epsScale);
 
 #pragma omp taskwait
   }
@@ -1576,7 +1576,7 @@ bool TriangleAccel::Build32(const Mesh *mesh,
         {
           leftChildIndex = BuildTreeRecursive32OMP(
               nodes_, leftBMin, leftBMax, keys, nodeInfos, mesh->vertices,
-              mesh->faces, midIndex, 0, midIndex, isLeftLeaf, 0);
+              mesh->faces, midIndex, 0, midIndex, isLeftLeaf, 0, epsScale);
         }
 
 #pragma omp single
