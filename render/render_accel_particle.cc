@@ -435,7 +435,7 @@ void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const Particles *particles,
     assert(leftIndex < rightIndex);
   }
 
-  const real kEPS = REAL_MAX * 16.0;
+  const real kEPS = REAL_EPSILON * 16.0;
 
   size_t i = leftIndex;
   size_t idx = keys[i].index;
