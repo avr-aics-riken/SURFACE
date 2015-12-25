@@ -149,8 +149,9 @@ bool ResourceManager::IsValidRenderbuffer(GLuint renderbuffer) const {
 }
 
 GLuint ResourceManager::GetBufferHandle(Buffer *buffer) {
-  BufferMap::iterator it = bufferMap_.begin();
-  while (it != bufferMap_.end()) {
+  BufferMap::iterator it(bufferMap_.begin());
+  BufferMap::iterator itEnd(bufferMap_.end());
+  for (; it != itEnd; it++) {
     if (it->second == buffer) {
       return it->first;
     }
@@ -159,8 +160,9 @@ GLuint ResourceManager::GetBufferHandle(Buffer *buffer) {
 }
 
 GLuint ResourceManager::GetShaderHandle(Shader *shader) {
-  ShaderMap::iterator it = shaderMap_.begin();
-  while (it != shaderMap_.end()) {
+  ShaderMap::iterator it(shaderMap_.begin());
+  ShaderMap::iterator itEnd(shaderMap_.end());
+  for (; it != itEnd; it++) {
     if (it->second == shader) {
       return it->first;
     }
@@ -169,8 +171,9 @@ GLuint ResourceManager::GetShaderHandle(Shader *shader) {
 }
 
 GLuint ResourceManager::GetProgramHandle(Program *program) {
-  ProgramMap::iterator it = programMap_.begin();
-  while (it != programMap_.end()) {
+  ProgramMap::iterator it(programMap_.begin());
+  ProgramMap::iterator itEnd(programMap_.end());
+  for (; it != itEnd; it++) {
     if (it->second == program) {
       return it->first;
     }
@@ -179,8 +182,9 @@ GLuint ResourceManager::GetProgramHandle(Program *program) {
 }
 
 GLuint ResourceManager::GetTextureHandle(Texture *texture) {
-  TextureMap::iterator it = textureMap_.begin();
-  while (it != textureMap_.end()) {
+  TextureMap::iterator it(textureMap_.begin());
+  TextureMap::iterator itEnd(textureMap_.end());
+  for (; it != itEnd; it++) {
     if (it->second == texture) {
       return it->first;
     }
@@ -189,8 +193,9 @@ GLuint ResourceManager::GetTextureHandle(Texture *texture) {
 }
 
 GLuint ResourceManager::GetFramebufferHandle(Framebuffer *framebuffer) {
-  FramebufferMap::iterator it = framebufferMap_.begin();
-  while (it != framebufferMap_.end()) {
+  FramebufferMap::iterator it(framebufferMap_.begin());
+  FramebufferMap::iterator itEnd(framebufferMap_.end());
+  for (; it != itEnd; it++) {
     if (it->second == framebuffer) {
       return it->first;
     }
@@ -199,8 +204,9 @@ GLuint ResourceManager::GetFramebufferHandle(Framebuffer *framebuffer) {
 }
 
 GLuint ResourceManager::GetRenderbufferHandle(Renderbuffer *renderbuffer) {
-  RenderbufferMap::iterator it = renderbufferMap_.begin();
-  while (it != renderbufferMap_.end()) {
+  RenderbufferMap::iterator it(renderbufferMap_.begin());
+  RenderbufferMap::iterator itEnd(renderbufferMap_.end());
+  for (; it != itEnd; it++) {
     if (it->second == renderbuffer) {
       return it->first;
     }
@@ -250,7 +256,6 @@ void ResourceManager::DeleteProgram(GLuint program) {
     if (handle < 1) continue;
     Shader* shd = GetShader(handle);
     if (!shd) continue;
-    printf("Frag shader release\n");
     shd->Release();
   }
 
