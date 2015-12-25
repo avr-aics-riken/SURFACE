@@ -243,6 +243,17 @@ void ResourceManager::DeleteProgram(GLuint program) {
     return;
   }
 
+  // Release attached shader.
+  for (size_t i = 0; i < prg->GetFragmentShaderCount(); i++) {
+    FragmentShader *fs = prg->GetFragmentShader((GLuint)i);
+    GLuint handle = GetShaderHandle(fs);
+    if (handle < 1) continue;
+    Shader* shd = GetShader(handle);
+    if (!shd) continue;
+    printf("Frag shader release\n");
+    shd->Release();
+  }
+
   delete prg;
   programHandleAllocator_.Release(program);
 }
