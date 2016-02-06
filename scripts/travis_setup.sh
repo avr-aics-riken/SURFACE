@@ -3,7 +3,8 @@
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 
 	brew update
-	brew install gcc48
+	# gcc 4.8.3 is already installed in Travis.
+	# brew install gcc48
 
 else	# guess linux
 
