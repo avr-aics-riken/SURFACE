@@ -1,3 +1,7 @@
+env:
+  global:
+    - secure: "GkDCNHH4Y0SGltT/Om67WSKhspOaG1TEfRxJZsR3yTefQCG6U8ag5367qX9oKfhEaaBuExZV32Ku1G97T+5BATjB52GoaqFz9qfwM0lzFHZ5rNNCnT1uIzYZZJ7Epwbr49T0v++N1wWp5sHp+npbmK81xeUr9ThPWqkzUSczrU3YH0G5PGEtyM55FVRSDIatBuMdGwfIuimTldILKtmk2E31K3oSkpjC2NPYkBZ9N/S7sVJa5L0sVeskAaRncfC2dLwJTBAR9k5lWtAPLKr8UKehFSciDmQKObZGZTX0587Tj9UWR14ALMYKBuG0CeIZSdw1amzVlbHlHcoJcrfK/a7334Yv/IwP07kK10MqB7nuRBOAfKpj+okCvMQOn6uGPHa2kU6reSCW5vjgXpVVI8Zd34YZxt5E3Q6w1aLAvGT0pw6dyC53mt4xYCAYi/sorLyEmozJ7Xqv4UyRsBxoEACW0Huq2rU7gSGyc4OiBHD310Mw3bNshjmRDqMJYFG88r23S0zsGrCu826sjo/hhB8sFprE2qva8p24yA0hl3MmUqb02hvXQTwo/O+JC5oUpiFrgkLCaLSDPswcLMV0jQ5vcY74U62GFpXivz4cOEFxFp7ZEOfoU+fOdqKRQcSfD9fWBmCpY1cN4I+ODlRq8LrQWtLauHvgMVgpjpQnlDs="
+
 language: cpp
 os:
   - linux
@@ -11,6 +15,18 @@ before_install:
 after_install:
   - g++ --version
 
-script:
+install:
   - cmake -H. -DCMAKE_C_COMPILER=gcc-4.8 -DCMAKE_CXX_COMPILER=g++-4.8 -DCMAKE_INSTALL_PREFIX=dist -DSURFACE_BUILD_WITH_OPENMP=On -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=Release -Bbuild
+
+script:
   - make -C build VERBOSE=1
+
+addons:
+  coverity_scan:
+    project:
+      name: "avr-aics-riken/SURFACE"
+      description: "Build submitted via Travis CI"
+    notification_email: syoyo@lighttransport.com
+    build_command_prepend: "cmake -H. -DCMAKE_C_COMPILER=gcc-4.8 -DCMAKE_CXX_COMPILER=g++-4.8 -DCMAKE_INSTALL_PREFIX=dist -DSURFACE_BUILD_WITH_OPENMP=On -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=Release -Bbuild"
+    build_command:   "make -C build"
+    branch_pattern: coverity_scan
