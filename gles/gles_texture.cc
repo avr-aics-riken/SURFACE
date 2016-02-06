@@ -362,14 +362,17 @@ void Context::lsglTexSubImage3DPointer(GLenum target, GLint level,
                                        GLint xoffset, GLint yoffset,
                                        GLint zoffset, GLsizei width,
                                        GLsizei height, GLsizei depth,
+                                       GLsizei cellWidth, GLsizei cellHeight, GLsizei cellDepth,
                                        GLenum format, GLenum type,
                                        const GLvoid *pixels) {
   TRACE_EVENT("(GLenum target = %d, GLint level = %d, GLint xoffiset = %d, "
               "GLint yoffset = %d, GLint zoffset= %d, GLsizei width = %d, "
               "GLsizei height = %d, GLsizei depth = %d, "
+              "GLsizei cellWidth = %d, GLsizei cellHeight = %d, "
+              "GLsizei cellDepth= %d, "
               "GLenum format = %d, GLenum type = %d, const GLvoid* pixels= %p)",
               target, level, xoffset, yoffset, zoffset, width, height, depth,
-              format, type, pixels);
+              cellWidth, cellHeight, cellDepth, format, type, pixels);
 
   // lookup texture pointer
   Texture *tex = HandleToTexture(target);
@@ -382,8 +385,12 @@ void Context::lsglTexSubImage3DPointer(GLenum target, GLint level,
     return SetGLError(GL_INVALID_VALUE);
   }
 
-  // ensure width and height are valid
   if ((width < 0) || (height < 0) || (depth < 0)) {
+    assert(0);
+    return SetGLError(GL_INVALID_VALUE);
+  }
+
+  if ((cellWidth < 0) || (cellHeight < 0) || (cellDepth < 0)) {
     assert(0);
     return SetGLError(GL_INVALID_VALUE);
   }
@@ -415,7 +422,7 @@ void Context::lsglTexSubImage3DPointer(GLenum target, GLint level,
     compos = 4;
   }
 
-  tex->SubImage3DRetain(xoffset, yoffset, zoffset, width, height, depth, compos,
+  tex->SubImage3DRetain(xoffset, yoffset, zoffset, width, height, depth, cellWidth, cellHeight, cellDepth, compos,
                         type, pixels);
 }
 

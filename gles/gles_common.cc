@@ -1246,6 +1246,9 @@ void Texture::SubImage3D(GLint xoffset, GLint yoffset, GLint zoffset,
           (height == regionList_[i].extent[1]) &&
           (depth == regionList_[i].extent[2])) {
         // Gotcha!
+        regionList_[i].size[0] = width;
+        regionList_[i].size[1] = height;
+        regionList_[i].size[2] = depth;
         delete[] regionList_[i].data;
         regionList_[i].data =
             new unsigned char[width * height * depth * dataSize * compos];
@@ -1283,6 +1286,7 @@ bool Texture::SetRemapTable(GLenum coord, GLsizei size, const GLfloat *coords) {
 
 void Texture::SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
                                GLsizei width, GLsizei height, GLsizei depth,
+                               GLsizei cellWidth, GLsizei cellHeight, GLsizei cellDepth,
                                int compos, GLenum type, const GLvoid *data) {
 
   if (isSparse_) {
@@ -1309,6 +1313,9 @@ void Texture::SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
           (width == regionList_[i].extent[0]) &&
           (height == regionList_[i].extent[1]) &&
           (depth == regionList_[i].extent[2])) {
+        regionList_[i].size[0] = cellWidth;
+        regionList_[i].size[1] = cellHeight;
+        regionList_[i].size[2] = cellDepth;
         // Just save an poineter(no local copy)
         regionList_[i].data =
             reinterpret_cast<unsigned char *>(const_cast<GLvoid *>(data));
@@ -1373,6 +1380,10 @@ void Texture::BuildSparseTexture() {
     block.extent[0] = regionList_[i].extent[0];
     block.extent[1] = regionList_[i].extent[1];
     block.extent[2] = regionList_[i].extent[2];
+
+    block.size[0] = regionList_[i].size[0];
+    block.size[1] = regionList_[i].size[1];
+    block.size[2] = regionList_[i].size[2];
 
     block.id = i;
     block.data = regionList_[i].data;

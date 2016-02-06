@@ -735,6 +735,8 @@ void lsglTexCoordRemap(GLenum target, GLenum coord, GLsizei size,
 }
 
 // Alias for glTexPageCommitmentARB
+// Specify world offset in 3D space for (xoffset, yoffset, zoffset)
+// Specify volume extent in 3D space for (width, height, depth)
 void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset,
                            GLint yoffset, GLint zoffset, GLsizei width,
                            GLsizei height, GLsizei depth, GLboolean commit) {
@@ -743,12 +745,17 @@ void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset,
 }
 
 // Zero-copy version of glTexSubImage3D(for saving memory)
+// Also add (cellWidth, cellHeight,cellDepth) extension, which specifies
+// actual volume cell size(cellWidth * cellHeight * cellDepth = sub volume data)
+// (cellWidth, cellHeight, cellDepth) must be equal or less than (width, height, depth)
 void lsglTexSubImage3DPointer(GLenum target, GLint level, GLint xoffset,
-                              GLint yoffset, GLint zoffset, GLsizei width,
-                              GLsizei height, GLsizei depth, GLenum format,
+                              GLint yoffset, GLint zoffset, 
+                              GLsizei width, GLsizei height, GLsizei depth,
+                              GLsizei cellWidth, GLsizei cellHeight, GLsizei cellDepth,
+                              GLenum format,
                               GLenum type, const GLvoid *pixels) {
   Context::GetCurrentContext().lsglTexSubImage3DPointer(
-      target, level, xoffset, yoffset, zoffset, width, height, depth, format,
+      target, level, xoffset, yoffset, zoffset, width, height, depth, cellWidth, cellHeight, cellDepth, format,
       type, pixels);
 }
 }

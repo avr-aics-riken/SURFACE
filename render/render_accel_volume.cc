@@ -84,19 +84,28 @@ bool SparseVolumeAccel::Sample(double value[4],
     double x = position[0] - block.offset[0];
     double y = position[1] - block.offset[1];
     double z = position[2] - block.offset[2];
+
+    // map [0, extent] to cell size: [0, size].
+    double scaleX = block.size[0] / block.extent[0];
+    double scaleY = block.size[1] / block.extent[1];
+    double scaleZ = block.size[2] / block.extent[2];
+    x = x * scaleX;
+    y = y * scaleX;
+    z = z * scaleX;
+  
     int ix = (std::max)(
-        (std::min)(block.extent[0] - 1, (int)x), 0);
+        (std::min)(block.size[0] - 1, (int)x), 0);
     int iy = (std::max)(
-        (std::min)(block.extent[1] - 1, (int)y), 0);
+        (std::min)(block.size[1] - 1, (int)y), 0);
     int iz = (std::max)(
-        (std::min)(block.extent[2] - 1, (int)z), 0);
+        (std::min)(block.size[2] - 1, (int)z), 0);
 
     if (sparseVolume_->format == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) { // uint8
       const unsigned char *voxel = block.data;
       assert(voxel);
 
       size_t idx =
-          iz * block.extent[0] * block.extent[1] + iy * block.extent[0] + ix;
+          iz * block.size[0] * block.size[1] + iy * block.size[0] + ix;
       for (int c = 0; c < components; c++) {
         value[c] = voxel[components * idx + c] / 255.0f;
       }
@@ -104,7 +113,7 @@ bool SparseVolumeAccel::Sample(double value[4],
       const float *voxel = reinterpret_cast<const float *>(block.data);
       assert(voxel);
       size_t idx =
-          iz * block.extent[0] * block.extent[1] + iy * block.extent[0] + ix;
+          iz * block.size[0] * block.size[1] + iy * block.size[0] + ix;
       for (int c = 0; c < components; c++) {
         value[c] = voxel[components * idx + c];
       }
@@ -112,7 +121,7 @@ bool SparseVolumeAccel::Sample(double value[4],
       const double *voxel = reinterpret_cast<const double *>(block.data);
       assert(voxel);
       size_t idx =
-          iz * block.extent[0] * block.extent[1] + iy * block.extent[0] + ix;
+          iz * block.size[0] * block.size[1] + iy * block.size[0] + ix;
       for (int c = 0; c < components; c++) {
         value[c] = (float)voxel[components * idx + c];
       }

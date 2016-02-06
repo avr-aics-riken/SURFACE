@@ -198,10 +198,11 @@ struct State {
 
 // Used in sparse texture.
 struct Region {
-  GLint offset[3];
-  GLsizei extent[3];
-  unsigned char *data;
-  GLboolean commit;
+  GLint offset[3];      ///< Offset in 3D coordinate
+  GLsizei extent[3];    ///< Extent in 3D coordinate
+  GLsizei size[3];      ///< Cell(Voxel) size
+  unsigned char *data;  ///< Voxel data.
+  GLboolean commit;     ///< Page commit.
 };
 
 /// Base class for GLES vertex buffer.
@@ -275,6 +276,7 @@ public:
   // Just retain a pointer to the texture data(no internal copy happens).
   void SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
                         GLsizei width, GLsizei height, GLsizei depth,
+                        GLsizei cellWidth, GLsizei cellHeight, GLsizei cellDepth,
                         int compos, GLenum type, const GLvoid *data);
 
   void SetMinFilter(bool filter) { minFiltering_ = filter; }

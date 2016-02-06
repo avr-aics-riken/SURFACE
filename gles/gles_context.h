@@ -279,8 +279,10 @@ public:
                              GLint border, GLenum format, GLenum type,
                              const GLvoid *pixels);
   void lsglTexSubImage3DPointer(GLenum target, GLint level, GLint xoffset,
-                                GLint yoffset, GLint zoffset, GLsizei width,
-                                GLsizei height, GLsizei depth, GLenum format,
+                                GLint yoffset, GLint zoffset, 
+                                GLsizei width, GLsizei height, GLsizei depth,
+                                GLsizei cellWidth, GLsizei cellHeight, GLsizei cellDepth,
+                                GLenum format,
                                 GLenum type, const GLvoid *pixels);
   /// Add coordinate remap when looking up texture. remap table is given as 1D
   /// array.

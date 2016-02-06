@@ -53,12 +53,12 @@ public:
   SparseVolumeAccel() : sparseVolume_(0){};
   ~SparseVolumeAccel(){};
 
-  /// Build volume BVH for input volume blocks.
+  /// Build volume BVH for the input sparse volume.
   bool Build(const SparseVolume *sparseVolume);
 
   /// Sample sparse volume at specified position.
-  /// Volume elements are limited to 4 elements(RGBA)
-  /// Note that input range for `position` must within [bmin, bmax]^3
+  /// Volume elements are limited to up to 4 elements(RGBA)
+  /// The function returns false when `position` is not within the bounding box.
   bool Sample(double value[4], const double position[3]) const;
 
   /// Get the bounding box of BVH. Valid after Build().
