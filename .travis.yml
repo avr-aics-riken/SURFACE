@@ -27,6 +27,5 @@ addons:
       name: "avr-aics-riken/SURFACE"
       description: "Build submitted via Travis CI"
     notification_email: syoyo@lighttransport.com
-    build_command_prepend: "cmake -H. -DCMAKE_C_COMPILER=gcc-4.8 -DCMAKE_CXX_COMPILER=g++-4.8 -DCMAKE_INSTALL_PREFIX=dist -DSURFACE_BUILD_WITH_OPENMP=On -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=Release -Bbuild"
     build_command:   "make -C build"
     branch_pattern: coverity_scan
