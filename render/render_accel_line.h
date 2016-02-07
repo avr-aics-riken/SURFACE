@@ -56,7 +56,7 @@ struct LineBuildOptions {
   bool cap; // enable = cap line(cylinder) primitive.
 
   // Set default value: Taabb = 0.2
-  LineBuildOptions() : minLeafPrimitives(4), maxTreeDepth(512), cap(true) {}
+  LineBuildOptions() : debugPrint(false), minLeafPrimitives(4), maxTreeDepth(512), cap(true) {}
 };
 
 ///< Line BVH build statistics.

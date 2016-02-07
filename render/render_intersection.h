@@ -45,6 +45,10 @@ struct Intersection {
   void clear() {
     renderElement = NULL;
     prim_id = (unsigned int)(-1);
+    subface_id = 0;
+    t = 0.0f;
+    u = 0.0f;
+    v = 0.0f;
   }
 };
 

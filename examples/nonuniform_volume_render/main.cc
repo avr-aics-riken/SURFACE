@@ -60,6 +60,8 @@ GenVolumeTexture(
   glBindTexture(GL_TEXTURE_3D, tex);
   glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, dim[0], dim[1], dim[2], 0, GL_LUMINANCE, GL_FLOAT, buf);
 
+  delete [] buf;
+
   return true;
 }
 

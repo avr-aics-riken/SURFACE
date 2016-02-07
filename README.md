@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/avr-aics-riken/SURFACE.svg?branch=master)](https://travis-ci.org/avr-aics-riken/SURFACE)
 
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/7851/badge.svg)](https://scan.coverity.com/projects/avr-aics-riken-surface)
+
 Scalable and Ubiquitous Rendering Framework for Advanced Computing Environments.
 
 An software implementation of high performance ray tracer with GLES 2.0 compatible API and GLSL shading language support.

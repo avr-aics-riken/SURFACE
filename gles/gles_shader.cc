@@ -334,6 +334,7 @@ void Context::glShaderBinary(GLsizei n, const GLuint *shaders,
   // get shader pointer from handle
   Shader *shd = resourceManager_.GetShader(shaders[0]);
   if (shd == NULL) {
+    free(filename);
     return SetGLError(GL_INVALID_OPERATION);
   }
 
@@ -342,7 +343,7 @@ void Context::glShaderBinary(GLsizei n, const GLuint *shaders,
 #else
   std::string filepath = std::string(filename);
 #endif
-  // free(filename);
+  free(filename);
 
   bool ret = shd->LoadShaderBinary(filepath);
   if (!ret) {

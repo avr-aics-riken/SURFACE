@@ -50,7 +50,7 @@ struct ParticleBuildOptions {
   int maxTreeDepth;
 
   // Set default value: Taabb = 0.2
-  ParticleBuildOptions() : minLeafPrimitives(16), maxTreeDepth(256) {}
+  ParticleBuildOptions() : debugPrint(false), minLeafPrimitives(16), maxTreeDepth(256) {}
 };
 
 /// Particle build statistics.

@@ -716,6 +716,7 @@ bool LineAccel::Traverse(Intersection &isectRet, Ray &ray) const {
   isect.u = 0.0;
   isect.v = 0.0;
   isect.prim_id = (unsigned int)(-1);
+  isect.hitCap = false;
 
   int dirSign[3];
   dirSign[0] = ray.direction()[0] < 0.0 ? 1 : 0;

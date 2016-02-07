@@ -61,6 +61,8 @@ bool TinySWC::Parse() {
     buffer[n] = p;
   }
 
+  fclose(fp);
+
   // Construct line segment.
   for (size_t i = 0; i < buffer.size(); i++) {
 

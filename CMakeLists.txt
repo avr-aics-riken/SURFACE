@@ -29,6 +29,7 @@ SET(SURFACE_BUILD_UNIT_TEST OFF CACHE BOOL "Build unit test?")
 SET(SURFACE_BUILD_K_CROSS_COMPILE OFF CACHE BOOL "Build for K/FX10 target with corss compiling?")
 SET(SURFACE_BUILD_WITH_MPI OFF CACHE BOOL "Build with MPI support?")
 SET(SURFACE_BUILD_WITH_OPENMP OFF CACHE BOOL "Build with OpenMP support?")
+SET(SURFACE_BUILD_WITH_ASAN OFF CACHE BOOL "Build with AddressSanitizer support?(gcc48+ or clang35+ required)")
 
 # Deprecated. to be removed.
 SET(SURFACE_BUILD_SCREEN_PARALLEL OFF CACHE BOOL "[DEPRECATED] Build with screen parallel support?(Also need to enable SURFACE_BUILD_WITH_MPI option)")
@@ -125,6 +126,12 @@ ENDIF()
 
 IF (SURFACE_BUILD_WITH_MPI)
   ADD_DEFINITIONS(-DLSGL_ENABLE_MPI=1) 
+ENDIF()
+
+IF (SURFACE_BUILD_WITH_ASAN)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
 ENDIF()
 
 # Windows

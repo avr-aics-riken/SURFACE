@@ -91,7 +91,7 @@ class Vec3x
 {
 public:
 
-    Vec3x(){}
+    Vec3x():x(0),y(0),z(0){}
     Vec3x(T a):x(a),y(a),z(a){}
     Vec3x(T a, T b, T c):x(a),y(b),z(c){}
 

@@ -51,7 +51,7 @@ struct TriangleBuildOptions {
 
   // Set default value: Taabb = 0.2
   TriangleBuildOptions()
-      : costTaabb(0.2), minLeafPrimitives(16), maxTreeDepth(256), binSize(64) {}
+      : debugPrint(false), costTaabb(0.2), minLeafPrimitives(16), maxTreeDepth(256), binSize(64) {}
 };
 
 /// Triangle BVH build statistics.

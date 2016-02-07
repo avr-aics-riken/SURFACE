@@ -95,6 +95,8 @@ static bool GenSparseVolumeFloatTexture(GLuint &tex,
     }
   }
 
+  delete [] buf;
+
   return true;
 }
 
