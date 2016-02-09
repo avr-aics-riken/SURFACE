@@ -49,6 +49,10 @@ struct Intersection {
     t = 0.0f;
     u = 0.0f;
     v = 0.0f;
+    f0 = 0;
+    f1 = 0;
+    f2 = 0;
+    f3 = 0;
   }
 };
 

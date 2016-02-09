@@ -264,6 +264,17 @@ void Context::lsglEvalSingleFragmentShader() {
 
   FragmentShader::CameraInfo cameraInfo;
 
+  cameraInfo.frame[0][0] = 1.0f;
+  cameraInfo.frame[0][1] = 0.0f;
+  cameraInfo.frame[0][2] = 0.0f;
+  cameraInfo.frame[1][0] = 0.0f;
+  cameraInfo.frame[1][1] = 1.0f;
+  cameraInfo.frame[1][2] = 0.0f;
+  cameraInfo.frame[2][0] = 0.0f;
+  cameraInfo.frame[2][1] = 0.0f;
+  cameraInfo.frame[2][2] = 1.0f;
+  cameraInfo.fov = 0.0f;
+
   GLfloat fragcol[4]; // out
   GLfloat fragCoord[4];
   fragCoord[0] = 0.5f;
@@ -279,6 +290,14 @@ void Context::lsglEvalSingleFragmentShader() {
   isectState.raydepth = 0.0f;
   isectState.rayattrib = 0.0f;
   isectState.doubleSided = 1;
+  isectState.prev_node = NULL;
+  isectState.prev_prim_id = static_cast<unsigned int>(-1);
+  isectState.prev_hit_t = 0.0f;
+  isectState.u = 0.0f;
+  isectState.v = 0.0f;
+  isectState.f0 = 0;
+  isectState.f1 = 0;
+  isectState.f2 = 0;
 
   program->GetFragmentShader(0)->Eval(fragcol, fragmentState, shadingState,
                                       vertexAttributes, fragCoord, isectState,
