@@ -21,7 +21,7 @@
 
 namespace lsgl {
 
-class ResourceManager {
+class LSGLES_EXPORT ResourceManager {
 public:
   ResourceManager(){};
   ~ResourceManager() {

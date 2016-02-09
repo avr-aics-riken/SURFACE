@@ -33,6 +33,16 @@
 #define TRACE_EVENT(message, ...) (void(0))
 #endif
 
+#ifdef WIN32
+#ifdef LSGL_EXPORT
+#define LSGLES_EXPORT __declspec(dllexport)
+#else
+#define LSGLES_EXPORT __declspec(dllimport)
+#endif
+#else
+#define LSGLES_EXPORT
+#endif
+
 extern "C" {
 
 // Callback function from LSGL to user program
@@ -441,7 +451,7 @@ private:
 };
 
 /// GLES renderbuffer.
-class Renderbuffer {
+class LSGLES_EXPORT Renderbuffer {
 public:
   Renderbuffer();
   virtual ~Renderbuffer();
@@ -476,7 +486,7 @@ private:
 };
 
 /// GLES framebuffer
-class Framebuffer {
+class LSGLES_EXPORT Framebuffer {
 public:
   Framebuffer();
   virtual ~Framebuffer();
@@ -630,7 +640,7 @@ struct IntersectionState {
 };
 
 /// Base class of vertex and fragment shader.
-class Shader {
+class LSGLES_EXPORT Shader {
   //
   // DLL shader method
   //

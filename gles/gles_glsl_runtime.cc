@@ -137,7 +137,8 @@ float trace(void *fragptr, vec3 *org, vec3 *dir, vec4 *shadecol,
 
   int thread_id = frag->threadID;
 
-  bool hit = RaytraceEngine::GetRaytraceEngine()->Trace(isect, ray);
+  Context &ctx = Context::GetCurrentContext();
+  bool hit = ctx.lsglGetRaytraceEngine().Trace(isect, ray); // RaytraceEngine::GetRaytraceEngine()->Trace(isect, ray);
 
   //
   // Call fragment shader
@@ -146,8 +147,11 @@ float trace(void *fragptr, vec3 *org, vec3 *dir, vec4 *shadecol,
     float col[4] = {0.0, 0.0, 0.0, 0.0};
     bool discarded = false;
 
-    RaytraceEngine::GetRaytraceEngine()->ShadeFragment(col, discarded, isect,
+	ctx.lsglGetRaytraceEngine().ShadeFragment(col, discarded, isect,
                                                        ray, thread_id);
+
+    //RaytraceEngine::GetRaytraceEngine()->ShadeFragment(col, discarded, isect,
+    //                                                   ray, thread_id);
 
     // @fixme { Handle discarded fragment correctly. }
     if (shadecol && !discarded) {
@@ -202,7 +206,8 @@ float shadow(void *fragptr, vec3 *org, vec3 *dir) {
   ray.user_attrib = 0.0f;
   ray.double_sided = frag->doubleSided;
 
-  bool hit = RaytraceEngine::GetRaytraceEngine()->Trace(isect, ray);
+  Context &ctx = Context::GetCurrentContext();
+  bool hit = ctx.lsglGetRaytraceEngine().Trace(isect, ray); //RaytraceEngine::GetRaytraceEngine()->Trace(isect, ray);
 
   if (hit) {
     // no shading. just return distance

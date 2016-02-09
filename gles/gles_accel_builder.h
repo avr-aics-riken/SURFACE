@@ -26,9 +26,9 @@
 namespace lsgl {
 
 //
-// Mesh builder
+// Accel builder
 //
-class AccelBuilder {
+class LSGLES_EXPORT AccelBuilder {
 public:
   typedef ParticleAccel ParticleAccelerator;
   typedef LineAccel LineAccelerator;
