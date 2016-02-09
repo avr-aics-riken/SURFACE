@@ -1,6 +1,7 @@
 # SURFACE
 
 [![Build Status](https://travis-ci.org/avr-aics-riken/SURFACE.svg?branch=master)](https://travis-ci.org/avr-aics-riken/SURFACE)
+[![Build status](https://ci.appveyor.com/api/projects/status/nul06j994uk5pe9u?svg=true)](https://ci.appveyor.com/project/syoyo/surface)
 
 Scalable and Ubiquitous Rendering Framework for Advanced Computing Environments.
 
