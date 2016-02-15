@@ -24,15 +24,6 @@
 #include "GLES2/gl2.h"
 #include "GLES2/gl2ext.h"
 
-#ifdef WIN32
-#ifdef LSGL_EXPORT
-#define LSGLES_EXPORT __declspec(dllexport)
-#else
-#define LSGLES_EXPORT __declspec(dllimport)
-#endif
-#else
-#define LSGLES_EXPORT
-#endif
 namespace lsgl {
 
 //
@@ -294,6 +285,9 @@ public:
   void lsglTexPageCommitment(GLenum target, GLint level, GLint xoffset,
                              GLint yoffset, GLint zoffset, GLsizei width,
                              GLsizei height, GLsizei depth, GLboolean commit);
+
+  /// Get raytrace engine context.
+  RaytraceEngine& lsglGetRaytraceEngine() { return engine_; }
 
 private:
   friend class RaytraceEngine;

@@ -27,7 +27,7 @@ class Context;
 class RenderGraph;
 
 /// Raytracing system
-class RaytraceEngine {
+class LSGLES_EXPORT RaytraceEngine {
 public:
   RaytraceEngine();
   ~RaytraceEngine();
@@ -67,7 +67,7 @@ public:
 
   bool Trace(Intersection &isect, Ray &r);
 
-  static inline RaytraceEngine *GetRaytraceEngine() { return sRaytraceEngine; }
+  //static inline RaytraceEngine *GetRaytraceEngine() { return sRaytraceEngine; }
 
   /// Shade one fragment object for the intersection. Shaded color is stored in
   /// shadecol.
@@ -102,7 +102,7 @@ private:
   double accumTime_;
   double numRays_;
 
-  static RaytraceEngine *sRaytraceEngine;
+  //static RaytraceEngine *sRaytraceEngine;
 
   int pixelStep_;
   LSGLProgressCallback progressCallbackFunc_;
