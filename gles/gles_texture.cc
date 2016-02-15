@@ -395,6 +395,17 @@ void Context::lsglTexSubImage3DPointer(GLenum target, GLint level,
     return SetGLError(GL_INVALID_VALUE);
   }
 
+  // cell size must be less or equal than extent(width, height, depth)
+  if (width < cellWidth) {
+    return SetGLError(GL_INVALID_VALUE);
+  }
+  if (height < cellHeight) {
+    return SetGLError(GL_INVALID_VALUE);
+  }
+  if (depth < cellDepth) {
+    return SetGLError(GL_INVALID_VALUE);
+  }
+
   // only support reading 1 or 3 component uchar or fp data for now
   if (((format == GL_LUMINANCE) && (type == GL_UNSIGNED_BYTE)) ||
       ((format == GL_RGB) && (type == GL_UNSIGNED_BYTE))) {

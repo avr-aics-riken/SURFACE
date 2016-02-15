@@ -86,9 +86,9 @@ bool SparseVolumeAccel::Sample(double value[4],
     double z = position[2] - block.offset[2];
 
     // map [0, extent] to cell size: [0, size].
-    double scaleX = block.size[0] / block.extent[0];
-    double scaleY = block.size[1] / block.extent[1];
-    double scaleZ = block.size[2] / block.extent[2];
+    double scaleX = block.size[0] / (double)block.extent[0];
+    double scaleY = block.size[1] / (double)block.extent[1];
+    double scaleZ = block.size[2] / (double)block.extent[2];
     x = x * scaleX;
     y = y * scaleX;
     z = z * scaleX;
