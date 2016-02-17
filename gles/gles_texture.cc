@@ -380,8 +380,7 @@ void Context::lsglTexSubImage3DPointer(GLenum target, GLint level,
     return SetGLError(GL_INVALID_ENUM);
   }
 
-  // only support level zero (no mipmaps) for now
-  if (level != 0) {
+  if ((level < 0) || (level > 32)) {
     return SetGLError(GL_INVALID_VALUE);
   }
 
@@ -433,7 +432,7 @@ void Context::lsglTexSubImage3DPointer(GLenum target, GLint level,
     compos = 4;
   }
 
-  tex->SubImage3DRetain(xoffset, yoffset, zoffset, width, height, depth, cellWidth, cellHeight, cellDepth, compos,
+  tex->SubImage3DRetain(level, xoffset, yoffset, zoffset, width, height, depth, cellWidth, cellHeight, cellDepth, compos,
                         type, pixels);
 }
 

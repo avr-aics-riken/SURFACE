@@ -1249,6 +1249,7 @@ void Texture::SubImage3D(GLint xoffset, GLint yoffset, GLint zoffset,
         regionList_[i].size[0] = width;
         regionList_[i].size[1] = height;
         regionList_[i].size[2] = depth;
+        regionList_[i].level = 0; // @todo
         delete[] regionList_[i].data;
         regionList_[i].data =
             new unsigned char[width * height * depth * dataSize * compos];
@@ -1284,7 +1285,7 @@ bool Texture::SetRemapTable(GLenum coord, GLsizei size, const GLfloat *coords) {
   return true;
 }
 
-void Texture::SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
+void Texture::SubImage3DRetain(GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
                                GLsizei width, GLsizei height, GLsizei depth,
                                GLsizei cellWidth, GLsizei cellHeight, GLsizei cellDepth,
                                int compos, GLenum type, const GLvoid *data) {
@@ -1304,7 +1305,7 @@ void Texture::SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
       }
     }
 
-    // Find region.
+    // Find region with simple liear search.
     // @todo { optimize region search. }
     for (size_t i = 0; i < regionList_.size(); i++) {
       if ((xoffset == regionList_[i].offset[0]) &&
@@ -1316,6 +1317,7 @@ void Texture::SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
         regionList_[i].size[0] = cellWidth;
         regionList_[i].size[1] = cellHeight;
         regionList_[i].size[2] = cellDepth;
+        regionList_[i].level = level;
         // Just save an poineter(no local copy)
         regionList_[i].data =
             reinterpret_cast<unsigned char *>(const_cast<GLvoid *>(data));
@@ -1385,6 +1387,7 @@ void Texture::BuildSparseTexture() {
     block.size[1] = regionList_[i].size[1];
     block.size[2] = regionList_[i].size[2];
 
+    block.level = regionList_[i].level;
     block.id = i;
     block.data = regionList_[i].data;
 

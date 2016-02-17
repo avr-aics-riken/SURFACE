@@ -206,8 +206,9 @@ struct State {
   GLint pixelStep;
 };
 
-// Used in sparse texture.
+// Used in sparse LoD texture.
 struct Region {
+  GLint level;          ///< LoD level
   GLint offset[3];      ///< Offset in 3D coordinate
   GLsizei extent[3];    ///< Extent in 3D coordinate
   GLsizei size[3];      ///< Cell(Voxel) size
@@ -284,7 +285,7 @@ public:
                   const GLvoid *data);
 
   // Just retain a pointer to the texture data(no internal copy happens).
-  void SubImage3DRetain(GLint xoffset, GLint yoffset, GLint zoffset,
+  void SubImage3DRetain(GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
                         GLsizei width, GLsizei height, GLsizei depth,
                         GLsizei cellWidth, GLsizei cellHeight, GLsizei cellDepth,
                         int compos, GLenum type, const GLvoid *data);
