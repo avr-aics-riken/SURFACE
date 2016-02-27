@@ -14,6 +14,7 @@
 
 #include "../common/SimpleTGA.h"
 
+#define USE_DOUBLE_PRECISION  (1)
 
 int windowWidth = 512;
 int windowHeight = 512;
@@ -87,6 +88,65 @@ static bool GenLodSparseVolumeFloatTexture(GLuint &tex,
     assert(glGetError() == GL_NO_ERROR);
     lsglTexSubImage3DPointer(GL_TEXTURE_3D, 0, loc[i][0], loc[i][1], loc[i][2],
                       extent[0], extent[1], extent[2], dim[0], dim[1], dim[2], GL_LUMINANCE, GL_FLOAT, buf);
+    assert(glGetError() == GL_NO_ERROR);
+
+  }
+
+  // Should not delete buf here. Return the pointer, and delete it after the rendering
+  (*bufAddr) = buf;
+
+  return true;
+}
+
+static bool GenLodSparseVolumeDoubleTexture(GLuint &tex,
+                                        double **bufAddr,
+                                        const unsigned char *voldata,
+                                        int dim[3]) {
+
+  double *buf = new double[dim[0] * dim[1] * dim[2]];
+
+  // uchar -> float
+  for (size_t i = 0; i < dim[0] * dim[1] * dim[2]; i++) {
+    buf[i] = voldata[i] / 255.0;
+  }
+
+  int nlods = 4; // Up to 8 for demo;
+  int loc[8][3];
+
+  // Compute block origin.
+  loc[0][0] = 0;
+  loc[0][1] = 0;
+  loc[0][2] = 0;
+  for (int i = 1; i < nlods; i++) {
+
+    loc[i][0] = 0; //loc[i-1][0] + dim[0] * pow(2.0, i-1);
+    loc[i][1] = 0; //loc[i-1][1] + dim[1] * pow(2.0, i-1);
+    loc[i][2] = loc[i-1][2] + dim[2] * pow(2.0, i-1);
+  }
+  
+
+  glGenTextures(1, &tex);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_3D, tex);
+
+  for (int i = 0; i < nlods; i++) {
+  
+    int extent[3] = {0,0,0};
+
+    extent[0] = dim[0] * pow(2.0, i);
+    extent[1] = dim[1] * pow(2.0, i);
+    extent[2] = dim[2] * pow(2.0, i);
+
+    printf("loc    = %d, %d, %d\n", loc[i][0], loc[i][1], loc[i][2]);
+    printf("extent = %d, %d, %d\n", extent[0], extent[1], extent[2]);
+    printf("dim    = %d, %d, %d\n", dim[0], dim[1], dim[2]);
+
+    lsglTexPageCommitment(GL_TEXTURE_3D, /* lv= */ 0, loc[i][0],
+                          loc[i][1], loc[i][2], extent[0], extent[1], extent[2],
+                          GL_TRUE);
+    assert(glGetError() == GL_NO_ERROR);
+    lsglTexSubImage3DPointer(GL_TEXTURE_3D, 0, loc[i][0], loc[i][1], loc[i][2],
+                      extent[0], extent[1], extent[2], dim[0], dim[1], dim[2], GL_LUMINANCE, GL_DOUBLE, buf);
     assert(glGetError() == GL_NO_ERROR);
 
   }
@@ -210,10 +270,15 @@ int main(int argc, char **argv) {
   // bool ret = LoadBinaryShader(prog, fragShader, fragShaderBinFile);
   assert(ret);
 
-  float *bufAddr = NULL;
   printf("LoadTex\n");
   GLuint tex0;
+#if USE_DOUBLE_PRECISION
+  double *bufAddr = NULL;
+  ret = GenLodSparseVolumeDoubleTexture(tex0, &bufAddr, voldata, dim);
+#else
+  float *bufAddr = NULL;
   ret = GenLodSparseVolumeFloatTexture(tex0, &bufAddr, voldata, dim);
+#endif
   assert(ret);
 
   glActiveTexture(GL_TEXTURE0);
