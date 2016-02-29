@@ -82,14 +82,17 @@ Then run GLSL compiler to check it can produce shader module(`shader.so`)
 
 ### Supported geometric primitives
 
-* [x] Polygon(triangle)
-* [x] Particle(rendered as sphere)
-* [x] Tetrahedron
-* [x] Line(rendered as cylinder)
+* [x] Polygon(triangle). 3 vertices for each primitve.
+* [x] Particle(rendered as sphere). 1 verterx + radius for each primitive.
+* [x] Tetrahedron(GL_TETRAHEDRONS_EXT). 4 vertices for each primitive.
+* [x] Pyramid(GL_PYRAMIDS_EXT). 5 vertices for each primitive.
+* [x] Prism(GL_PRISMS_EXT) 6 vertices for each primitive.
+* [x] Hexahedron(GL_HEXAHEDRONS_EXT). 8 vertices for each primitive.
+* [x] Line(rendered as cylinder). 2 verties + width for each primitive.
 * [x] Volume
   * [x] Uniform volume(as 3D texture)
   * [x] Non-uniform volume(as 3D texture + custom coordinate transform table)
-  * [x] Hierarchical volume(as sparse volume representation)
+  * [x] Hierarchical volume(as sparse multigrid volume representation)
 
 ## Publications
 

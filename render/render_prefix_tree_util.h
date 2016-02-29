@@ -623,6 +623,16 @@ void CalculateMortonCodesTetraDouble30(uint32_t *codes, const double *vertices,
                                        const real3 &bmax, int64_t startIdx,
                                        int64_t endIdx);
 
+void CalculateMortonCodesSolidFloat30(uint32_t *codes, int numVertsPerSolid, const float *vertices,
+                                      const uint32_t *indices, const real3 &bmin,
+                                      const real3 &bmax, int64_t startIdx,
+                                      int64_t endIdx);
+
+void CalculateMortonCodesSolidDouble30(uint32_t *codes, int numVertsPerSolid, const double *vertices,
+                                       const uint32_t *indices, const real3 &bmin,
+                                       const real3 &bmax, int64_t startIdx,
+                                       int64_t endIdx);
+
 void CalculateMortonCodes60(uint64_t *codes, const float *points,
                             const real3 &bmin, const real3 &bmax,
                             int64_t startIdx, int64_t endIdx);

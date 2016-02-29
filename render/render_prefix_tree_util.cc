@@ -344,6 +344,83 @@ void lsgl::render::CalculateMortonCodesTetraDouble30(
   }
 }
 
+void lsgl::render::CalculateMortonCodesSolidFloat30(
+    uint32_t *codes, int numVersPerSolid, const float *points, const uint32_t *faces,
+    const real3 &bmin, const real3 &bmax, int64_t startIdx, int64_t endIdx) {
+
+  assert(startIdx <= endIdx);
+
+  int kDIV = (1 << 10);
+  real invx = kDIV / (bmax[0] - bmin[0]);
+  real invy = kDIV / (bmax[1] - bmin[1]);
+  real invz = kDIV / (bmax[2] - bmin[2]);
+
+  // printf("inv: %f, %f, %f\n", invx, invy, invz);
+
+  int64_t n = endIdx - startIdx;
+
+  float invDiv = 1.0f / (float)numVersPerSolid;
+
+#ifdef _OPENMP
+//#pragma omp parallel for if (n > 4096)
+//#pragma omp parallel for schedule(dynamic, 1) if (n > 4096)
+#pragma omp parallel for if (n > 4096)
+#endif
+  for (int64_t i = startIdx; i < endIdx; i++) {
+    real3 p_i = real3(0.0, 0.0, 0.0);
+    for (int j = 0; j < numVersPerSolid; j++) {
+      uint32_t f = faces[numVersPerSolid * i + j];
+      real3 p(points[3 * f + 0], points[3 * f + 1], points[3 * f + 2]);
+      p_i = p_i + p;
+    }
+    
+    p_i[0] *= invDiv;
+    p_i[1] *= invDiv;
+    p_i[2] *= invDiv;
+    codes[i] = MortionCode30(p_i, bmin, invx, invy, invz);
+  }
+}
+
+void lsgl::render::CalculateMortonCodesSolidDouble30(
+    uint32_t *codes, int numVersPerSolid, const double *points, const uint32_t *faces,
+    const real3 &bmin, const real3 &bmax, int64_t startIdx, int64_t endIdx) {
+
+  assert(startIdx <= endIdx);
+
+  int kDIV = (1 << 10);
+  real invx = kDIV / (bmax[0] - bmin[0]);
+  real invy = kDIV / (bmax[1] - bmin[1]);
+  real invz = kDIV / (bmax[2] - bmin[2]);
+
+  // printf("inv: %f, %f, %f\n", invx, invy, invz);
+
+  int64_t n = endIdx - startIdx;
+
+  float invDiv = 1.0f / (float)numVersPerSolid;
+
+#ifdef _OPENMP
+//#pragma omp parallel for if (n > 4096)
+//#pragma omp parallel for schedule(dynamic, 1) if (n > 4096)
+#pragma omp parallel for if (n > 4096)
+#endif
+  for (int64_t i = startIdx; i < endIdx; i++) {
+    real3 p_i = real3(0.0, 0.0, 0.0);
+    for (int j = 0; j < numVersPerSolid; j++) {
+      uint32_t f = faces[numVersPerSolid * i + i];
+
+      // may truncate precision.
+      real3 p(points[3 * f + 0], points[3 * f + 1], points[3 * f + 2]);
+
+      p_i = p_i + p;
+    }
+
+    p_i[0] *= invDiv;
+    p_i[1] *= invDiv;
+    p_i[2] *= invDiv;
+    codes[i] = MortionCode30(p_i, bmin, invx, invy, invz);
+  }
+}
+
 void lsgl::render::CalculateMortonCodes60(uint64_t *codes, const float *points,
                                           const real3 &bmin, const real3 &bmax,
                                           int64_t startIdx, int64_t endIdx) {

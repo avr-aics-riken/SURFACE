@@ -325,6 +325,77 @@ AccelBuilder::TetraAccelerator *AccelBuilder::BuildTetraAccel(
   return reinterpret_cast<AccelBuilder::TetraAccelerator *>(ce->primData.accel);
 }
 
+AccelBuilder::SolidAccelerator *AccelBuilder::BuildSolidAccel(
+    GLenum solidType,
+    const Buffer *elembuf, const Buffer *arraybuf, bool isDoublePrecisionPos,
+    const VertexAttribute *vertexAttributes, GLsizei count, GLuint offset) {
+  // ensure the position vertex attribute is enabled, at minimum
+  const VertexAttribute *attrPos = &vertexAttributes[kVtxAttrPosition];
+  if (attrPos->enabled == false) {
+    return NULL;
+  }
+
+  // initialize array buffer info
+  ArrayBufInfo abinfo = {0};
+  abinfo.offsetPosition = (GLubyte *)attrPos->ptr - (GLubyte *)NULL;
+
+  // FIXME: assume non-interleaved XYZ float for position (for now)
+  if ((attrPos->size == 3) && (attrPos->type == GL_FLOAT) &&
+      (attrPos->normalized == GL_FALSE) &&
+      (attrPos->stride == (3 * sizeof(float)))) {
+    // OK
+  } else if ((attrPos->size == 3) && (attrPos->type == GL_DOUBLE) &&
+             (attrPos->normalized == GL_FALSE) &&
+             (attrPos->stride == (3 * sizeof(double)))) {
+    // OK. Double preicsion
+    assert(isDoublePrecisionPos == true);
+  } else {
+    fprintf(stderr, "[LSGL] Unsupported primitive format.\n");
+    return NULL;
+  }
+
+  // first try to locate this mesh in our static cache
+  SolidAccelerator *accel = reinterpret_cast<SolidAccelerator *>(
+      Locate(elembuf, arraybuf, &abinfo, count, offset));
+  if (accel != NULL) {
+    return accel;
+  }
+
+  // allocate a new cache entry and initialize
+  CacheEntry *ce = new CacheEntry;
+  ce->elembuf = elembuf;
+  ce->arraybuf = arraybuf;
+  ce->isDoublePrecisionPos = isDoublePrecisionPos;
+  ce->abinfo = abinfo;
+  ce->count = count;
+  ce->offset = offset;
+  ce->hitCount = 1;
+  ce->builtTime = clock();
+
+  // build the mesh accelerator
+  AddSolidData(solidType, &ce->primData, elembuf, arraybuf, isDoublePrecisionPos, &abinfo,
+               count, offset);
+
+  // if both buffers are marked as static, add this mesh to the static cache
+  // list, otherwise add it to the dynamic list instead
+  if ((elembuf->IsStatic() == true) && (arraybuf->IsStatic() == true)) {
+    staticList_.push_back(ce);
+    ce->dynamic = false;
+  } else {
+    dynamicList_.push_back(ce);
+    ce->dynamic = true;
+  }
+
+  // update used cache size, and add the mesh accelerator to our map
+  cacheSizeUsed_ += ce->primData.GetByteSize();
+  primDataMap_[ce->primData.accel] = ce;
+
+  // print current cache usage info and return a pointer to the accelerator
+  printf("[LSGL] SolidBuilder cache: %dKB used / %dKB free (%.2f%%)\n",
+         GetCacheUsed() / 1024, GetCacheSize() / 1024, GetCachePercent());
+  return reinterpret_cast<AccelBuilder::SolidAccelerator *>(ce->primData.accel);
+}
+
 bool AccelBuilder::AddTriangleData(PrimData *pd, TriangleAccelerator *accel) {
   // locate the cache entry for this accelerator
   PrimDataMap::const_iterator it =
@@ -806,6 +877,107 @@ void AccelBuilder::AddTetraData(PrimData *pd, const Buffer *elembuf,
   pd->accel = reinterpret_cast<unsigned char *>(accel);
 }
 
+void AccelBuilder::AddSolidData(GLenum solidType, PrimData *pd, const Buffer *elembuf,
+                                const Buffer *arraybuf,
+                                bool isDoublePrecisionPos,
+                                const ArrayBufInfo *abinfo, GLsizei count,
+                                GLuint offset) {
+  GLuint maxIndex;
+
+  // first free any existing accelerator
+  AccelBuilder::SolidAccelerator *pacc =
+      reinterpret_cast<AccelBuilder::SolidAccelerator *>(pd->accel);
+  delete pacc;
+  pd->accel = NULL;
+
+  delete pd->solids;
+  pd->solids = new Solid();
+
+  if (isDoublePrecisionPos) {
+    // @todo { provide zero-copy version. }
+    AddData(pd->indexBuffer, elembuf, count, offset,
+            pd->dpositionBuffer.GetCount() / 3, &maxIndex);
+
+    if (arraybuf->IsRetained()) {
+      // zero-copy vesion.
+      assert(abinfo->offsetPosition == 0);
+      pd->solids->dvertices =
+          reinterpret_cast<const double *>(arraybuf->GetData());
+      pd->solids->vertices = NULL;
+    } else {
+      AddData(pd->dpositionBuffer, arraybuf, (maxIndex + 1) * 3,
+              abinfo->offsetPosition);
+
+      pd->solids->dvertices = pd->dpositionBuffer.GetBase();
+      pd->solids->vertices = NULL;
+    }
+
+    pd->solids->isDoublePrecisionPos = true;
+
+  } else {
+    // @todo { provide zero-copy version. }
+    AddData(pd->indexBuffer, elembuf, count, offset,
+            pd->positionBuffer.GetCount() / 3, &maxIndex);
+
+    if (arraybuf->IsRetained()) {
+      // zero-copy vesion.
+      assert(abinfo->offsetPosition == 0);
+      pd->solids->vertices =
+          reinterpret_cast<const float *>(arraybuf->GetData());
+      pd->solids->dvertices = NULL;
+
+    } else {
+      AddData(pd->positionBuffer, arraybuf, (maxIndex + 1) * 3,
+              abinfo->offsetPosition);
+      pd->solids->vertices = pd->positionBuffer.GetBase();
+      pd->solids->dvertices = NULL;
+    }
+
+    pd->solids->isDoublePrecisionPos = false;
+  }
+
+  if (solidType == GL_PYRAMIDS_EXT) {
+    pd->solids->numSolids = pd->indexBuffer.GetCount() / 5;
+    pd->solids->numVertsPerSolid = 5;
+    pd->type = PRIMITIVE_PYRAMIDS;
+  } else if (solidType == GL_PRISMS_EXT) {
+    pd->solids->numSolids = pd->indexBuffer.GetCount() / 6;
+    pd->solids->numVertsPerSolid = 6;
+    pd->type = PRIMITIVE_PRISMS;
+  } else if (solidType == GL_HEXAHEDRONS_EXT) {
+    pd->solids->numSolids = pd->indexBuffer.GetCount() / 8;
+    pd->solids->numVertsPerSolid = 8;
+    pd->type = PRIMITIVE_HEXAHEDRONS;
+  } else {
+    assert(0);
+  }
+  pd->solids->indices = pd->indexBuffer.GetBase();
+
+  // Take a reference
+  pd->mesh.nfaces = 0;
+  pd->mesh.faces = NULL;
+  pd->mesh.nvertices = 0;
+  pd->mesh.vertices = NULL;
+
+  SolidBuildOptions options;
+  timerutil t;
+  t.start();
+  SolidAccel *accel = new SolidAccel();
+
+  // accel->Build(pd->solids, options);  // slower but rather high quality BVH
+  accel->Build32(pd->solids, options); // faster but rather low quality BVH
+
+  t.end();
+
+  double bmin[3], bmax[3];
+  accel->BoundingBox(bmin, bmax);
+  printf("[LSGL] Solid accel built time = %d msec\n", (int)t.msec());
+  printf("[LSGL]   bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
+  printf("[LSGL]   bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
+
+  pd->accel = reinterpret_cast<unsigned char *>(accel);
+}
+
 void AccelBuilder::DebugDumpMesh(const Mesh *mesh) {
   int t;
 
@@ -891,6 +1063,13 @@ void AccelBuilder::FreePrim(CacheEntry *ce) {
     delete ce->primData.tetras;
     AccelBuilder::TetraAccelerator *accel =
         reinterpret_cast<AccelBuilder::TetraAccelerator *>(ce->primData.accel);
+    delete accel;
+  } else if ((ce->primData.type == PRIMITIVE_PYRAMIDS) || 
+             (ce->primData.type == PRIMITIVE_PRISMS) || 
+             (ce->primData.type == PRIMITIVE_HEXAHEDRONS)) {
+    delete ce->primData.solids;
+    AccelBuilder::SolidAccelerator *accel =
+        reinterpret_cast<AccelBuilder::SolidAccelerator *>(ce->primData.accel);
     delete accel;
   } else {
     assert(0 && "Unknown error");

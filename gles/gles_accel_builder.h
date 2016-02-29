@@ -20,6 +20,7 @@
 #include "../render/render_accel_particle.h"
 #include "../render/render_accel_line.h"
 #include "../render/render_accel_tetra.h"
+#include "../render/render_accel_solid.h"
 #include "gles_common.h"
 #include "GLES2/gl2.h"
 
@@ -33,6 +34,7 @@ public:
   typedef ParticleAccel ParticleAccelerator;
   typedef LineAccel LineAccelerator;
   typedef TetraAccel TetraAccelerator;
+  typedef SolidAccel SolidAccelerator;  // Pyramid, Prism, Hexa
   typedef TriangleAccel TriangleAccelerator;
 
   typedef enum {
@@ -40,7 +42,10 @@ public:
     PRIMITIVE_TRIANGLES,
     PRIMITIVE_POINTS,
     PRIMITIVE_LINES,
-    PRIMITIVE_TETRAHEDRONS
+    PRIMITIVE_TETRAHEDRONS,
+    PRIMITIVE_PYRAMIDS,
+    PRIMITIVE_PRISMS,
+    PRIMITIVE_HEXAHEDRONS
   } PrimitiveType;
 
   struct ArrayBufInfo {
@@ -55,6 +60,7 @@ public:
     Lines *lines;        // for line data
     Particles *points;   // for point data
     Tetrahedron *tetras; // for tetra data
+    Solid *solids;       // for pyramid, prism, hexa data
 
     DataBuffer<GLuint> indexBuffer;
     DataBuffer<GLfloat> positionBuffer;
@@ -112,9 +118,16 @@ public:
                                     bool isDoublePrecisionPos,
                                     const VertexAttribute *vertexAttributes,
                                     GLsizei count, GLuint offset);
+  SolidAccelerator *BuildSolidAccel(GLenum solidType,
+                                    const Buffer *elembuf,
+                                    const Buffer *arraybuf,
+                                    bool isDoublePrecisionPos,
+                                    const VertexAttribute *vertexAttributes,
+                                    GLsizei count, GLuint offset);
   static bool AddTriangleData(PrimData *md, TriangleAccelerator *accel);
   static bool AddParticleData(PrimData *md, ParticleAccelerator *accel);
   static bool AddTetraData(PrimData *md, TetraAccelerator *accel);
+  static bool AddSolidData(PrimData *md, SolidAccelerator *accel);
   void Invalidate(const Buffer *buf);
   void EndFrame();
 
@@ -168,6 +181,10 @@ private:
                           const GLfloat *widthBuf, GLsizei widthBufLen,
                           bool cap);
   static void AddTetraData(PrimData *md, const Buffer *elembuf,
+                           const Buffer *arraybuf, bool isDoublePrecisionPos,
+                           const ArrayBufInfo *abinfo, GLsizei count,
+                           GLuint offset);
+  static void AddSolidData(GLenum solidType, PrimData *md, const Buffer *elembuf,
                            const Buffer *arraybuf, bool isDoublePrecisionPos,
                            const ArrayBufInfo *abinfo, GLsizei count,
                            GLuint offset);

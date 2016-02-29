@@ -21,7 +21,6 @@ namespace render {
 // It is possible that `BlockNode` can be overlap each other, but
 // we generally assume each `BlockNode` does not overlap.
 //
-// @todo { Consider LoD sparse volume(e.g. Octree) }
 // @todo { Consider DDA style ray traversal }
 //
 

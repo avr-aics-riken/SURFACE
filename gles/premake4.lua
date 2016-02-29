@@ -107,6 +107,7 @@ render_sources = {
    "../render/render_accel_triangle.cc",
    "../render/render_accel_line.cc",
    "../render/render_accel_particle.cc",
+   "../render/render_accel_solid.cc",
    "../render/render_accel_tetra.cc",
    "../render/render_accel_volume.cc",
    "../render/render_camera.cc",

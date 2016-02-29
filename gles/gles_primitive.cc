@@ -27,7 +27,10 @@ void Context::glDrawArrays(GLenum mode, GLint first, GLsizei count) {
   }
 
   if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES) &&
-      (mode != GL_TETRAHEDRONS_EXT)) {
+      (mode != GL_TETRAHEDRONS_EXT) &&
+      (mode != GL_PYRAMIDS_EXT) &&
+      (mode != GL_PRISMS_EXT) &&
+      (mode != GL_HEXAHEDRONS_EXT)) {
     return SetGLError(GL_INVALID_ENUM);
   }
 
@@ -51,6 +54,12 @@ void Context::glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     n = (count / 2) * 2;
   } else if (mode == GL_TETRAHEDRONS_EXT) {
     n = (count / 4) * 4;
+  } else if (mode == GL_PYRAMIDS_EXT) {
+    n = (count / 5) * 5;
+  } else if (mode == GL_PRISMS_EXT) {
+    n = (count / 6) * 6;
+  } else if (mode == GL_HEXAHEDRONS_EXT) {
+    n = (count / 8) * 8;
   }
 
   indices.resize(n);
@@ -84,9 +93,11 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     return;
   }
 
-  // assume triangle or point input.
   if ((mode != GL_TRIANGLES) && (mode != GL_POINTS) && (mode != GL_LINES) &&
-      (mode != GL_TETRAHEDRONS_EXT)) {
+      (mode != GL_TETRAHEDRONS_EXT) &&
+      (mode != GL_PYRAMIDS_EXT) &&
+      (mode != GL_PRISMS_EXT) &&
+      (mode != GL_HEXAHEDRONS_EXT)) {
     return SetGLError(GL_INVALID_ENUM);
   }
 
@@ -131,6 +142,12 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     primTy = AccelBuilder::PRIMITIVE_LINES;
   } else if (mode == GL_TETRAHEDRONS_EXT) {
     primTy = AccelBuilder::PRIMITIVE_TETRAHEDRONS;
+  } else if (mode == GL_PYRAMIDS_EXT) {
+    primTy = AccelBuilder::PRIMITIVE_PYRAMIDS;
+  } else if (mode == GL_PRISMS_EXT) {
+    primTy = AccelBuilder::PRIMITIVE_PRISMS;
+  } else if (mode == GL_HEXAHEDRONS_EXT) {
+    primTy = AccelBuilder::PRIMITIVE_HEXAHEDRONS;
   } else {
     assert(0);
   }
@@ -250,6 +267,14 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     assert(tetraAccel);
     tetraAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(tetraAccel);
+  } else if ((mode == GL_PRISMS_EXT) || (mode == GL_PYRAMIDS_EXT) || (mode == GL_HEXAHEDRONS_EXT)) {
+    AccelBuilder::SolidAccelerator *solidAccel =
+        accelBuilder_.BuildSolidAccel(mode, elembuf, posbuf, isDoublePrecisionPos,
+                                      &state_.vertexAttributes[k].at(0), count,
+                                      (GLubyte *)indices - (GLubyte *)NULL);
+    assert(solidAccel);
+    solidAccel->BoundingBox(bmin, bmax);
+    accel = reinterpret_cast<unsigned char *>(solidAccel);
   } else {
     assert(0 && "Unsupported primitive type");
   }

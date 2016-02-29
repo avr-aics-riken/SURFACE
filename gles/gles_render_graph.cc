@@ -248,6 +248,15 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
                 renderElement->GetAccel());
         hit = accel->Traverse(bottomIsect, localRay);
       } break;
+      case AccelBuilder::PRIMITIVE_PYRAMIDS:
+      case AccelBuilder::PRIMITIVE_PRISMS:
+      case AccelBuilder::PRIMITIVE_HEXAHEDRONS:
+      {
+        const AccelBuilder::SolidAccelerator *accel =
+            reinterpret_cast<const AccelBuilder::SolidAccelerator *>(
+                renderElement->GetAccel());
+        hit = accel->Traverse(bottomIsect, localRay);
+      } break;
       default:
         fprintf(stderr, "[LSGL] Unknown primitive type.\n");
         assert(0);
