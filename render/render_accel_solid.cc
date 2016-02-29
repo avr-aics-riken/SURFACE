@@ -473,9 +473,9 @@ static inline void GetBoundingBoxOfSolid(real3 &bmin, real3 &bmax,
 
   real3 p[16]; // Assume numIndices < 16
 
-  bmin = real3(std::numeric_limits<real>::max(), std::numeric_limits<real>::max(), std::numeric_limits<real>::max());
-  bmax = real3(-std::numeric_limits<real>::max(), -std::numeric_limits<real>::max(), -std::numeric_limits<real>::max());
-
+  bmin = real3(REAL_MAX, REAL_MAX, REAL_MAX);
+  bmax = real3(-REAL_MAX, -REAL_MAX, -REAL_MAX);
+  
   for (int j = 0; j < numIndices; j++) {
     unsigned int f = solids->indices[numIndices * index + j];
 
