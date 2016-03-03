@@ -71,7 +71,7 @@ public:
 
     inline PrimData()
         : accel(NULL), type(PRIMITIVE_INVALID), lines(NULL), points(NULL),
-          tetras(NULL) {}
+          tetras(NULL), solids(NULL) {}
 
     inline ~PrimData() {
       // clear pointers inside mesh structure so it doesn't try to free our

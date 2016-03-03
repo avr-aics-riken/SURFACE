@@ -54,6 +54,9 @@ struct real3 {
   real3 operator/(const real3 &f2) const {
     return real3(x / f2.x, y / f2.y, z / f2.z);
   }
+  real3 operator/(real f) const {
+    return real3(x / f, y / f, z / f);
+  }
   real operator[](int i) const { return (&x)[i]; }
   real &operator[](int i) { return (&x)[i]; }
 
@@ -108,6 +111,9 @@ struct double3 {
   }
   double3 operator/(const double3 &f2) const {
     return double3(x / f2.x, y / f2.y, z / f2.z);
+  }
+  double3 operator/(double f) const {
+    return double3(x / f, y / f, z / f);
   }
   double operator[](int i) const { return (&x)[i]; }
   double &operator[](int i) { return (&x)[i]; }

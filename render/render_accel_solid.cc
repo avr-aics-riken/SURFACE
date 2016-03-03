@@ -71,6 +71,12 @@ FORCEINLINE int fsign(const double x) {
   return (x > eps ? 1 : (x < -eps ? -1 : 0));
 }
 
+// Vertex order definitial table. Counter clock-wise.
+const int kTetraFaces[4][3] = {{0,1,2}, {1,3,2}, {0,2,3}, {0,3,1}};
+const int kPyramidFaces[5][4] = {{0,1,2,3}, {0,4,1,-1}, {1,4,2,-1}, {2,4,3,-1}, {3,4,0,-1}};
+const int kPrismFaces[5][4] = {{0,1,2,-1}, {3,4,5,-1}, {0,3,5,1}, {0,2,4,3}, {1,5,4,2} };
+const int kHexaFaces[6][4] = {{0,1,2,3}, {4,5,6,7}, {0,4,7,1}, {1,7,6,2}, {2,6,5,3}, {0,3,5,4}};
+
 //
 // Simple Pluecker coordinate class
 //
@@ -88,360 +94,95 @@ FORCEINLINE double operator*(const Pluecker &p0, const Pluecker &p1) {
   return vdotd(p0.d, p1.c) + vdotd(p1.d, p0.c);
 }
 
-// Ray - Solid intersection based on
-// - Fast Ray-Solid Intersection using Plu ̈cker Coordinates
-//   Nikos Platis and Theoharis Theoharis, JGT 2003
-//   http://realtimecollisiondetection.net/files/PlatisRaySolid/RaySolidPluecker.cpp
-//
-
-// Computes the parametric distance tEnter and tLeave
-// of enterPoint and leavePoint from orig
-// (To enhance performance of the intersection algorithm, this code
-// should in practice be incorporated to the function below.)
-
-void ComputeParametricDist(const double3 &orig, const double3 &dir,
-                           const double3 &enterPoint, const double3 &leavePoint,
-                           double &tEnter, double &tLeave) {
-  if (dir.x) {
-    double invDirx = 1.0 / dir.x;
-    tEnter = (enterPoint.x - orig.x) * invDirx;
-    tLeave = (leavePoint.x - orig.x) * invDirx;
-  } else if (dir.y) {
-    double invDiry = 1.0 / dir.y;
-    tEnter = (enterPoint.y - orig.y) * invDiry;
-    tLeave = (leavePoint.y - orig.y) * invDiry;
-  } else {
-    double invDirz = 1.0 / dir.z;
-    tEnter = (enterPoint.z - orig.z) * invDirz;
-    tLeave = (leavePoint.z - orig.z) * invDirz;
+// Up to 12 edges(Hexahedron)
+void GetEdges(double3 *edges, int solidType, const double3 *vertices)
+{
+  if (solidType == 5) { // Pyramid
+    edges[0] = vertices[1]-vertices[0];
+    edges[1] = vertices[2]-vertices[1];
+    edges[2] = vertices[3]-vertices[2];
+    edges[3] = vertices[0]-vertices[3];
+    edges[4] = vertices[4]-vertices[0];
+    edges[5] = vertices[4]-vertices[1];
+    edges[6] = vertices[4]-vertices[2];
+    edges[7] = vertices[4]-vertices[3];
+  } else if (solidType == 6) { // Prism
+    edges[0] = vertices[1]-vertices[0];
+    edges[1] = vertices[2]-vertices[1];
+    edges[2] = vertices[0]-vertices[2];
+    edges[3] = vertices[4]-vertices[3];
+    edges[4] = vertices[5]-vertices[4];
+    edges[5] = vertices[3]-vertices[5];
+    edges[6] = vertices[3]-vertices[0];
+    edges[7] = vertices[5]-vertices[1];
+    edges[8] = vertices[4]-vertices[2];
+  } else if (solidType == 8) { // Hexa
+    edges[0] = vertices[1]-vertices[0];
+    edges[1] = vertices[2]-vertices[1];
+    edges[2] = vertices[3]-vertices[2];
+    edges[3] = vertices[0]-vertices[3];
+    edges[4] = vertices[5]-vertices[4];
+    edges[5] = vertices[6]-vertices[5];
+    edges[6] = vertices[7]-vertices[6];
+    edges[7] = vertices[4]-vertices[7];
+    edges[8] = vertices[4]-vertices[0];
+    edges[9] = vertices[7]-vertices[1];
+    edges[10] = vertices[6]-vertices[2];
+    edges[11] = vertices[5]-vertices[3];
   }
 }
 
-bool RaySolidPluecker(const double3 &orig, const double3 &dir,
-                      const double3 vert[], int &enterFace, int &leaveFace,
-                      double3 &enterPoint, double3 &leavePoint, double &uEnter1,
-                      double &uEnter2, double &uLeave1, double &uLeave2,
-                      double &tEnter, double &tLeave) {
-  enterFace = -1;
-  leaveFace = -1;
-
-  double uAB = 0, uAC = 0, uDB = 0, uDC = 0, uBC = 0, uAD = 0;
-  // Keep the compiler happy about uninitialized variables
-  int signAB = -2, signAC = -2, signDB = -2, signDC = -2, signBC = -2,
-      signAD = -2;
-
-  // In the following: A,B,C,D=vert[i], i=0,1,2,3.
-  double3 dest = orig + dir;
-  Pluecker plRay(orig, dest);
-
-  int nextSign = 0;
-
-  // Examine face ABC
-  uAB = plRay * Pluecker(vert[0], vert[1]);
-  signAB = fsign(uAB);
-
-  uAC = plRay * Pluecker(vert[0], vert[2]);
-  signAC = fsign(uAC);
-
-  if ((signAC == -signAB) || (signAC == 0) || (signAB == 0)) {
-    // Face ABC may intersect with the ray
-    uBC = plRay * Pluecker(vert[1], vert[2]);
-    signBC = fsign(uBC);
-
-    int signABC = signAB;
-    if (signABC == 0) {
-      signABC = -signAC;
-      if (signABC == 0) {
-        signABC = signBC;
-      }
-    }
-
-    if ((signABC != 0) && ((signBC == signABC) || (signBC == 0))) {
-      // Face ABC intersects with the ray
-      double invVolABC = 1.0 / (uAB + uBC - uAC);
-      if (signABC == 1) {
-        enterFace = 3;
-        uEnter1 = -uAC * invVolABC;
-        uEnter2 = uAB * invVolABC;
-        enterPoint = (1 - uEnter1 - uEnter2) * vert[0] + uEnter1 * vert[1] +
-                     uEnter2 * vert[2];
-
-        nextSign = -1;
-      } else {
-        leaveFace = 3;
-        uLeave1 = -uAC * invVolABC;
-        uLeave2 = uAB * invVolABC;
-        leavePoint = (1 - uLeave1 - uLeave2) * vert[0] + uLeave1 * vert[1] +
-                     uLeave2 * vert[2];
-
-        nextSign = 1;
-      }
-
-      // Determine the other intersecting face between BAD, CDA, DCB
-      // Examine face BAD
-      uAD = plRay * Pluecker(vert[0], vert[3]);
-      signAD = fsign(uAD);
-
-      if ((signAD == nextSign) || (signAD == 0)) {
-        // Face BAD may intersect with the ray
-        uDB = plRay * Pluecker(vert[3], vert[1]);
-        signDB = fsign(uDB);
-
-        if ((signDB == nextSign) ||
-            ((signDB == 0) && ((signAD != 0) || (signAB != 0)))) {
-          // Face BAD intersects with the ray
-          double invVolBAD = 1.0 / (uAD + uDB - uAB);
-          if (nextSign == 1) {
-            enterFace = 2;
-            uEnter1 = uDB * invVolBAD;
-            uEnter2 = -uAB * invVolBAD;
-            enterPoint = (1 - uEnter1 - uEnter2) * vert[1] + uEnter1 * vert[0] +
-                         uEnter2 * vert[3];
-
-            ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                  tLeave);
-            return true;
-          } else {
-            leaveFace = 2;
-            uLeave1 = uDB * invVolBAD;
-            uLeave2 = -uAB * invVolBAD;
-            leavePoint = (1 - uLeave1 - uLeave2) * vert[1] + uLeave1 * vert[0] +
-                         uLeave2 * vert[3];
-
-            ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                  tLeave);
-            return true;
-          }
-        }
-      }
-
-      // Face BAD does not intersect with the ray.
-      // Determine the other intersecting face between CDA, DCB
-      uDC = plRay * Pluecker(vert[3], vert[2]);
-      signDC = fsign(uDC);
-
-      if ((signDC == -nextSign) ||
-          ((signDC == 0) && ((signAD != 0) || (signAC != 0)))) {
-        // Face CDA intersects with the ray
-        double invVolCDA = 1.0 / (uAC - uDC - uAD);
-        if (nextSign == 1) {
-          enterFace = 1;
-          uEnter1 = uAC * invVolCDA;
-          uEnter2 = -uDC * invVolCDA;
-          enterPoint = (1 - uEnter1 - uEnter2) * vert[2] + uEnter1 * vert[3] +
-                       uEnter2 * vert[0];
-
-          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                tLeave);
-          return true;
-        } else {
-          leaveFace = 1;
-          uLeave1 = uAC * invVolCDA;
-          uLeave2 = -uDC * invVolCDA;
-          leavePoint = (1 - uLeave1 - uLeave2) * vert[2] + uLeave1 * vert[3] +
-                       uLeave2 * vert[0];
-
-          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                tLeave);
-          return true;
-        }
-      } else {
-        // Face DCB intersects with the ray
-        if (signDB == -2) {
-          uDB = plRay * Pluecker(vert[3], vert[1]);
-        }
-
-        double invVolDCB = 1.0 / (uDC - uBC - uDB);
-        if (nextSign == 1) {
-          enterFace = 0;
-          uEnter1 = -uDB * invVolDCB;
-          uEnter2 = uDC * invVolDCB;
-          enterPoint = (1 - uEnter1 - uEnter2) * vert[3] + uEnter1 * vert[2] +
-                       uEnter2 * vert[1];
-
-          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                tLeave);
-          return true;
-        } else {
-          leaveFace = 0;
-          uLeave1 = -uDB * invVolDCB;
-          uLeave2 = uDC * invVolDCB;
-          leavePoint = (1 - uLeave1 - uLeave2) * vert[3] + uLeave1 * vert[2] +
-                       uLeave2 * vert[1];
-
-          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                tLeave);
-          return true;
-        }
-      }
-    }
-  }
-
-  // Examine face BAD
-  uAD = plRay * Pluecker(vert[0], vert[3]);
-  signAD = fsign(uAD);
-
-  if ((signAD == -signAB) || (signAB == 0) || (signAD == 0)) {
-    // Face BAD may intersect with the ray
-    uDB = plRay * Pluecker(vert[3], vert[1]);
-    signDB = fsign(uDB);
-
-    int signBAD = -signAB;
-    if (signBAD == 0) {
-      signBAD = signAD;
-      if (signBAD == 0) {
-        signBAD = signDB;
-      }
-    }
-
-    if ((signBAD != 0) && ((signDB == signBAD) || (signDB == 0))) {
-      // Face BAD intersects with the ray
-      double invVolBAD = 1.0 / (uAD + uDB - uAB);
-      if (signBAD == 1) {
-        enterFace = 2;
-        uEnter1 = uDB * invVolBAD;
-        uEnter2 = -uAB * invVolBAD;
-        enterPoint = (1 - uEnter1 - uEnter2) * vert[1] + uEnter1 * vert[0] +
-                     uEnter2 * vert[3];
-
-        nextSign = -1;
-      } else {
-        leaveFace = 2;
-        uLeave1 = uDB * invVolBAD;
-        uLeave2 = -uAB * invVolBAD;
-        leavePoint = (1 - uLeave1 - uLeave2) * vert[1] + uLeave1 * vert[0] +
-                     uLeave2 * vert[3];
-
-        nextSign = 1;
-      }
-
-      // Determine the other intersecting face between CDA, DCB
-      uDC = plRay * Pluecker(vert[3], vert[2]);
-      signDC = fsign(uDC);
-
-      if ((signDC == -nextSign) ||
-          ((signDC == 0) && ((signAD != 0) || (signAC != 0)))) {
-        // Face CDA intersects with the ray
-        double invVolCDA = 1.0 / (uAC - uDC - uAD);
-        if (nextSign == 1) {
-          enterFace = 1;
-          uEnter1 = uAC * invVolCDA;
-          uEnter2 = -uDC * invVolCDA;
-          enterPoint = (1 - uEnter1 - uEnter2) * vert[2] + uEnter1 * vert[3] +
-                       uEnter2 * vert[0];
-
-          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                tLeave);
-          return true;
-        } else {
-          leaveFace = 1;
-          uLeave1 = uAC * invVolCDA;
-          uLeave2 = -uDC * invVolCDA;
-          leavePoint = (1 - uLeave1 - uLeave2) * vert[2] + uLeave1 * vert[3] +
-                       uLeave2 * vert[0];
-
-          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                tLeave);
-          return true;
-        }
-      } else {
-        // Face DCB intersects with the ray
-        if (signBC == -2) {
-          uBC = plRay * Pluecker(vert[1], vert[2]);
-        }
-
-        double invVolDCB = 1.0 / (uDC - uBC - uDB);
-        if (nextSign == 1) {
-          enterFace = 0;
-          uEnter1 = -uDB * invVolDCB;
-          uEnter2 = uDC * invVolDCB;
-          enterPoint = (1 - uEnter1 - uEnter2) * vert[3] + uEnter1 * vert[2] +
-                       uEnter2 * vert[1];
-
-          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                tLeave);
-          return true;
-        } else {
-          leaveFace = 0;
-          uLeave1 = -uDB * invVolDCB;
-          uLeave2 = uDC * invVolDCB;
-          leavePoint = (1 - uLeave1 - uLeave2) * vert[3] + uLeave1 * vert[2] +
-                       uLeave2 * vert[1];
-
-          ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                                tLeave);
-          return true;
-        }
-      }
-    }
-  }
-
-  // Examine face CDA
-  if ((-signAD == signAC) || (signAC == 0) || (signAD == 0)) {
-    // Face CDA may intersect with the ray
-    uDC = plRay * Pluecker(vert[3], vert[2]);
-    signDC = fsign(uDC);
-
-    int signCDA = signAC;
-    if (signCDA == 0) {
-      signCDA = -signAD;
-      if (signCDA == 0) {
-        signCDA = -signDC;
-      }
-    }
-
-    if ((signCDA != 0) && ((-signDC == signCDA) || (signDC == 0))) {
-      // Face CDA intersects with the ray
-      // Face DCB also intersects with the ray
-      double invVolCDA = 1.0 / (uAC - uDC - uAD);
-
-      if (signBC == -2) {
-        uBC = plRay * Pluecker(vert[1], vert[2]);
-      }
-      if (signDB == -2) {
-        uDB = plRay * Pluecker(vert[3], vert[1]);
-      }
-      double invVolDCB = 1.0 / (uDC - uBC - uDB);
-
-      if (signCDA == 1) {
-        enterFace = 1;
-        uEnter1 = uAC * invVolCDA;
-        uEnter2 = -uDC * invVolCDA;
-        enterPoint = (1 - uEnter1 - uEnter2) * vert[2] + uEnter1 * vert[3] +
-                     uEnter2 * vert[0];
-
-        leaveFace = 0;
-        uLeave1 = -uDB * invVolDCB;
-        uLeave2 = uDC * invVolDCB;
-        leavePoint = (1 - uLeave1 - uLeave2) * vert[3] + uLeave1 * vert[2] +
-                     uLeave2 * vert[1];
-
-        ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                              tLeave);
-        return true;
-      } else {
-        leaveFace = 1;
-        uLeave1 = uAC * invVolCDA;
-        uLeave2 = -uDC * invVolCDA;
-        leavePoint = (1 - uLeave1 - uLeave2) * vert[2] + uLeave1 * vert[3] +
-                     uLeave2 * vert[0];
-
-        enterFace = 0;
-        uEnter1 = -uDB * invVolDCB;
-        uEnter2 = uDC * invVolDCB;
-        enterPoint = (1 - uEnter1 - uEnter2) * vert[3] + uEnter1 * vert[2] +
-                     uEnter2 * vert[1];
-
-        ComputeParametricDist(orig, dir, enterPoint, leavePoint, tEnter,
-                              tLeave);
-        return true;
-      }
-    }
-  }
-
-  // Three indices do not intersect with the ray, the fourth will not.
-  return false;
+FORCEINLINE void IntersectionSq(double3 &point,const double3 &v0,const double3 &v1,const double3 &v2,
+                    const double &ws0, const double &ws1, const double &ws2, const double &ws3, double3 &edge2, double3 &edge3,const double3& raydir){
+    double w = ws2 + ws3 + vdotd(vcrossd(edge2, edge3),raydir);
+    point = (v2*ws0 + v0*ws1 + v1*w) / (ws0+ws1+w);
 }
+
+// Prism
+bool IntersectPrismD(const double3& rayorg, const double3& raydir, const double3* vertices)
+{
+    bool cw_ccw[2][8];
+    double ws[8];
+
+    double3 edges[8];
+
+    double3 raypc = vcrossd(raydir, rayorg);
+
+    // @todo { Implement. }
+    assert(0);
+
+    for(int i = 0; i < 8; i ++){
+        ws[i] = vdotd(raydir, vcrossd(edges[i], vertices[i%5])) + vdotd(edges[i], raypc);
+        if(ws[i] >= 0)  cw_ccw[0][i] = true;
+        else cw_ccw[0][i] = false;
+        if(ws[i] <= 0)  cw_ccw[1][i] = true;
+        else cw_ccw[1][i] = false;
+    }
+
+    for (int i = 0,n = 1; i < 2; i++,n--) {
+        if(cw_ccw[i][0] && cw_ccw[i][1] && cw_ccw[i][2] && cw_ccw[3]){
+            // @todo
+            //IntersectionSq(isect[i].point, solid.vertexes[0], solid.vertexes[1], solid.vertexes[2], ws[0], ws[1], ws[2], ws[3], , <#Vec &edge3#>, <#const Ray &ray#>)
+        } else if(cw_ccw[i][3] && cw_ccw[i][4] && cw_ccw[i][5]){
+            //isect[i].point = (solid.vertexes[5]*ws[3] + solid.vertexes[3]*ws[4] + solid.vertexes[4]*ws[5]) / (ws[3]+ws[4]+ws[5]);
+            //isect[i].normal = normalize(cross(edges[3], edges[4]));
+        }else if(cw_ccw[n][0] && cw_ccw[i][6] && cw_ccw[n][5] && cw_ccw[n][7]){
+            //isect[i].normal = normalize(cross(edges[5],edges[7]));
+            //IntersectionSq(isect[i].point, solid.vertexes[1], solid.vertexes[0], solid.vertexes[3], -ws[0], ws[6], -ws[5], -ws[7], edges[5], edges[7], ray);
+        }else if(cw_ccw[n][2] && cw_ccw[i][8] && cw_ccw[n][3] && cw_ccw[n][6]){
+            //isect[i].normal = normalize(cross(edges[3], edges[6]));
+            //IntersectionSq(isect[i].point, solid.vertexes[0], solid.vertexes[2], solid.vertexes[4], -ws[2], ws[8], -ws[3], -ws[6], edges[3], edges[6], ray);
+        }else if(cw_ccw[n][1] && cw_ccw[i][7] && cw_ccw[n][4] && cw_ccw[n][8]){
+            //isect[i].normal = normalize(cross(edges[4], edges[8]));
+            //IntersectionSq(isect[i].point, solid.vertexes[2], solid.vertexes[1], solid.vertexes[5], -ws[1], ws[7], -ws[4], -ws[8], edges[4], edges[8], ray);
+        }else {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 //
 // SAH functions
