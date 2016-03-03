@@ -43,7 +43,7 @@
 
 using namespace lsgl;
 
-RaytraceEngine *RaytraceEngine::sRaytraceEngine = NULL;
+//RaytraceEngine *RaytraceEngine::sRaytraceEngine = NULL;
 
 namespace {
 
@@ -297,7 +297,7 @@ void MergeScreen(int region[4], int masterRank, int rank,
 RaytraceEngine::RaytraceEngine()
     : framebuffer_(NULL), numRays_(0), pixelStep_(1),
       progressCallbackFunc_(NULL), callbackUserData_(NULL), screenParallelRendering_(false), mergeScreen_(false) {
-  sRaytraceEngine = this;
+  //sRaytraceEngine = this;
 
   // Default = orthographic camera, positioned at (0.0, 0.0, 0.0) and see (0.0,
   // 0.0, -1.0);
@@ -314,7 +314,7 @@ RaytraceEngine::~RaytraceEngine() {
     delete camera_;
   }
 
-  sRaytraceEngine = NULL;
+  //sRaytraceEngine = NULL;
 }
 
 void RaytraceEngine::SetCamera(const GLfloat *eye, const GLfloat *target,
@@ -383,7 +383,9 @@ bool RaytraceEngine::OnStart(Framebuffer *fb, RenderGraph *renderGraph) {
 
 // C wrapper function to support callback from a shader
 bool scene_trace(Intersection &isect, Ray &r) {
-  return RaytraceEngine::GetRaytraceEngine()->Trace(isect, r);
+  Context &ctx = Context::GetCurrentContext();
+
+  return ctx.lsglGetRaytraceEngine().Trace(isect, r); //RaytraceEngine::GetRaytraceEngine()->Trace(isect, r);
 }
 
 bool RaytraceEngine::Trace(Intersection &isectRet, Ray &r) {
