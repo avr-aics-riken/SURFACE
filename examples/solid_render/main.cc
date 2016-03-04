@@ -18,8 +18,8 @@
 
 GLfloat scenescale = 1.0;
 
-int windowWidth = 4096;
-int windowHeight = 4096;
+int windowWidth = 512;
+int windowHeight = 512;
 
 struct myvec4 {
   float x;

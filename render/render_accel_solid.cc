@@ -303,9 +303,6 @@ bool IntersectPrismD(const double3& rayorg, const double3& raydir,
 
     double3 raypc = vcrossd(raydir, rayorg);
 
-    // @todo { Implement. }
-    assert(0);
-    
     for(int i = 0; i < 9; i ++){
         ws[i] = vdotd(raydir, vcrossd(edges[i], vertices[i%6])) + vdotd(edges[i], raypc);
         if(ws[i] >= 0)  cw_ccw[0][i] = true;
@@ -357,9 +354,6 @@ bool IntersectPrismF(const real3& rayorg, const real3& raydir,
     
     real3 raypc = cross(raydir, rayorg);
     
-    // @todo { Implement. }
-    assert(0);
-    
     for(int i = 0; i < 9; i ++){
         ws[i] = dot(raydir, cross(edges[i], vertices[i%6])) + dot(edges[i], raypc);
         if(ws[i] >= 0)  cw_ccw[0][i] = true;
@@ -410,9 +404,6 @@ bool IntersectHexaD(const double3& rayorg, const double3& raydir,
     GetEdges(edges, 8, vertices);
         
     double3 raypc = vcrossd(raydir, rayorg);
-        
-    // @todo { Implement. }
-    assert(0);
         
     for(int i = 0; i < 12; i ++){
         ws[i] = vdotd(raydir, vcrossd(edges[i], vertices[i%8])) + vdotd(edges[i], raypc);
@@ -472,9 +463,6 @@ bool IntersectHexaF(const real3& rayorg, const real3& raydir,
     GetEdges(edges, 8, vertices);
         
     real3 raypc = cross(raydir, rayorg);
-        
-    // @todo { Implement. }
-    assert(0);
         
     for(int i = 0; i < 12; i ++){
         ws[i] = dot(raydir, cross(edges[i], vertices[i%8])) + dot(edges[i], raypc);
@@ -792,23 +780,18 @@ public:
     int axis = axis_;
     double pos = pos_;
 
-    unsigned int i0 = solids_->indices[4 * i + 0];
-    unsigned int i1 = solids_->indices[4 * i + 1];
-    unsigned int i2 = solids_->indices[4 * i + 2];
-    unsigned int i3 = solids_->indices[4 * i + 3];
+    real center = 0.0;
 
-    double3 p0(solids_->dvertices[3 * i0 + 0], solids_->dvertices[3 * i0 + 1],
-               solids_->dvertices[3 * i0 + 2]);
-    double3 p1(solids_->dvertices[3 * i1 + 0], solids_->dvertices[3 * i1 + 1],
-               solids_->dvertices[3 * i1 + 2]);
-    double3 p2(solids_->dvertices[3 * i2 + 0], solids_->dvertices[3 * i2 + 1],
-               solids_->dvertices[3 * i2 + 2]);
-    double3 p3(solids_->dvertices[3 * i3 + 0], solids_->dvertices[3 * i3 + 1],
-               solids_->dvertices[3 * i3 + 2]);
+    for (int j = 0; j < solids_->numVertsPerSolid; j++) {
+      unsigned int f = solids_->indices[solids_->numVertsPerSolid * i + j];
 
-    double center = p0[axis] + p1[axis] + p2[axis] + p3[axis];
+      real3 p(solids_->dvertices[3 * f + 0], solids_->dvertices[3 * f + 1],
+              solids_->dvertices[3 * f + 2]);
 
-    return (center < pos * 4.0);
+      center += p[axis];
+    }
+
+    return (center < pos * (real)(solids_->numVertsPerSolid));
   }
 
 private:
@@ -1487,7 +1470,7 @@ bool SolidAccel::Build(const Solid *solids,
         solids->numSolids);
 
   //
-  // 1. Create triangle indices(this will be permutated in BuildTree)
+  // 1. Create primtive indices(this will be permutated in BuildTree)
   //
   indices_.resize(n);
   for (size_t i = 0; i < n; i++) {
@@ -1929,213 +1912,92 @@ bool TestLeafNode(Intersection &isect, // [inout]
 
   real t = isect.t; // current hit distance
 
-  // @todo { implement. }
-  assert(0);
+  double3 rayOrg;
+  rayOrg[0] = ray.origin()[0];
+  rayOrg[1] = ray.origin()[1];
+  rayOrg[2] = ray.origin()[2];
 
-#if 0
-  if (solids->isDoublePrecisionPos) {
+  double3 rayDir;
+  rayDir[0] = ray.direction()[0];
+  rayDir[1] = ray.direction()[1];
+  rayDir[2] = ray.direction()[2];
 
-    double3 rayOrg;
-    rayOrg[0] = ray.origin()[0];
-    rayOrg[1] = ray.origin()[1];
-    rayOrg[2] = ray.origin()[2];
+  for (unsigned int i = 0; i < numSolids; i++) {
 
-    double3 rayDir;
-    rayDir[0] = ray.direction()[0];
-    rayDir[1] = ray.direction()[1];
-    rayDir[2] = ray.direction()[2];
+    int primIdx = indices[i + offset];
 
-    for (unsigned int i = 0; i < numSolids; i++) {
+    // self-intersection check
+    if (primIdx == ray.prev_prim_id) {
+      continue;
+    }
 
-      int faceIdx = indices[i + offset];
+    int numVertsPerSolid = solids->numVertsPerSolid;
+    double3 vtx[16]; // assume numVertsPerSolid < 16
 
-      // self-intersection check
-      if (faceIdx == ray.prev_prim_id) {
-        continue;
-      }
-      int f0 = solids->indices[4 * faceIdx + 0];
-      int f1 = solids->indices[4 * faceIdx + 1];
-      int f2 = solids->indices[4 * faceIdx + 2];
-      int f3 = solids->indices[4 * faceIdx + 3];
-
-      double3 vtx[4];
-      vtx[0][0] = solids->dvertices[3 * f0 + 0];
-      vtx[0][1] = solids->dvertices[3 * f0 + 1];
-      vtx[0][2] = solids->dvertices[3 * f0 + 2];
-
-      vtx[1][0] = solids->dvertices[3 * f1 + 0];
-      vtx[1][1] = solids->dvertices[3 * f1 + 1];
-      vtx[1][2] = solids->dvertices[3 * f1 + 2];
-
-      vtx[2][0] = solids->dvertices[3 * f2 + 0];
-      vtx[2][1] = solids->dvertices[3 * f2 + 1];
-      vtx[2][2] = solids->dvertices[3 * f2 + 2];
-
-      vtx[3][0] = solids->dvertices[3 * f3 + 0];
-      vtx[3][1] = solids->dvertices[3 * f3 + 1];
-      vtx[3][2] = solids->dvertices[3 * f3 + 2];
-
-      int enterF, leaveF;
-      double3 enterP, leaveP;
-      double enterU, leaveU;
-      double enterV, leaveV;
-      double enterT, leaveT;
-      if (RaySolidPluecker(rayOrg, rayDir, vtx, enterF, leaveF, enterP, leaveP,
-                           enterU, leaveU, enterV, leaveV, enterT, leaveT)) {
-
-        if ((enterT >= 0.0) && (enterT < t)) {
-          // Update isect state.
-          // @todo { Record leaving point. }
-          isect.t = enterT;
-          isect.u = enterU;
-          isect.v = enterV;
-          isect.prim_id = faceIdx;
-          isect.subface_id = enterF; // 0,1,2 or 3
-          t = enterT;
-          hit = true;
-        }
+    for (int j = 0; j < numVertsPerSolid; j++) {
+      int f = solids->indices[numVertsPerSolid * primIdx + j];
+    
+      if (solids->isDoublePrecisionPos) {
+        vtx[j][0] = solids->dvertices[3 * f + 0];
+        vtx[j][1] = solids->dvertices[3 * f + 1];
+        vtx[j][2] = solids->dvertices[3 * f + 2];
+      } else {
+        vtx[j][0] = solids->vertices[3 * f + 0];
+        vtx[j][1] = solids->vertices[3 * f + 1];
+        vtx[j][2] = solids->vertices[3 * f + 2];
       }
     }
 
-  } else { // float
+    Intersection isects[2]; // isects[0].t < isects[1].t 
 
-    double3 rayOrg;
-    rayOrg[0] = ray.origin()[0];
-    rayOrg[1] = ray.origin()[1];
-    rayOrg[2] = ray.origin()[2];
+    bool hit = false;
 
-    double3 rayDir;
-    rayDir[0] = ray.direction()[0];
-    rayDir[1] = ray.direction()[1];
-    rayDir[2] = ray.direction()[2];
+    if (numVertsPerSolid == 5) {
+      hit = IntersectPyramidD(rayOrg, rayDir, vtx, isects);
+    } else if (numVertsPerSolid == 6) {
+      hit = IntersectPrismD(rayOrg, rayDir, vtx, isects);
+    } else if (numVertsPerSolid == 8) {
+      hit = IntersectHexaD(rayOrg, rayDir, vtx, isects);
+    }
 
-    for (unsigned int i = 0; i < numSolids; i++) {
-      int faceIdx = indices[i + offset];
-
-      // self-intersection check
-      if (faceIdx == ray.prev_prim_id) {
-        continue;
+    if (hit) {
+      // @todo { Record bot hentering and leaving point. }
+      if ((isects[0].t >= 0.0) && (isects[0].t < t)) {
+        // Update isect state.
+        isect.t = isects[0].t;
+        isect.u = isects[0].u;
+        isect.v = isects[0].v;
+        isect.prim_id = primIdx;
+        isect.subface_id = 0; // fixme
+        isect.position = isects[0].position;
+        isect.normal = isects[0].normal;
+        t = isect.t;
+        hit = true;
       }
-      int f0 = solids->indices[4 * faceIdx + 0];
-      int f1 = solids->indices[4 * faceIdx + 1];
-      int f2 = solids->indices[4 * faceIdx + 2];
-      int f3 = solids->indices[4 * faceIdx + 3];
-
-      double3 vtx[4];
-      vtx[0][0] = solids->vertices[3 * f0 + 0];
-      vtx[0][1] = solids->vertices[3 * f0 + 1];
-      vtx[0][2] = solids->vertices[3 * f0 + 2];
-
-      vtx[1][0] = solids->vertices[3 * f1 + 0];
-      vtx[1][1] = solids->vertices[3 * f1 + 1];
-      vtx[1][2] = solids->vertices[3 * f1 + 2];
-
-      vtx[2][0] = solids->vertices[3 * f2 + 0];
-      vtx[2][1] = solids->vertices[3 * f2 + 1];
-      vtx[2][2] = solids->vertices[3 * f2 + 2];
-
-      vtx[3][0] = solids->vertices[3 * f3 + 0];
-      vtx[3][1] = solids->vertices[3 * f3 + 1];
-      vtx[3][2] = solids->vertices[3 * f3 + 2];
-
-      int enterF, leaveF;
-      double3 enterP, leaveP;
-      double enterU, leaveU;
-      double enterV, leaveV;
-      double enterT, leaveT;
-      if (RaySolidPluecker(rayOrg, rayDir, vtx, enterF, leaveF, enterP, leaveP,
-                           enterU, leaveU, enterV, leaveV, enterT, leaveT)) {
-
-        if ((enterT >= 0.0) && (enterT < t)) {
-          // Update isect state.
-          // @todo { Record leaving point. }
-          isect.t = enterT;
-          isect.u = enterU;
-          isect.v = enterV;
-          isect.prim_id = faceIdx;
-          isect.subface_id = enterF; // 0,1,2 or 3
-          t = enterT;
-          hit = true;
-        }
+      if ((isects[1].t >= 0.0) && (isects[1].t < t)) {
+        // Update isect state.
+        isect.t = isects[1].t;
+        isect.u = isects[1].u;
+        isect.v = isects[1].v;
+        isect.prim_id = primIdx;
+        isect.subface_id = 0; // fixme
+        isect.position = isects[1].position;
+        isect.normal = isects[1].normal;
+        t = isect.t;
+        hit = true;
       }
     }
   }
-#endif
 
   return hit;
 }
 
 void BuildIntersection(Intersection &isect, const Solid *solids,
                        Ray &ray) {
-  // face index
-  const unsigned int *indices = solids->indices;
 
-  // @todo { implement. }
-  assert(0);
+  // position and normal are already computed.
 
-#if 0
-  isect.f0 = indices[4 * isect.prim_id + 0];
-  isect.f1 = indices[4 * isect.prim_id + 1];
-  isect.f2 = indices[4 * isect.prim_id + 2];
-  isect.f3 = indices[4 * isect.prim_id + 3];
-
-  real3 p[4];
-
-  if (solids->isDoublePrecisionPos) {
-    const double *vertices = solids->dvertices;
-
-    p[0][0] = vertices[3 * isect.f0 + 0];
-    p[0][1] = vertices[3 * isect.f0 + 1];
-    p[0][2] = vertices[3 * isect.f0 + 2];
-    p[1][0] = vertices[3 * isect.f1 + 0];
-    p[1][1] = vertices[3 * isect.f1 + 1];
-    p[1][2] = vertices[3 * isect.f1 + 2];
-    p[2][0] = vertices[3 * isect.f2 + 0];
-    p[2][1] = vertices[3 * isect.f2 + 1];
-    p[2][2] = vertices[3 * isect.f2 + 2];
-    p[3][0] = vertices[3 * isect.f3 + 0];
-    p[3][1] = vertices[3 * isect.f3 + 1];
-    p[3][2] = vertices[3 * isect.f3 + 2];
-
-  } else {
-    const float *vertices = solids->vertices;
-
-    p[0][0] = vertices[3 * isect.f0 + 0];
-    p[0][1] = vertices[3 * isect.f0 + 1];
-    p[0][2] = vertices[3 * isect.f0 + 2];
-    p[1][0] = vertices[3 * isect.f1 + 0];
-    p[1][1] = vertices[3 * isect.f1 + 1];
-    p[1][2] = vertices[3 * isect.f1 + 2];
-    p[2][0] = vertices[3 * isect.f2 + 0];
-    p[2][1] = vertices[3 * isect.f2 + 1];
-    p[2][2] = vertices[3 * isect.f2 + 2];
-    p[3][0] = vertices[3 * isect.f3 + 0];
-    p[3][1] = vertices[3 * isect.f3 + 1];
-    p[3][2] = vertices[3 * isect.f3 + 2];
-  }
-
-  // calc shading point.
-  isect.position = ray.origin() + isect.t * ray.direction();
-
-  // calc geometric normal.
-  real3 p0, p1, p2;
-
-  // @fixme { Validation required! }
-  int face_table[4][3] = {{0, 1, 3}, {1, 2, 3}, {2, 0, 3}, {0, 1, 2}};
-
-  p0 = p[face_table[isect.subface_id][0]];
-  p1 = p[face_table[isect.subface_id][1]];
-  p2 = p[face_table[isect.subface_id][2]];
-
-  real3 p10 = p1 - p0;
-  real3 p20 = p2 - p0;
-  real3 n = cross(p10, p20);
-  // printf("n = %f, %f, %f\n", n[0], n[1], n[2]);
-  n.normalize();
-
-  isect.geometric = n;
-  isect.normal = n;
-#endif
+  isect.geometric = isect.normal;
 }
 
 } // namespace
