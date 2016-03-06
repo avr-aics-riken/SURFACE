@@ -17,7 +17,6 @@
 #include <stdint.h>
 
 #include "render_bvh_tree.h"
-#include "render_matrix.h"
 
 using namespace lsgl::render;
 
