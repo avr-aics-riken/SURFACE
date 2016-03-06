@@ -217,6 +217,59 @@ static void RandomTetraMake(float *vertices, float *bmin, float *bmax, int Prism
     }
 }
 
+static bool RandomPyramidMake(float *vertices, float *bmin, float *bmax){
+    
+    float scale = (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.25f;
+    scale = pow(scale, 0.333);
+    
+    float3 p[5];
+    
+    while(1){
+        p[0] = scale*2*rand_vertices();
+        p[1] = scale*2*rand_vertices();
+        p[2] = scale*2*rand_vertices();
+        p[3] = p[2] + (p[2] - p[1]) * rand_(scale * 2) + (p[0] - p[1]) * rand_(scale * 2);
+        p[4] = scale*2*rand_vertices();
+        if ((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.3f >
+            -vdot( p[3] - p[0], vcross(p[1] - p[0], p[2] - p[1])))
+            break;
+    }
+    bool f = false;
+    
+    for(int n = 0; n < 5; n ++ ){
+        p[n] = p[n] + float3(bmin);
+        if( p[n].x > bmax[0]) f = true;
+        if( p[n].y > bmax[1]) f = true;
+        if( p[n].z > bmax[2]) f = true;
+    }
+    
+    if(f) return false;
+    
+    for(int n = 0; n < 5; n ++ ){
+        vertices[n*3 + 0] = p[n].x;
+        vertices[n*3 + 1] = p[n].y;
+        vertices[n*3 + 2] = p[n].z;
+    }
+    
+    return true;
+}
+
+static void RandomPyramidMake(std::vector<float> &vertices, float *bmin, float *bmax, int PyramidN){
+    std::vector<std::vector<float> > bmin_, bmax_;
+    
+    SpaceDivision(bmin, bmax, PyramidN, bmin_, bmax_);
+    
+    for(int i = 0; i < PyramidN;){
+        float vs[15];
+        if(RandomTetraMake(vs, &bmin_[i][0], &bmax_[i][0])){
+            for(int n = 0; n < 15; n ++)
+                vertices[i * 15 + n] = vs[n];
+            i++;
+        }
+    }
+    
+}
+
 static bool RandomPrismMake(float *vertices, float *bmin, float *bmax){
 //    float3 center = float3(bmin[0]+bmax[0], bmin[1]+bmax[1], bmin[2]+bmax[2]) * 0.5f;
     
@@ -280,84 +333,75 @@ static void RandomPrismMake(std::vector<float> &vertices, float *bmin, float *bm
 }
 
 bool RandomHexaMake(float *vertices, float *bmin, float *bmax){
-   
-    float3 center = float3(bmin[0]+bmax[0], bmin[1]+bmax[1], bmin[2]+bmax[2]) * 0.5f;
     
-    float center4[4] = {center.x,center.y,center.z,0};
+    float3 min(bmin);
     
     float scale = (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1])*0.1f;
     scale = pow(scale, 0.333);
     
-    myvec4 verts[8];
+    float3 verts[8];
     
     while (1){
         verts[0].x = 0;
         verts[0].y = 0;
         verts[0].z = -0.5;
-        verts[0].w = 1;
-
+        
         verts[1].x = 0;
         verts[1].y = 1;
         verts[1].z = -0.5;
-        verts[1].w = 1;
-
+        
         verts[2].x = 1;
         verts[2].y = 1;
         verts[2].z = -0.5;
-        verts[2].w = 1;
-
+        
         verts[3].x = 1;
         verts[3].y = 0;
         verts[3].z = -0.5;
-        verts[3].w = 1;
-
+        
         verts[4].x = 0;
         verts[4].y = 0;
         verts[4].z = 0.5;
-        verts[4].w = 1;
-
+        
         verts[5].x = 1;
         verts[5].y = 0;
         verts[5].z = 0.5;
-        verts[5].w = 1;
-
+        
         verts[6].x = 1;
         verts[6].y = 1;
         verts[6].z = 0.5;
-        verts[6].w = 1;
-
+        
         verts[7].x = 0;
         verts[7].y = 1;
         verts[7].z = 0.5;
-        verts[7].w = 1;
         
-#if 0
-    mat4 mat_a(rand_(scale),rand_(scale),rand_(scale),0,
-               rand_(scale),rand_(scale),rand_(scale),0,
-               rand_(scale),rand_(scale),rand_(scale),0,
-               rand_(scale),rand_(scale),rand_(scale),1);
-    
-    if(determinant(mat_a) < 0) return false;
-#endif
+        float mat[4][3] = {
+            {rand_(scale),rand_(scale),rand_(scale)},
+            {rand_(scale),rand_(scale),rand_(scale)},
+            {rand_(scale),rand_(scale),rand_(scale)},
+            {rand_(scale),rand_(scale),rand_(scale)},
+        };
         
-    bool f = false;
         
-    for(int n = 0; n < 8; n++){
-        verts[n].x = verts[n].x * rand_(scale) + center4[0];
-        verts[n].y = verts[n].y * rand_(scale) + center4[1];
-        verts[n].z = verts[n].z * rand_(scale) + center4[2];
-        if( verts[n].x > bmax[0] || verts[n].x < bmin[0]) f = true;
-        if( verts[n].y > bmax[1] || verts[n].y < bmin[1]) f = true;
-        if( verts[n].z > bmax[2] || verts[n].z < bmin[2]) f = true;
-    }
-    
+        
+        bool f = false;
+        
+        for(int n = 0; n < 8; n++){
+            
+            verts[n] = float3( mat[0][0] * verts[n].x + mat[1][0] * verts[n].y + mat[2][0] * verts[n].z + mat[3][0],
+                              mat[0][1] * verts[n].x + mat[1][1] * verts[n].y + mat[2][1] * verts[n].z + mat[3][1],
+                              mat[0][2] * verts[n].x + mat[1][2] * verts[n].y + mat[2][2] * verts[n].z + mat[3][2])
+            + min;
+            
+            if( verts[n].x > bmax[0] || verts[n].x < bmin[0]) f = true;
+            if( verts[n].y > bmax[1] || verts[n].y < bmin[1]) f = true;
+            if( verts[n].z > bmax[2] || verts[n].z < bmin[2]) f = true;
+        }
+        
         if(f) return false;
         
         if((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.06f
            < - vdot( float3(verts[4].x - verts[0].x, verts[4].y - verts[0].y, verts[4].z - verts[0].z), vcross(float3(verts[1].x - verts[0].x, verts[1].y - verts[0].y, verts[1].z - verts[0].z ), float3(verts[2].x - verts[1].x, verts[2].y - verts[1].y, verts[2].z - verts[2].z))))break;
     }
-    
-    
     
     for(int n = 0; n < 8; n++){
         vertices[n*3] = verts[n].x;
@@ -616,8 +660,8 @@ main(
 
   positions.resize(numSolids * 3 * solidType); // solidType == numVert
   if (solidType == 5) {
-    //RandomPyramidMake(positions, bmin, bmax, numSolids);
-    assert(0); // @todo
+    printf("GenPyramid...\n");
+    RandomPyramidMake(positions, bmin, bmax, numSolids);
   } else if (solidType == 6) {
     printf("GenPrism...\n");
     RandomPrismMake(positions, bmin, bmax, numSolids);
