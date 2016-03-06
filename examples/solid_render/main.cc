@@ -230,17 +230,17 @@ static bool RandomPyramidMake(float *vertices, float *bmin, float *bmax){
         p[2] = scale*2*rand_vertices();
         p[3] = p[2] + (p[2] - p[1]) * rand_(scale * 2) + (p[0] - p[1]) * rand_(scale * 2);
         p[4] = scale*2*rand_vertices();
-        if ((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.3f >
-            -vdot( p[3] - p[0], vcross(p[1] - p[0], p[2] - p[1])))
+        if ((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.1f <
+            -vdot( p[4] - p[0], vcross(p[1] - p[0], p[2] - p[1])))
             break;
     }
     bool f = false;
     
     for(int n = 0; n < 5; n ++ ){
         p[n] = p[n] + float3(bmin);
-        if( p[n].x > bmax[0]) f = true;
-        if( p[n].y > bmax[1]) f = true;
-        if( p[n].z > bmax[2]) f = true;
+        if( p[n].x > bmax[0] || p[n].x < bmin[0]) f = true;
+        if( p[n].y > bmax[1] || p[n].y < bmin[1]) f = true;
+        if( p[n].z > bmax[2] || p[n].z < bmin[2]) f = true;
     }
     
     if(f) return false;
@@ -261,7 +261,7 @@ static void RandomPyramidMake(std::vector<float> &vertices, float *bmin, float *
     
     for(int i = 0; i < PyramidN;){
         float vs[15];
-        if(RandomTetraMake(vs, &bmin_[i][0], &bmax_[i][0])){
+        if(RandomPyramidMake(vs, &bmin_[i][0], &bmax_[i][0])){
             for(int n = 0; n < 15; n ++)
                 vertices[i * 15 + n] = vs[n];
             i++;
@@ -662,6 +662,7 @@ main(
   if (solidType == 5) {
     printf("GenPyramid...\n");
     RandomPyramidMake(positions, bmin, bmax, numSolids);
+//    assert(0); // @todo
   } else if (solidType == 6) {
     printf("GenPrism...\n");
     RandomPrismMake(positions, bmin, bmax, numSolids);

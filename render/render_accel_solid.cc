@@ -213,25 +213,25 @@ bool IntersectPyramidD(const double3& rayorg, const double3& raydir,
         if(ws[i] <= 0)  cw_ccw[1][i] = true;
         else cw_ccw[1][i] = false;
     }
-        
+    
     for (int i = 0,n = 1; i < 2; i++,n--)
-        if(cw_ccw[i][0] && cw_ccw[i][1] && cw_ccw[i][2] && cw_ccw[i][3]){
-            SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1], vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2], edges[3], raydir);
-            isects[i].normal = toreal3(normalize(vcrossd(edges[1], edges[0])));
-        }else if (cw_ccw[n][0] && cw_ccw[i][4] && cw_ccw[n][5]){
-            isects[i].position = toreal3((vertices[4]*-ws[0] + vertices[1]*ws[4] + vertices[0]*-ws[5]) / (-ws[0]+ws[4]-ws[5]));
-            isects[i].normal = toreal3(normalize(vcrossd(edges[4], edges[0])));
-        }else if (cw_ccw[n][1] && cw_ccw[i][5] && cw_ccw[n][6]){
-            isects[i].position = toreal3((vertices[4]*-ws[1] + vertices[2]*ws[5] + vertices[1]*-ws[6]) / (-ws[1]+ws[5]-ws[6]));
-            isects[i].normal = toreal3(normalize(vcrossd(edges[5], edges[1])));
-        }else if (cw_ccw[n][2] && cw_ccw[i][6] && cw_ccw[n][7]){
-            isects[i].position = toreal3((vertices[4]*-ws[2] + vertices[3]*ws[6] + vertices[2]*-ws[7]) / (-ws[2]+ws[6]-ws[7]));
-            isects[i].normal = toreal3(normalize(vcrossd(edges[6], edges[2])));
-        }else if (cw_ccw[n][3] && cw_ccw[i][7] && cw_ccw[n][0]){
-            isects[i].position = toreal3((vertices[4]*-ws[3] + vertices[0]*ws[7] + vertices[3]*-ws[4]) / (-ws[3]+ws[7]-ws[4]));
-            isects[i].normal = toreal3(normalize(vcrossd(edges[7], edges[3])));
-        }else
-            return false;
+    if(cw_ccw[i][0] && cw_ccw[i][1] && cw_ccw[i][2] && cw_ccw[i][3]){
+        SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1], vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2], edges[3], raydir);
+        isects[i].normal = toreal3(normalize(vcrossd(edges[1], edges[0])));
+    }else if (cw_ccw[n][0] && cw_ccw[i][4] && cw_ccw[n][5]){
+        isects[i].position = toreal3(vertices[4]*-ws[0] + vertices[1]*ws[4] + vertices[0]*-ws[5]) / (-ws[0]+ws[4]-ws[5]);
+        isects[i].normal = toreal3(normalize(vcrossd(edges[4], edges[0])));
+    }else if (cw_ccw[n][1] && cw_ccw[i][5] && cw_ccw[n][6]){
+        isects[i].position = toreal3(vertices[4]*-ws[1] + vertices[2]*ws[5] + vertices[1]*-ws[6]) / (-ws[1]+ws[5]-ws[6]);
+        isects[i].normal = toreal3(normalize(vcrossd(edges[5], edges[1])));
+    }else if (cw_ccw[n][2] && cw_ccw[i][6] && cw_ccw[n][7]){
+        isects[i].position = toreal3(vertices[4]*-ws[2] + vertices[3]*ws[6] + vertices[2]*-ws[7]) / (-ws[2]+ws[6]-ws[7]);
+        isects[i].normal = toreal3(normalize(vcrossd(edges[6], edges[2])));
+    }else if (cw_ccw[n][3] && cw_ccw[i][7] && cw_ccw[n][4]){
+        isects[i].position = toreal3(vertices[4]*-ws[3] + vertices[0]*ws[7] + vertices[3]*-ws[4]) / (-ws[3]+ws[7]-ws[4]);
+        isects[i].normal = toreal3(normalize(vcrossd(edges[7], edges[3])));
+    }else
+        return false;
     
     for (int j = 0; j < 3; j++)
         if (raydir[j] != 0){
@@ -260,7 +260,7 @@ bool IntersectPyramidF(const real3& rayorg, const real3& raydir,
         if(ws[i] <= 0)  cw_ccw[1][i] = true;
         else cw_ccw[1][i] = false;
     }
-        
+    
     for (int i = 0,n = 1; i < 2; i++,n--)
         if(cw_ccw[i][0] && cw_ccw[i][1] && cw_ccw[i][2] && cw_ccw[i][3]){
             SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1], vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2], edges[3], raydir);
@@ -274,7 +274,7 @@ bool IntersectPyramidF(const real3& rayorg, const real3& raydir,
         }else if (cw_ccw[n][2] && cw_ccw[i][6] && cw_ccw[n][7]){
             isects[i].position = (vertices[4]*-ws[2] + vertices[3]*ws[6] + vertices[2]*-ws[7]) / (-ws[2]+ws[6]-ws[7]);
             isects[i].normal = cross(edges[6], edges[2]).normalize();
-        }else if (cw_ccw[n][3] && cw_ccw[i][7] && cw_ccw[n][0]){
+        }else if (cw_ccw[n][3] && cw_ccw[i][7] && cw_ccw[n][4]){
             isects[i].position = (vertices[4]*-ws[3] + vertices[0]*ws[7] + vertices[3]*-ws[4]) / (-ws[3]+ws[7]-ws[4]);
             isects[i].normal = cross(edges[7], edges[3]).normalize();
         }else
