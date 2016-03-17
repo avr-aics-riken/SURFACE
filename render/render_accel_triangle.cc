@@ -68,15 +68,15 @@ typedef __m128d double2;
 #define vzerod2() _mm_setzero_pd()
 #define voned2() _mm_set_pd(1.0, 1.0)
 
-static FORCEINLINE double2 vmaxd2(double2 x, double2 y) {
+FORCEINLINE double2 vmaxd2(double2 x, double2 y) {
   return _fjsp_max_v2r8(x, y);
 }
 
-static FORCEINLINE double2 vmind2(double2 x, double2 y) {
+FORCEINLINE double2 vmind2(double2 x, double2 y) {
   return _fjsp_min_v2r8(x, y);
 }
 
-static FORCEINLINE double2 vinvd2(double2 x) {
+FORCEINLINE double2 vinvd2(double2 x) {
   // Reciprocal + Newton Raphson improvement
   // (2 * Rcp(x)) - (x * Rcp(x) * Rcp(x))]
   // = (2 - (x * Rcp(x)) * Rcp(x)
@@ -200,15 +200,15 @@ typedef __m128d double2;
 #define vzerod2() _mm_setzero_pd()
 #define voned2() _mm_set_pd(1.0, 1.0)
 
-static FORCEINLINE double2 vmaxd2(double2 x, double2 y) {
+inline double2 vmaxd2(double2 x, double2 y) {
   return _mm_max_pd(x, y);
 }
 
-static FORCEINLINE double2 vmind2(double2 x, double2 y) {
+inline double2 vmind2(double2 x, double2 y) {
   return _mm_min_pd(x, y);
 }
 
-static FORCEINLINE double2 vinvd2(double2 x) {
+inline double2 vinvd2(double2 x) {
   __m128d b = _mm_cvtps_pd(_mm_rcp_ps(_mm_cvtpd_ps(x)));
   b = _mm_sub_pd(_mm_add_pd(b, b), _mm_mul_pd(_mm_mul_pd(x, b), b));
   b = _mm_sub_pd(_mm_add_pd(b, b), _mm_mul_pd(_mm_mul_pd(x, b), b));
@@ -342,12 +342,12 @@ struct BinBuffer {
   int binSize;
 };
 
-static inline double CalculateSurfaceArea(const real3 &min, const real3 &max) {
+inline double CalculateSurfaceArea(const real3 &min, const real3 &max) {
   real3 box = max - min;
   return 2.0 * (box[0] * box[1] + box[1] * box[2] + box[2] * box[0]);
 }
 
-static inline void GetBoundingBoxOfTriangle(real3 &bmin, real3 &bmax,
+inline void GetBoundingBoxOfTriangle(real3 &bmin, real3 &bmax,
                                             const Mesh *mesh,
                                             unsigned int index) {
   unsigned int f0 = mesh->faces[3 * index + 0];
@@ -386,12 +386,12 @@ static inline void GetBoundingBoxOfTriangle(real3 &bmin, real3 &bmax,
   }
 }
 
-static void ContributeBinBuffer(BinBuffer *bins, // [out]
+void ContributeBinBuffer(BinBuffer *bins, // [out]
                                 const real3 &sceneMin, const real3 &sceneMax,
                                 const Mesh *mesh, unsigned int *indices,
                                 unsigned int leftIdx, unsigned int rightIdx,
                                 real epsScale) {
-  static const real EPS = REAL_EPSILON * epsScale;
+  const real EPS = REAL_EPSILON * epsScale;
 
   real binSize = (real)bins->binSize;
 
@@ -449,7 +449,7 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
   }
 }
 
-static inline double SAH(size_t ns1, real leftArea, size_t ns2, real rightArea,
+inline double SAH(size_t ns1, real leftArea, size_t ns2, real rightArea,
                          real invS, real Taabb, real Ttri) {
   // const real Taabb = 0.2f;
   // const real Ttri = 0.8f;
@@ -461,7 +461,7 @@ static inline double SAH(size_t ns1, real leftArea, size_t ns2, real rightArea,
   return T;
 }
 
-static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
+bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
                                  int &minCostAxis, // [out]
                                  const BinBuffer *bins, const real3 &bmin,
                                  const real3 &bmax, size_t numTriangles,
@@ -625,7 +625,7 @@ private:
 };
 
 template <typename T>
-static void ComputeBoundingBox(real3 &bmin, real3 &bmax, const T *vertices,
+void ComputeBoundingBox(real3 &bmin, real3 &bmax, const T *vertices,
                                unsigned int *faces, unsigned int *indices,
                                unsigned int leftIndex, unsigned int rightIndex,
                                real epsScale) {
@@ -658,7 +658,7 @@ static void ComputeBoundingBox(real3 &bmin, real3 &bmax, const T *vertices,
 }
 
 template <typename T>
-static void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const T *vertices,
+void ComputeBoundingBox30(real3 &bmin, real3 &bmax, const T *vertices,
                                  const uint32_t *faces,
                                  const std::vector<IndexKey30> &keys,
                                  unsigned int leftIndex,
@@ -1991,7 +1991,7 @@ inline bool TriangleIsectD(real &tInOut, real &uOut, real &vOut,
   return true;
 }
 
-static bool TestLeafNode(Intersection &isect, // [inout]
+bool TestLeafNode(Intersection &isect, // [inout]
                          const TriangleNode &node,
                          const std::vector<unsigned int> &indices,
                          const Mesh *mesh, const Ray &ray, double epsScale) {
