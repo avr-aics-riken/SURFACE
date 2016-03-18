@@ -406,7 +406,7 @@ void lsgl::render::CalculateMortonCodesSolidDouble30(
   for (int64_t i = startIdx; i < endIdx; i++) {
     real3 p_i = real3(0.0, 0.0, 0.0);
     for (int j = 0; j < numVersPerSolid; j++) {
-      uint32_t f = faces[numVersPerSolid * i + i];
+      uint32_t f = faces[numVersPerSolid * i + j];
 
       // may truncate precision.
       real3 p(points[3 * f + 0], points[3 * f + 1], points[3 * f + 2]);

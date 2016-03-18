@@ -37,6 +37,7 @@ using namespace lsgl::render;
 
 #define ENABLE_TRACE_PRINT (0)
 #define ENABLE_DEBUG_PRINT (0)
+#define ENABLE_TRAVERSAL_STATISTICS (0)
 
 #define trace(f, ...)                                                          \
   {                                                                            \
@@ -1298,8 +1299,8 @@ size_t TetraAccel::BuildTree(const Tetrahedron *tetras, unsigned int leftIdx,
 
   size_t offset = nodes_.size();
 
-  if (stats_.maxTreeDepth < depth) {
-    stats_.maxTreeDepth = depth;
+  if (buildStats_.maxTreeDepth < depth) {
+    buildStats_.maxTreeDepth = depth;
   }
 
   real3 bmin, bmax;
@@ -1335,7 +1336,7 @@ size_t TetraAccel::BuildTree(const Tetrahedron *tetras, unsigned int leftIdx,
 
     nodes_.push_back(leaf);
 
-    stats_.numLeafNodes++;
+    buildStats_.numLeafNodes++;
 
     return offset;
   }
@@ -1419,7 +1420,7 @@ size_t TetraAccel::BuildTree(const Tetrahedron *tetras, unsigned int leftIdx,
   nodes_[offset].bmax[1] = bmax[1];
   nodes_[offset].bmax[2] = bmax[2];
 
-  stats_.numBranchNodes++;
+  buildStats_.numBranchNodes++;
 
   return offset;
 }
@@ -1427,7 +1428,7 @@ size_t TetraAccel::BuildTree(const Tetrahedron *tetras, unsigned int leftIdx,
 bool TetraAccel::Build(const Tetrahedron *tetras,
                        const TetraBuildOptions &options) {
   options_ = options;
-  stats_ = TetraBuildStatistics();
+  buildStats_ = TetraBuildStatistics();
 
   assert(options_.binSize > 1);
 
@@ -1471,7 +1472,7 @@ bool TetraAccel::Build32(const Tetrahedron *tetras,
                          const TetraBuildOptions &options) {
 
   options_ = options;
-  stats_ = TetraBuildStatistics();
+  buildStats_ = TetraBuildStatistics();
 
   assert(options_.binSize > 1);
 
@@ -2085,6 +2086,11 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
 bool TetraAccel::Traverse(Intersection &isect, Ray &ray) const {
   real hitT = REAL_MAX; // far = no hit.
 
+#if ENABLE_TRAVERSAL_STATISTICS
+  // @todo { multi-thread safe. }
+  traversalStats_.numRays++;
+#endif
+
   int nodeStackIndex = 0;
   int nodeStack[kMaxStackDepth];
   nodeStack[0] = 0;
@@ -2118,12 +2124,17 @@ bool TetraAccel::Traverse(Intersection &isect, Ray &ray) const {
 
     nodeStackIndex--;
 
+    bool hit = IntersectRayAABB(minT, maxT, hitT, node.bmin, node.bmax,
+                                rayOrg, rayInvDir, dirSign);
+
     if (node.flag == 0) { // branch node
 
-      bool hit = IntersectRayAABB(minT, maxT, hitT, node.bmin, node.bmax,
-                                  rayOrg, rayInvDir, dirSign);
-
       if (hit) {
+
+#if ENABLE_TRAVERSAL_STATISTICS
+        // @todo { multi-thread safe. }
+        traversalStats_.numNodeTraversals++;
+#endif
 
         int orderNear = dirSign[node.axis];
         int orderFar = 1 - orderNear;
@@ -2135,8 +2146,20 @@ bool TetraAccel::Traverse(Intersection &isect, Ray &ray) const {
 
     } else { // leaf node
 
-      if (TestLeafNode(isect, node, indices_, tetras_, ray)) {
-        hitT = isect.t;
+#if ENABLE_TRAVERSAL_STATISTICS
+      // @todo { multi-thread safe. }
+      traversalStats_.numLeafTests++;
+#endif
+
+      if (hit) {
+#if ENABLE_TRAVERSAL_STATISTICS
+          // @todo { multi-thread safe. }
+          traversalStats_.numPrimIsectTests += node.data[0];
+#endif
+
+        if (TestLeafNode(isect, node, indices_, tetras_, ray)) {
+          hitT = isect.t;
+        }
       }
     }
   }
@@ -2167,4 +2190,20 @@ void TetraAccel::BoundingBox(double bmin[3], double bmax[3]) const {
     bmax[1] = nodes_[0].bmax[1];
     bmax[2] = nodes_[0].bmax[2];
   }
+}
+
+void TetraAccel::ResetTraversalStatistics() const
+{
+  traversalStats_ = TetraTraversalStatistics();
+}
+
+void TetraAccel::ReportTraversalStatistics() const
+{
+#if ENABLE_TRAVERSAL_STATISTICS
+  double numRays = traversalStats_.numRays;
+  printf("[LSGL] TetraAccel | # of rays              : %lld\n", traversalStats_.numRays);
+  printf("[LSGL] TetraAccel | # of leaf node tests   : %lld(avg %f)\n", traversalStats_.numLeafTests, traversalStats_.numLeafTests / numRays);
+  printf("[LSGL] TetraAccel | # of node traversals   : %lld(avg %f)\n", traversalStats_.numNodeTraversals, traversalStats_.numNodeTraversals / numRays);
+  printf("[LSGL] TetraAccel | # of prim isect tests  : %lld(avg %f)\n", traversalStats_.numPrimIsectTests, traversalStats_.numPrimIsectTests / numRays);
+#endif
 }

@@ -139,6 +139,9 @@ public:
     isBuiltGraph_ = false;
   }
 
+  void ResetTraversalStat();
+  void ReportTraversalStat();
+
 private:
   std::vector<RenderElement> renderElements_;
   render::BVHTree *tree_;

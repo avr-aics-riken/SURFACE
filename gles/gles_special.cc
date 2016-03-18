@@ -35,6 +35,8 @@ void Context::glFinish() {
   assert(renderGraph_);
   renderGraph_->Build();
 
+  renderGraph_->ResetTraversalStat();
+
   // build sparse volume texture.
   for (size_t i = 0; i < sparseTextureList_.size(); i++) {
     Texture *tex = sparseTextureList_[i];
@@ -61,6 +63,8 @@ void Context::glFinish() {
 
   // let the mesh builder know the frame ended, and clear our render list
   accelBuilder_.EndFrame();
+
+  renderGraph_->ReportTraversalStat();
 
   state_.currentDrawStackIndex = 0;
 

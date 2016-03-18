@@ -312,3 +312,71 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
 
   return false;
 }
+
+void RenderGraph::ResetTraversalStat() {
+
+  if (!tree_ || !isBuiltGraph_) {
+    return;
+  }
+
+  for (size_t i = 0; i < renderElements_.size(); i++) {
+    RenderElement *renderElement = &renderElements_[i];
+
+    switch (renderElement->GetPrimType()) {
+    case AccelBuilder::PRIMITIVE_TETRAHEDRONS:
+    {
+      const AccelBuilder::TetraAccelerator *accel =
+          reinterpret_cast<const AccelBuilder::TetraAccelerator *>(
+              renderElement->GetAccel());
+      accel->ResetTraversalStatistics();
+    }
+    break;
+    case AccelBuilder::PRIMITIVE_PYRAMIDS:
+    case AccelBuilder::PRIMITIVE_PRISMS:
+    case AccelBuilder::PRIMITIVE_HEXAHEDRONS:
+    {
+      const AccelBuilder::SolidAccelerator *accel =
+          reinterpret_cast<const AccelBuilder::SolidAccelerator *>(
+              renderElement->GetAccel());
+      accel->ResetTraversalStatistics();
+    }
+    break;
+    default:
+    break;
+    }
+  }
+}
+
+void RenderGraph::ReportTraversalStat() {
+
+  if (!tree_ || !isBuiltGraph_) {
+    return;
+  }
+
+  for (size_t i = 0; i < renderElements_.size(); i++) {
+    RenderElement *renderElement = &renderElements_[i];
+
+    switch (renderElement->GetPrimType()) {
+    case AccelBuilder::PRIMITIVE_TETRAHEDRONS:
+    {
+      const AccelBuilder::TetraAccelerator *accel =
+          reinterpret_cast<const AccelBuilder::TetraAccelerator *>(
+              renderElement->GetAccel());
+      accel->ReportTraversalStatistics();
+    }
+    break;
+    case AccelBuilder::PRIMITIVE_PYRAMIDS:
+    case AccelBuilder::PRIMITIVE_PRISMS:
+    case AccelBuilder::PRIMITIVE_HEXAHEDRONS:
+    {
+      const AccelBuilder::SolidAccelerator *accel =
+          reinterpret_cast<const AccelBuilder::SolidAccelerator *>(
+              renderElement->GetAccel());
+      accel->ReportTraversalStatistics();
+    }
+    break;
+    default:
+    break;
+    }
+  }
+}

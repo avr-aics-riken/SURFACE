@@ -66,6 +66,18 @@ struct TetraBuildStatistics {
       : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
 };
 
+/// Tetra BVH traversal statistics.
+struct TetraTraversalStatistics {
+  unsigned long long numRays;
+  unsigned long long numLeafTests;
+  unsigned long long numPrimIsectTests;
+  unsigned long long numNodeTraversals;
+
+  TetraTraversalStatistics()
+      : numRays(0), numLeafTests(0), numPrimIsectTests(0), numNodeTraversals(0) {}
+};
+
+
 /// Tetra Acceleration class
 class TetraAccel {
 public:
@@ -79,7 +91,7 @@ public:
   bool Build32(const Tetrahedron *tetras, const TetraBuildOptions &options);
 
   /// Get statistics of built BVH tree. Valid after Build()
-  TetraBuildStatistics GetStatistics() const { return stats_; }
+  TetraBuildStatistics GetStatistics() const { return buildStats_; }
 
   /// Dump built BVH to the file.
   bool Dump(const char *filename);
@@ -94,6 +106,11 @@ public:
   /// Get the bounding box of BVH. Valid after Build().
   void BoundingBox(double bmin[3], double bmax[3]) const;
 
+  // These are valid Only if ENABLE_TRAVERSAL_STATISTICS macro was defiend in `render_accel_tetra.cc`
+  // Since logging traversal information affects the performance in rendering.
+  void ResetTraversalStatistics() const;
+  void ReportTraversalStatistics() const;
+
 private:
   /// Builds BVH tree recursively.
   size_t BuildTree(const Tetrahedron *tetras, unsigned int leftIdx,
@@ -102,7 +119,8 @@ private:
   TetraBuildOptions options_;
   std::vector<TetraNode> nodes_;
   std::vector<unsigned int> indices_; // max 4G triangles.
-  TetraBuildStatistics stats_;
+  TetraBuildStatistics buildStats_;
+  mutable TetraTraversalStatistics traversalStats_;
   const Tetrahedron *tetras_;
 };
 

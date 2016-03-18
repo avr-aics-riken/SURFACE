@@ -52,7 +52,7 @@ struct SolidBuildOptions {
 
   // Set default value: Taabb = 0.2
   SolidBuildOptions()
-      : costTaabb(0.2), minLeafPrimitives(16), maxTreeDepth(256), binSize(64) {}
+      : costTaabb(0.2), minLeafPrimitives(8), maxTreeDepth(256), binSize(64) {}
 };
 
 /// Solid BVH build statistics.
@@ -65,6 +65,18 @@ struct SolidBuildStatistics {
   SolidBuildStatistics()
       : maxTreeDepth(0), numLeafNodes(0), numBranchNodes(0) {}
 };
+
+/// Solid BVH traversal statistics.
+struct SolidTraversalStatistics {
+  unsigned long long numRays;
+  unsigned long long numLeafTests;
+  unsigned long long numPrimIsectTests;
+  unsigned long long numNodeTraversals;
+
+  SolidTraversalStatistics()
+      : numRays(0), numLeafTests(0), numPrimIsectTests(0), numNodeTraversals(0) {}
+};
+
 
 /// Solid Acceleration class
 class SolidAccel {
@@ -79,7 +91,7 @@ public:
   bool Build32(const Solid *solids, const SolidBuildOptions &options);
 
   /// Get statistics of built BVH tree. Valid after Build()
-  SolidBuildStatistics GetStatistics() const { return stats_; }
+  SolidBuildStatistics GetStatistics() const { return buildStats_; }
 
   /// Dump built BVH to the file.
   bool Dump(const char *filename);
@@ -94,6 +106,11 @@ public:
   /// Get the bounding box of BVH. Valid after Build().
   void BoundingBox(double bmin[3], double bmax[3]) const;
 
+  // These are valid Only if ENABLE_TRAVERSAL_STATISTICS macro was defiend in `render_accel_solid.cc`
+  // Since logging traversal information affects the performance in rendering.
+  void ResetTraversalStatistics() const;
+  void ReportTraversalStatistics() const;
+
 private:
   /// Builds BVH tree recursively.
   size_t BuildTree(const Solid *solids, unsigned int leftIdx,
@@ -102,7 +119,8 @@ private:
   SolidBuildOptions options_;
   std::vector<SolidNode> nodes_;
   std::vector<unsigned int> indices_; // max 4G triangles.
-  SolidBuildStatistics stats_;
+  SolidBuildStatistics buildStats_;
+  mutable SolidTraversalStatistics traversalStats_;
   const Solid *solids_;
 };
 

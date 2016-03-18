@@ -38,6 +38,8 @@ using namespace lsgl::render;
 #define ENABLE_TRACE_PRINT (0)
 #define ENABLE_DEBUG_PRINT (0)
 
+#define ENABLE_TRAVERSAL_STATISTICS (0)
+
 #define trace(f, ...)                                                          \
   {                                                                            \
     if (ENABLE_TRACE_PRINT)                                                    \
@@ -529,7 +531,7 @@ static inline void GetBoundingBoxOfSolid(real3 &bmin, real3 &bmax,
                                          unsigned int index) {
   int numIndices = solids->numVertsPerSolid;
 
-  real3 p[16]; // Assume numIndices < 16
+  //real3 p[16]; // Assume numIndices < 16
 
   bmin = real3(REAL_MAX, REAL_MAX, REAL_MAX);
   bmax = real3(-REAL_MAX, -REAL_MAX, -REAL_MAX);
@@ -537,23 +539,22 @@ static inline void GetBoundingBoxOfSolid(real3 &bmin, real3 &bmax,
   for (int j = 0; j < numIndices; j++) {
     unsigned int f = solids->indices[numIndices * index + j];
 
+    real3 p;
     if (solids->isDoublePrecisionPos) {
-      p[j] = real3(solids->dvertices[3 * f + 0], solids->dvertices[3 * f + 1],
+      p = real3(solids->dvertices[3 * f + 0], solids->dvertices[3 * f + 1],
                    solids->dvertices[3 * f + 2]);
     } else {
-      p[j] = real3(solids->vertices[3 * f + 0], solids->vertices[3 * f + 1],
+      p = real3(solids->vertices[3 * f + 0], solids->vertices[3 * f + 1],
                    solids->vertices[3 * f + 2]);
     }
-  }
   
-  for (int i = 0; i < numIndices; i++) {
-    bmin[0] = (std::min)(bmin[0], p[i][0]);
-    bmin[1] = (std::min)(bmin[1], p[i][1]);
-    bmin[2] = (std::min)(bmin[2], p[i][2]);
+    bmin[0] = (std::min)(bmin[0], p[0]);
+    bmin[1] = (std::min)(bmin[1], p[1]);
+    bmin[2] = (std::min)(bmin[2], p[2]);
 
-    bmax[0] = (std::max)(bmax[0], p[i][0]);
-    bmax[1] = (std::max)(bmax[1], p[i][1]);
-    bmax[2] = (std::max)(bmax[2], p[i][2]);
+    bmax[0] = (std::max)(bmax[0], p[0]);
+    bmax[1] = (std::max)(bmax[1], p[1]);
+    bmax[2] = (std::max)(bmax[2], p[2]);
   }
 }
 
@@ -1321,8 +1322,8 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
 
   size_t offset = nodes_.size();
 
-  if (stats_.maxTreeDepth < depth) {
-    stats_.maxTreeDepth = depth;
+  if (buildStats_.maxTreeDepth < depth) {
+    buildStats_.maxTreeDepth = depth;
   }
 
   real3 bmin, bmax;
@@ -1358,7 +1359,7 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
 
     nodes_.push_back(leaf);
 
-    stats_.numLeafNodes++;
+    buildStats_.numLeafNodes++;
 
     return offset;
   }
@@ -1442,7 +1443,7 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
   nodes_[offset].bmax[1] = bmax[1];
   nodes_[offset].bmax[2] = bmax[2];
 
-  stats_.numBranchNodes++;
+  buildStats_.numBranchNodes++;
 
   return offset;
 }
@@ -1450,7 +1451,7 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
 bool SolidAccel::Build(const Solid *solids,
                        const SolidBuildOptions &options) {
   options_ = options;
-  stats_ = SolidBuildStatistics();
+  buildStats_ = SolidBuildStatistics();
 
   assert(options_.binSize > 1);
 
@@ -1494,7 +1495,7 @@ bool SolidAccel::Build32(const Solid *solids,
                          const SolidBuildOptions &options) {
 
   options_ = options;
-  stats_ = SolidBuildStatistics();
+  buildStats_ = SolidBuildStatistics();
 
   assert(options_.binSize > 1);
 
@@ -1903,6 +1904,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
 
   real t = isect.t; // current hit distance
 
+
   double3 rayOrg;
   rayOrg[0] = ray.origin()[0];
   rayOrg[1] = ray.origin()[1];
@@ -1996,6 +1998,11 @@ void BuildIntersection(Intersection &isect, const Solid *solids,
 bool SolidAccel::Traverse(Intersection &isect, Ray &ray) const {
   real hitT = REAL_MAX; // far = no hit.
 
+#if ENABLE_TRAVERSAL_STATISTICS
+  // @todo { multi-thread safe. }
+  traversalStats_.numRays++;
+#endif
+
   int nodeStackIndex = 0;
   int nodeStack[kMaxStackDepth];
   nodeStack[0] = 0;
@@ -2029,12 +2036,17 @@ bool SolidAccel::Traverse(Intersection &isect, Ray &ray) const {
 
     nodeStackIndex--;
 
+    bool hit = IntersectRayAABB(minT, maxT, hitT, node.bmin, node.bmax,
+                                rayOrg, rayInvDir, dirSign);
+
     if (node.flag == 0) { // branch node
 
-      bool hit = IntersectRayAABB(minT, maxT, hitT, node.bmin, node.bmax,
-                                  rayOrg, rayInvDir, dirSign);
-
       if (hit) {
+
+#if ENABLE_TRAVERSAL_STATISTICS
+      // @todo { multi-thread safe. }
+      traversalStats_.numNodeTraversals++;
+#endif
 
         int orderNear = dirSign[node.axis];
         int orderFar = 1 - orderNear;
@@ -2046,8 +2058,21 @@ bool SolidAccel::Traverse(Intersection &isect, Ray &ray) const {
 
     } else { // leaf node
 
-      if (TestLeafNode(isect, node, indices_, solids_, ray)) {
-        hitT = isect.t;
+#if ENABLE_TRAVERSAL_STATISTICS
+      // @todo { multi-thread safe. }
+      traversalStats_.numLeafTests++;
+#endif
+
+      if (hit) {
+
+#if ENABLE_TRAVERSAL_STATISTICS
+        // @todo { multi-thread safe. }
+        traversalStats_.numPrimIsectTests += node.data[0];
+#endif
+
+        if (TestLeafNode(isect, node, indices_, solids_, ray)) {
+          hitT = isect.t;
+        }
       }
     }
   }
@@ -2078,4 +2103,20 @@ void SolidAccel::BoundingBox(double bmin[3], double bmax[3]) const {
     bmax[1] = nodes_[0].bmax[1];
     bmax[2] = nodes_[0].bmax[2];
   }
+}
+
+void SolidAccel::ResetTraversalStatistics() const
+{
+  traversalStats_ = SolidTraversalStatistics();
+}
+
+void SolidAccel::ReportTraversalStatistics() const
+{
+#if ENABLE_TRAVERSAL_STATISTICS
+  double numRays = traversalStats_.numRays;
+  printf("[LSGL] SolidAccel | # of rays              : %lld\n", traversalStats_.numRays);
+  printf("[LSGL] SolidAccel | # of leaf node tests   : %lld(avg %f)\n", traversalStats_.numLeafTests, traversalStats_.numLeafTests / numRays);
+  printf("[LSGL] SolidAccel | # of node traversals   : %lld(avg %f)\n", traversalStats_.numNodeTraversals, traversalStats_.numNodeTraversals / numRays);
+  printf("[LSGL] SolidAccel | # of prim isect tests  : %lld(avg %f)\n", traversalStats_.numPrimIsectTests, traversalStats_.numPrimIsectTests / numRays);
+#endif
 }
