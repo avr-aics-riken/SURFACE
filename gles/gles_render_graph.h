@@ -1,7 +1,7 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ * Copyright (c) 2013 - 2016 Advanced Institute for Computational Science,
  *RIKEN.
  * All rights reserved.
  *
@@ -25,12 +25,12 @@ namespace lsgl {
 
 class RenderElement {
 public:
-  RenderElement(AccelBuilder::PrimitiveType type, unsigned char *accel,
+  RenderElement(AccelBuilder::PrimitiveType type, GLenum glType, unsigned char *accel,
                 double bmin[3], double bmax[3], double T[4][4],
                 int drawStackIndex, const Program *program,
                 const FragmentState &fragmentState,
                 const ShadingState &shadingState)
-      : primType_(type), accel_(accel), drawStackIndex_(drawStackIndex),
+      : primType_(type), glType_(glType), accel_(accel), drawStackIndex_(drawStackIndex),
         program_(program), fragmentState_(fragmentState),
         shadingState_(shadingState), nodeID_(-1) {
 
@@ -53,6 +53,7 @@ public:
   void Update();
 
   inline AccelBuilder::PrimitiveType GetPrimType() const { return primType_; }
+  inline GLenum GetGLType() const { return glType_; }
   inline const unsigned char *GetAccel() const { return accel_; }
   inline const Program *GetProgram() const { return program_; }
   inline void GetBoundingBox(double bmin[3], double bmax[3]) const {
@@ -80,6 +81,7 @@ public:
   inline int GetDrawStackIndex() const { return drawStackIndex_; }
 
   AccelBuilder::PrimitiveType primType_;
+  GLenum glType_;
   const unsigned char *accel_; // Opaque pointer for accelerator.
   int nodeID_;
   int drawStackIndex_; // For vertex attributes

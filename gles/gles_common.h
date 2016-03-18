@@ -1,7 +1,7 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ * Copyright (c) 2013 - 2016 Advanced Institute for Computational Science,
  *RIKEN.
  * All rights reserved.
  *
@@ -630,6 +630,7 @@ struct IntersectionState {
   float py;
   int doubleSided;
   float rayattrib;
+  GLenum primitiveType;  // GL_TRIANGLES, GL_TETRAHEDRONS_EXT, etc
   const unsigned char *prev_node;
   unsigned int prev_prim_id;
   double prev_hit_t;

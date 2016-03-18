@@ -1,7 +1,7 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ * Copyright (c) 2013 - 2016 Advanced Institute for Computational Science,
  *RIKEN.
  * All rights reserved.
  *
@@ -340,7 +340,7 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
                          state_.vertexAttributes[state_.currentDrawStackIndex],
                          (*this));
 
-    RenderElement renderElement(primTy, accel, bmin, bmax, Tw,
+    RenderElement renderElement(primTy, mode, accel, bmin, bmax, Tw,
                                 state_.currentDrawStackIndex, new_prg,
                                 fragmentState, shadingState);
     assert(renderGraph_);

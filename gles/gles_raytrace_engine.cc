@@ -1,7 +1,7 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ * Copyright (c) 2013 - 2016 Advanced Institute for Computational Science,
  *RIKEN.
  * All rights reserved.
  *
@@ -486,6 +486,7 @@ void RaytraceEngine::ShadeFragment(float shadecol[4], bool &discarded /* out */,
     isectState.f0 = isect.f0;
     isectState.f1 = isect.f1;
     isectState.f2 = isect.f2;
+    isectState.primitiveType = renderElement->GetGLType();
 
     bool ret = prg->GetFragmentShader(0)->Eval(
         fragCol, fragmentState, shadingState, vertexAttributes, fragCoord,

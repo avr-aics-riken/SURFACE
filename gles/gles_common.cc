@@ -1,7 +1,7 @@
 /*
  * LSGL - Large Scale Graphics Library
  *
- * Copyright (c) 2013 - 2015 Advanced Institute for Computational Science,
+ * Copyright (c) 2013 - 2016 Advanced Institute for Computational Science,
  *RIKEN.
  * All rights reserved.
  *
@@ -994,35 +994,55 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
     const VaryingConnection &varyingConn = shadingState.varyingConnections[i];
     const Varying &varying = shadingState.varyings[i];
 
-    // @fixme { Currently only support for GL_FLOAT varyings. }
-    // Assume GL_TRIANGLES
-    int elems = varying.data.size() / sizeof(GL_FLOAT);
-    const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
-        &varyingConn.ptr[f0 * varyingConn.stride]);
-    const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
-        &varyingConn.ptr[f1 * varyingConn.stride]);
-    const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
-        &varyingConn.ptr[f2 * varyingConn.stride]);
-    // GLfloat* dst =
-    // reinterpret_cast<GLfloat*>(&(shadingState.varyings[i].data.at(0)));
-
     // Use local(stack) buffer
     GLfloat *dst = reinterpret_cast<GLfloat *>(&varyingBuffer[i][0]);
 
-    // printf("dst = %p, f0 = %d\n", dst, f0);
+    // @fixme { Currently only support for GL_FLOAT varyings. }
+    if ((isectState.primitiveType == GL_POINTS) || 
+        (isectState.primitiveType == GL_LINES) ||
+        (isectState.primitiveType == GL_TRIANGLES)) {
 
-    if ((f0 == f1) && (f1 == f2)) {
-      // No interpolation required.
-      for (int k = 0; k < elems; k++) {
-        float f = f0ptr[k];
-        dst[k] = f; // store to varying storage
+      int elems = varying.data.size() / sizeof(GL_FLOAT);
+      const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f0 * varyingConn.stride]);
+      const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f1 * varyingConn.stride]);
+      const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f2 * varyingConn.stride]);
+      // GLfloat* dst =
+      // reinterpret_cast<GLfloat*>(&(shadingState.varyings[i].data.at(0)));
+
+      // printf("dst = %p, f0 = %d\n", dst, f0);
+
+      if ((f0 == f1) && (f1 == f2)) {
+        // No interpolation required.
+        for (int k = 0; k < elems; k++) {
+          float f = f0ptr[k];
+          dst[k] = f; // store to varying storage
+        }
+      } else {
+        for (int k = 0; k < elems; k++) {
+          float f =
+              LerpFloat(f0ptr[k], f1ptr[k], f2ptr[k], isectState.u, isectState.v);
+          dst[k] = f; // store to varying storage
+        }
       }
+    } else if (isectState.primitiveType == GL_TETRAHEDRONS_EXT) {
+      // Only interpolate variables at the frontmost intersection.
+      // @todo { How to expose interpolated varying to GLSL shader? }
+
+    } else if (isectState.primitiveType == GL_PRISMS_EXT) {
+      // Only interpolate variables at the frontmost intersection.
+      // @todo { How to expose interpolated varying to GLSL shader? }
+    } else if (isectState.primitiveType == GL_PYRAMIDS_EXT) {
+      // Only interpolate variables at the frontmost intersection.
+      // @todo { How to expose interpolated varying to GLSL shader? }
+    } else if (isectState.primitiveType == GL_HEXAHEDRONS_EXT) {
+      // Only interpolate variables at the frontmost intersection.
+      // @todo { How to expose interpolated varying to GLSL shader? }
     } else {
-      for (int k = 0; k < elems; k++) {
-        float f =
-            LerpFloat(f0ptr[k], f1ptr[k], f2ptr[k], isectState.u, isectState.v);
-        dst[k] = f; // store to varying storage
-      }
+      // ???
+      assert(0);
     }
 
     // link to varying storage so that the shader can see (interpolated) varying
