@@ -16,8 +16,8 @@
 
 #define USE_DOUBLE_PRECISION  (1)
 
-int windowWidth = 512;
-int windowHeight = 512;
+int windowWidth = 1024;
+int windowHeight = 1024;
 
 bool SaveColorBufferRGBA(const char *savename) {
   void *tgabuffer;
@@ -51,7 +51,7 @@ static bool GenLodSparseVolumeFloatTexture(GLuint &tex,
     buf[i] = voldata[i] / 255.0f;
   }
 
-  int nlods = 4; // Up to 8 for demo;
+  int nlods = 8; // Up to 8 for demo;
   int loc[8][3];
 
   // Compute block origin.
@@ -110,7 +110,7 @@ static bool GenLodSparseVolumeDoubleTexture(GLuint &tex,
     buf[i] = voldata[i] / 255.0;
   }
 
-  int nlods = 4; // Up to 8 for demo;
+  int nlods = 8; // Up to 8 for demo;
   int loc[8][3];
 
   // Compute block origin.
@@ -170,6 +170,7 @@ static bool LoadShader(GLuint &prog, GLuint &fragShader,
   static GLchar srcbuf[16384];
   FILE *fp = fopen(fragShaderFilename, "rb");
   if (!fp) {
+    fprintf(stderr, "Failed to open file: %s\n", fragShaderFilename);
     return false;
   }
 
@@ -186,13 +187,19 @@ static bool LoadShader(GLuint &prog, GLuint &fragShader,
   glShaderSource(fragShader, 1, &src, NULL);
   glCompileShader(fragShader);
   glGetShaderiv(fragShader, GL_COMPILE_STATUS, &val);
-  assert(val == GL_TRUE && "failed to compile shader");
+  if (val != GL_TRUE) {
+    fprintf(stderr, "failed to compile shader.\n");
+    exit(-1);
+  }
 
   prog = glCreateProgram();
   glAttachShader(prog, fragShader);
   glLinkProgram(prog);
   glGetProgramiv(prog, GL_LINK_STATUS, &val);
-  assert(val == GL_TRUE && "failed to link shader");
+  if (val != GL_TRUE) {
+    fprintf(stderr, "failed to link shader.\n");
+    exit(-1);
+  }
 
   return true;
 }
@@ -239,7 +246,10 @@ static bool LoadBinaryShader(GLuint &prog, GLuint &fragShader,
 
 static unsigned char *LoadRawVolumeTexture(const char *filename, size_t size) {
   FILE *fp = fopen(filename, "rb");
-  assert(fp);
+  if (!fp) {
+    fprintf(stderr, "failed to load file: %s\n", filename);
+    exit(-1);
+  }
 
   unsigned char *data = new unsigned char[size];
   size_t sz = fread(data, 1, size, fp);
@@ -267,8 +277,9 @@ int main(int argc, char **argv) {
 
   GLuint prog = 0, fragShader = 0;
   bool ret = LoadShader(prog, fragShader, fragShaderFile);
-  // bool ret = LoadBinaryShader(prog, fragShader, fragShaderBinFile);
-  assert(ret);
+  if (!ret) {
+    exit(-1);
+  }
 
   printf("LoadTex\n");
   GLuint tex0;
@@ -279,7 +290,9 @@ int main(int argc, char **argv) {
   float *bufAddr = NULL;
   ret = GenLodSparseVolumeFloatTexture(tex0, &bufAddr, voldata, dim);
 #endif
-  assert(ret);
+  if (!ret) {
+    exit(-1);
+  }
 
   glActiveTexture(GL_TEXTURE0);
 

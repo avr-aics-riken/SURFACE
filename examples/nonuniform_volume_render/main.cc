@@ -100,6 +100,7 @@ LoadShader(
   static GLchar srcbuf[16384];
   FILE *fp = fopen(fragShaderFilename, "rb");
   if (!fp) {
+    printf("failed to load shader: %s\n", fragShaderFilename);
     return false;
   }
   
@@ -198,7 +199,10 @@ LoadRawVolumeTexture(
   size_t size)
 {
   FILE* fp = fopen(filename, "rb");
-  assert(fp);
+  if (!fp) {
+    fprintf(stderr, "failed to load %s\n", filename);
+    exit(-1);
+  }
 
   unsigned char* data = new unsigned char[size];
   size_t sz = fread(data, 1, size, fp);
@@ -231,7 +235,9 @@ main(
   GLuint prog = 0, fragShader = 0;
   bool ret = LoadShader(prog, fragShader, fragShaderFile);
   //bool ret = LoadBinaryShader(prog, fragShader, fragShaderBinFile);
-  assert(ret);
+  if (!ret) {
+    exit(-1);
+  }
 
   printf("LoadTex\n");
   GLuint tex0;
