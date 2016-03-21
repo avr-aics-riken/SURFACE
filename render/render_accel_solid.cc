@@ -31,7 +31,7 @@ using namespace lsgl::render;
 #define FORCEINLINE  inline
 #endif
 
-#define MAX_LEAF_ELEMENTS (8)
+#define MAX_LEAF_ELEMENTS (4)
 #define MAX_TREE_DEPTH_32BIT                                                   \
   (22) // FYI, log2(1G/16) ~= 25.897, log2(1G/32) ~= 21
 
@@ -54,6 +54,21 @@ using namespace lsgl::render;
 #endif
 
 namespace {
+
+// assume real == float
+void PrintReal(std::string msg, real v)
+{
+  printf("%s : %f(0x%08x)\n", msg.c_str(),
+    v, *((unsigned int*)&v));
+}
+
+void PrintVec3(std::string msg, real3 v)
+{
+  printf("%s : %f(0x%08x), %f(0x%08x), %f(0x%08x)\n", msg.c_str(),
+    v[0], *((unsigned int*)&v[0]),
+    v[1], *((unsigned int*)&v[1]),
+    v[2], *((unsigned int*)&v[2]));
+}
 
 FORCEINLINE double3 vcrossd(double3 a, double3 b) {
   double3 c;
@@ -521,9 +536,14 @@ struct BinBuffer {
   int binSize;
 };
 
-static inline double CalculateSurfaceArea(const real3 &min, const real3 &max) {
+real CalculateSurfaceArea(const real3 &min, const real3 &max) {
+  PrintVec3("sah.bmin", min);
+  PrintVec3("sah.bmax", max);
   real3 box = max - min;
-  return 2.0 * (box[0] * box[1] + box[1] * box[2] + box[2] * box[0]);
+  PrintVec3("sah.box", box);
+  real S =  2.0 * ((box[0] * box[1]) + (box[1] * box[2]) + (box[2] * box[0]));
+  PrintReal("S", S);
+  return S;
 }
 
 static inline void GetBoundingBoxOfSolid(real3 &bmin, real3 &bmax,
@@ -581,7 +601,8 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
   }
 
   // Clear bin data
-  memset(&bins->bin[0], 0, sizeof(2 * 3 * bins->binSize));
+  bins->clear();
+  //memset(&bins->bin[0], 0, sizeof(2 * 3 * bins->binSize));
 
   size_t idxBMin[3];
   size_t idxBMax[3];
@@ -597,6 +618,9 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
     real3 bmax;
 
     GetBoundingBoxOfSolid(bmin, bmax, solids, indices[i]);
+    debug("bbox[%d] = %f, %f, %f - %f, %f, %f\n",
+      (int)i, bmin[0], bmin[1], bmin[2],
+      bmax[0], bmax[1], bmax[2]);
 
     real3 quantizedBMin = (bmin - sceneMin) * sceneInvSize;
     real3 quantizedBMax = (bmax - sceneMin) * sceneInvSize;
@@ -619,9 +643,15 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
       bins->bin[1 * (bins->binSize * 3) + j * bins->binSize + idxBMax[j]] += 1;
     }
   }
+
+  for (int i = 0; i < 2 * 3 * bins->binSize; i++) {
+    if (bins->bin[i] > 0) {
+      debug("bins[%d] = %d\n", i, (int)bins->bin[i]);
+    }
+  }
 }
 
-static inline double SAH(size_t ns1, real leftArea, size_t ns2, real rightArea,
+real SAH(size_t ns1, real leftArea, size_t ns2, real rightArea,
                          real invS, real Taabb, real Ttri) {
   // const real Taabb = 0.2f;
   // const real Ttri = 0.8f;
@@ -674,7 +704,7 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
     //     +----+----+----+----+----+
     //
 
-    real minCostPos = bmin[j] + 0.5 * bstep[j];
+    real minCostPos = bmin[j] + 0.5f * bstep[j];
     minCost[j] = REAL_MAX;
 
     left = 0;
@@ -694,7 +724,7 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
       // +1 for i since we want a position on right side of the cell.
       //
 
-      pos = bmin[j] + (i + 0.5) * bstep[j];
+      pos = bmin[j] + (i + 0.5f) * bstep[j];
       bmaxLeft[j] = pos;
       bminRight[j] = pos;
 
@@ -703,7 +733,11 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
 
       real cost =
           SAH(left, saLeft, right, saRight, invSaTotal, costTaabb, costTtri);
+      debug("[%d] cost = %f(0x%08x), left = %d, right = %d\n", j, cost, *((unsigned int*)&cost), left, right);
       if (cost < minCost[j]) {
+        debug("saLeft = %f(0x%08x), saRight = %f(0x%08x0\n", saLeft, *((unsigned int*)&saLeft), saRight, *((unsigned int*)&saRight));
+
+        debug("[%d] i = %d, MinCost = %f(0x%08x), cutPos = %f(0x%08x)\n", j, i, cost, *((unsigned int *)&cost), pos, *((unsigned int*)&cost));
         //
         // Update the min cost
         //
@@ -821,6 +855,7 @@ static void ComputeBoundingBox(real3 &bmin, real3 &bmax, int numVertsPerSolid, c
 
   for (i = leftIndex; i < rightIndex; i++) { // for each primitives
     size_t idx = primIds[i];
+    debug("idx = %d\n", (int)idx);
     for (int j = 0; j < numVertsPerSolid; j++) {
       size_t fid = indices[numVertsPerSolid * idx + j];
       for (int k = 0; k < 3; k++) { // xyz
@@ -1335,13 +1370,14 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
                               &indices_.at(0), leftIdx, rightIdx);
   }
 
-  debug(" bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
-  debug(" bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
-
   size_t n = rightIdx - leftIdx;
   if ((n < options_.minLeafPrimitives) || (depth >= options_.maxTreeDepth)) {
     // Create leaf node.
     SolidNode leaf;
+
+    debug("leaf.bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
+    debug("leaf.bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
+
 
     leaf.bmin[0] = bmin[0];
     leaf.bmin[1] = bmin[1];
@@ -1375,6 +1411,7 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
   real cutPos[3] = {0.0, 0.0, 0.0};
 
   BinBuffer bins(options_.binSize);
+  debug("binSize = %d\n", options_.binSize);
   ContributeBinBuffer(&bins, bmin, bmax, solids, &indices_.at(0), leftIdx,
                       rightIdx);
   FindCutFromBinBuffer(cutPos, minCutAxis, &bins, bmin, bmax, n,
@@ -1422,6 +1459,8 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
       break;
     }
   }
+
+  debug("cutAxis = %d, midIdx = %d\n", cutAxis, midIdx);
 
   SolidNode node;
   node.axis = cutAxis;
@@ -2044,8 +2083,8 @@ bool SolidAccel::Traverse(Intersection &isect, Ray &ray) const {
       if (hit) {
 
 #if ENABLE_TRAVERSAL_STATISTICS
-      // @todo { multi-thread safe. }
-      traversalStats_.numNodeTraversals++;
+        // @todo { multi-thread safe. }
+        traversalStats_.numNodeTraversals++;
 #endif
 
         int orderNear = dirSign[node.axis];
