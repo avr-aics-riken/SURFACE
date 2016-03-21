@@ -537,12 +537,12 @@ struct BinBuffer {
 };
 
 real CalculateSurfaceArea(const real3 &min, const real3 &max) {
-  PrintVec3("sah.bmin", min);
-  PrintVec3("sah.bmax", max);
+  //PrintVec3("sah.bmin", min);
+  //PrintVec3("sah.bmax", max);
   real3 box = max - min;
-  PrintVec3("sah.box", box);
+  //PrintVec3("sah.box", box);
   real S =  2.0 * ((box[0] * box[1]) + (box[1] * box[2]) + (box[2] * box[0]));
-  PrintReal("S", S);
+  //PrintReal("S", S);
   return S;
 }
 
