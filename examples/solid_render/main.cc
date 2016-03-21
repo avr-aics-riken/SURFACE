@@ -105,11 +105,15 @@ inline float rand_(){
     return (float)rand() / RAND_MAX;
 }
 
+inline float rand_(float min, float max){
+    return min + (max - min) * rand_();
+}
+
 inline float3 rand_vertices(){
     return float3(rand_(), rand_(), rand_());
 }
 
-static void SpaceDivision(float *bmin, float *bmax,int number, std::vector< std::vector<float > > &out_d_min, std::vector< std::vector<float > > &out_d_max){
+void SpaceDivision(float *bmin, float *bmax,int number, std::vector< std::vector<float > > &out_d_min, std::vector< std::vector<float > > &out_d_max){
     
     int i = 1,j = 1, k = 1;
     while (1){
@@ -162,7 +166,7 @@ static void SpaceDivision(float *bmin, float *bmax,int number, std::vector< std:
 //    }
 }
 
-static bool RandomTetraMake(float *vertices, float *bmin, float *bmax){
+bool RandomTetraMake(float *vertices, float bmin[3], float bmax[3]){
     
     float scale = (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.25f;
     scale = pow(scale, 0.333);
@@ -179,7 +183,6 @@ static bool RandomTetraMake(float *vertices, float *bmin, float *bmax){
         p[1] = scale*2*rand_vertices();
         p[2] = scale*2*rand_vertices();
         p[3] = scale*2*rand_vertices();
-//        cout << (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.3f << endl;
     }
     bool f = false;
     
@@ -201,7 +204,7 @@ static bool RandomTetraMake(float *vertices, float *bmin, float *bmax){
     return true;
 }
 
-static void RandomTetraMake(float *vertices, float *bmin, float *bmax, int PrismN){
+void RandomTetraMake(float *vertices, float bmin[3], float bmax[3], int PrismN){
     
     std::vector<std::vector<float> > bmin_, bmax_;
     
@@ -209,7 +212,7 @@ static void RandomTetraMake(float *vertices, float *bmin, float *bmax, int Prism
     
     for(int i = 0; i < PrismN;){
         float vs[12];
-        if(RandomTetraMake(vs, &bmin_[i][0], &bmax_[i][0])){
+        if(RandomTetraMake(vs, &(bmin_[i][0]), &(bmax_[i][0]))){
             for(int n = 0; n < 12; n ++)
                 vertices[i * 12 + n] = vs[n];
             i++;
@@ -217,7 +220,8 @@ static void RandomTetraMake(float *vertices, float *bmin, float *bmax, int Prism
     }
 }
 
-static bool RandomPyramidMake(float *vertices, float *bmin, float *bmax){
+
+bool RandomPyramidMake(float *vertices, float bmin[3], float bmax[3]){
     
     float scale = (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.25f;
     scale = pow(scale, 0.333);
@@ -230,7 +234,7 @@ static bool RandomPyramidMake(float *vertices, float *bmin, float *bmax){
         p[2] = scale*2*rand_vertices();
         p[3] = p[2] + (p[2] - p[1]) * rand_(scale * 2) + (p[0] - p[1]) * rand_(scale * 2);
         p[4] = scale*2*rand_vertices();
-        if ((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.1f <
+        if ((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.1f >
             -vdot( p[4] - p[0], vcross(p[1] - p[0], p[2] - p[1])))
             break;
     }
@@ -254,7 +258,7 @@ static bool RandomPyramidMake(float *vertices, float *bmin, float *bmax){
     return true;
 }
 
-static void RandomPyramidMake(std::vector<float> &vertices, float *bmin, float *bmax, int PyramidN){
+void RandomPyramidMake(std::vector<float> &vertices, float bmin[3], float bmax[3], int PyramidN){
     std::vector<std::vector<float> > bmin_, bmax_;
     
     SpaceDivision(bmin, bmax, PyramidN, bmin_, bmax_);
@@ -270,31 +274,28 @@ static void RandomPyramidMake(std::vector<float> &vertices, float *bmin, float *
     
 }
 
-static bool RandomPrismMake(float *vertices, float *bmin, float *bmax){
-//    float3 center = float3(bmin[0]+bmax[0], bmin[1]+bmax[1], bmin[2]+bmax[2]) * 0.5f;
-    
-//    glm::vec4 center4(center.x,center.y,center.z,0);
+bool RandomPrismMake(float *vertices, float bmin[3], float bmax[3]){
     
     float scale = (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.25f;
     scale = pow(scale, 0.333);
     
     float3 p[6];
+    float3 p_;
     
-    p[0] = float3(rand_(scale),rand_(scale),rand_(scale));
-    p[1] = float3(rand_(scale),rand_(scale),rand_(scale));
-    p[2] = float3(rand_(scale),rand_(scale),rand_(scale));
-    float3 p_ = float3(rand_(scale),rand_(scale),rand_(scale));
-    
-    while( (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.1f > -vdot( p_ - p[0], vcross(p[1] - p[0], p[2] - p[1]))){
+    while(1){
         p[0] = float3(rand_(scale),rand_(scale),rand_(scale));
         p[1] = float3(rand_(scale),rand_(scale),rand_(scale));
         p[2] = float3(rand_(scale),rand_(scale),rand_(scale));
-        p_ = float3(rand_(scale),rand_(scale),rand_(scale));
+        p_ = float3(rand_(scale*2),rand_(scale*2),rand_(scale*2));
+ 
+        if((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.1f >
+           -vdot( p_ - p[0], vcross(p[1] - p[0], p[2] - p[1])))
+            break;
     }
     
-    p[3] = p[0] + (p_ - p[0]) * rand_();
-    p[4] = p[2] + (p_ - p[2]) * rand_();
-    p[5] = p[1] + (p_ - p[1]) * rand_();
+    p[3] = p[0] + (p_ - p[0]) * rand_(0.3,0.7);
+    p[4] = p[1] + (p_ - p[1]) * rand_(0.3,0.7);
+    p[5] = p[2] + (p_ - p[2]) * rand_(0.3,0.7);
     
     for(int n = 0; n < 6; n ++ ){
         p[n] = p[n] + float3(bmin);
@@ -310,11 +311,9 @@ static bool RandomPrismMake(float *vertices, float *bmin, float *bmax){
     }
     
     return true;
-    
-    
 }
 
-static void RandomPrismMake(std::vector<float> &vertices, float *bmin, float *bmax, int PrismN){
+static void RandomPrismMake(std::vector<float> &vertices, float bmin[3], float bmax[3], int PrismN){
     
     std::vector<std::vector<float> > bmin_, bmax_;
     
@@ -346,16 +345,16 @@ bool RandomHexaMake(float *vertices, float *bmin, float *bmax){
         verts[0].y = 0;
         verts[0].z = -0.5;
         
-        verts[1].x = 0;
-        verts[1].y = 1;
+        verts[1].x = 1;
+        verts[1].y = 0;
         verts[1].z = -0.5;
         
         verts[2].x = 1;
         verts[2].y = 1;
         verts[2].z = -0.5;
         
-        verts[3].x = 1;
-        verts[3].y = 0;
+        verts[3].x = 0;
+        verts[3].y = 1;
         verts[3].z = -0.5;
         
         verts[4].x = 0;
