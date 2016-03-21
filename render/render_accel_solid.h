@@ -52,7 +52,7 @@ struct SolidBuildOptions {
 
   // Set default value: Taabb = 0.2
   SolidBuildOptions()
-      : costTaabb(0.2), minLeafPrimitives(8), maxTreeDepth(256), binSize(64) {}
+      : costTaabb(0.2), minLeafPrimitives(4), maxTreeDepth(256), binSize(64) {}
 };
 
 /// Solid BVH build statistics.
