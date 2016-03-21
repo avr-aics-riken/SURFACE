@@ -964,8 +964,8 @@ void AccelBuilder::AddSolidData(GLenum solidType, PrimData *pd, const Buffer *el
   t.start();
   SolidAccel *accel = new SolidAccel();
 
-  // accel->Build(pd->solids, options);  // slower but rather high quality BVH
-  accel->Build32(pd->solids, options); // faster but rather low quality BVH
+  accel->Build(pd->solids, options);  // slower but rather high quality BVH
+  //accel->Build32(pd->solids, options); // faster but rather low quality BVH
 
   t.end();
 
