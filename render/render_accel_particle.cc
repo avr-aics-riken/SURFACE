@@ -1187,7 +1187,7 @@ size_t ParticleAccel::BuildTree(const Particles *particles, real3 &bmin,
   // Try all 3 axis until good cut position avaiable.
   unsigned int midIdx = 0;
   int cutAxis = 0;
-  for (int axisTry = 0; axisTry < 1; axisTry++) {
+  for (int axisTry = 0; axisTry < 3; axisTry++) {
 
     unsigned int *begin = &indices_[leftIdx];
     // unsigned int* end   = &indices_[rightIdx];

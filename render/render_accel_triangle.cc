@@ -1224,7 +1224,7 @@ size_t TriangleAccel::BuildTree(const Mesh *mesh, real3 &bmin, real3 &bmax,
   // Try all 3 axis until good cut position avaiable.
   unsigned int midIdx;
   int cutAxis = minCutAxis;
-  for (int axisTry = 0; axisTry < 1; axisTry++) {
+  for (int axisTry = 0; axisTry < 3; axisTry++) {
 
     unsigned int *begin = &indices_[leftIdx];
     unsigned int *end = &indices_[rightIdx];

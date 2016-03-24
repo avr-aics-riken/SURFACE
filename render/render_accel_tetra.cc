@@ -31,7 +31,7 @@ using namespace lsgl::render;
 #define FORCEINLINE  inline
 #endif
 
-#define MAX_LEAF_ELEMENTS (8)
+#define MAX_LEAF_ELEMENTS (4)
 #define MAX_TREE_DEPTH_32BIT                                                   \
   (22) // FYI, log2(1G/16) ~= 25.897, log2(1G/32) ~= 21
 
@@ -722,7 +722,10 @@ public:
     real3 p3(tetras_->vertices[3 * i3 + 0], tetras_->vertices[3 * i3 + 1],
              tetras_->vertices[3 * i3 + 2]);
 
-    real center = p0[axis] + p1[axis] + p2[axis] + p3[axis];
+    real center = tetras_->vertices[3*i0+axis]
+                + tetras_->vertices[3*i1+axis]
+                + tetras_->vertices[3*i2+axis]
+                + tetras_->vertices[3*i3+axis];
 
     return (center < pos * 4.0);
   }
@@ -747,16 +750,10 @@ public:
     unsigned int i2 = tetras_->faces[4 * i + 2];
     unsigned int i3 = tetras_->faces[4 * i + 3];
 
-    double3 p0(tetras_->dvertices[3 * i0 + 0], tetras_->dvertices[3 * i0 + 1],
-               tetras_->dvertices[3 * i0 + 2]);
-    double3 p1(tetras_->dvertices[3 * i1 + 0], tetras_->dvertices[3 * i1 + 1],
-               tetras_->dvertices[3 * i1 + 2]);
-    double3 p2(tetras_->dvertices[3 * i2 + 0], tetras_->dvertices[3 * i2 + 1],
-               tetras_->dvertices[3 * i2 + 2]);
-    double3 p3(tetras_->dvertices[3 * i3 + 0], tetras_->dvertices[3 * i3 + 1],
-               tetras_->dvertices[3 * i3 + 2]);
-
-    double center = p0[axis] + p1[axis] + p2[axis] + p3[axis];
+    double center = tetras_->dvertices[3*i0+axis]
+                + tetras_->dvertices[3*i1+axis]
+                + tetras_->dvertices[3*i2+axis]
+                + tetras_->dvertices[3*i3+axis];
 
     return (center < pos * 4.0);
   }
@@ -1317,6 +1314,7 @@ size_t TetraAccel::BuildTree(const Tetrahedron *tetras, unsigned int leftIdx,
 
   size_t n = rightIdx - leftIdx;
   if ((n < options_.minLeafPrimitives) || (depth >= options_.maxTreeDepth)) {
+    debug("leaf: %d\n", n);
     // Create leaf node.
     TetraNode leaf;
 

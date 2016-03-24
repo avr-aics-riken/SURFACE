@@ -782,10 +782,7 @@ public:
     for (int j = 0; j < solids_->numVertsPerSolid; j++) {
       unsigned int f = solids_->indices[solids_->numVertsPerSolid * i + j];
 
-      real3 p(solids_->vertices[3 * f + 0], solids_->vertices[3 * f + 1],
-              solids_->vertices[3 * f + 2]);
-
-      center += p[axis];
+      center += solids_->vertices[3 * f + axis];
     }
 
     return (center < pos * (real)(solids_->numVertsPerSolid));
@@ -811,10 +808,7 @@ public:
     for (int j = 0; j < solids_->numVertsPerSolid; j++) {
       unsigned int f = solids_->indices[solids_->numVertsPerSolid * i + j];
 
-      real3 p(solids_->dvertices[3 * f + 0], solids_->dvertices[3 * f + 1],
-              solids_->dvertices[3 * f + 2]);
-
-      center += p[axis];
+      center += solids_->dvertices[3 * f + axis];
     }
 
     return (center < pos * (real)(solids_->numVertsPerSolid));
@@ -1423,10 +1417,10 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
   // Try all 3 axis until good cut position avaiable.
   unsigned int midIdx;
   int cutAxis = minCutAxis;
-  for (int axisTry = 0; axisTry < 1; axisTry++) {
+  for (int axisTry = 0; axisTry < 3; axisTry++) {
 
     unsigned int *begin = &indices_[leftIdx];
-    unsigned int *end = &indices_[rightIdx];
+    unsigned int *end = &indices_[rightIdx-1]+1;
     unsigned int *mid = 0;
 
     // try minCutAxis first.
