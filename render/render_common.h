@@ -35,7 +35,7 @@ struct real3 {
     y = yy;
     z = zz;
   }
-  real3(real *p) {
+  explicit real3(real *p) {
     x = p[0];
     y = p[1];
     z = p[2];
@@ -57,8 +57,22 @@ struct real3 {
   real3 operator/(real f) const {
     return real3(x / f, y / f, z / f);
   }
-  real operator[](int i) const { return (&x)[i]; }
-  real &operator[](int i) { return (&x)[i]; }
+  real operator[](int i) const {
+#if 1
+    return ((i ==0) ? x : ((i == 1) ? y : z));
+#else
+    // This code may cause Intel compiler bug. So disabled.
+    return (&x)[i];
+#endif
+  }
+  real &operator[](int i) {
+#if 1
+    return ((i ==0) ? x : ((i == 1) ? y : z));
+#else
+    // This code may cause Intel compiler bug. So disabled.
+    return (&x)[i];
+#endif
+  }
 
   real length() const { return sqrt(x * x + y * y + z * z); }
 
@@ -79,7 +93,7 @@ struct real3 {
   }
 
   real x, y, z;
-  // real pad;  // for alignment
+  //real pad;  // for alignment
 };
 
 inline real3 operator*(real f, const real3 &v) {
@@ -93,7 +107,7 @@ struct double3 {
     y = yy;
     z = zz;
   }
-  double3(double *p) {
+  explicit double3(double *p) {
     x = p[0];
     y = p[1];
     z = p[2];
