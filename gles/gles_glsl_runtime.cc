@@ -133,7 +133,7 @@ float trace(void *fragptr, vec3 *org, vec3 *dir, vec4 *shadecol,
   ray.prev_prim_id = frag->prev_prim_id;
   ray.prev_node = frag->prev_node;
   ray.prev_hit_t = frag->prev_hit_t;
-  ray.prev_hit_normal = frag->prev_hit_normal;
+  ray.prev_hit_normal = real3(frag->prev_hit_normal);
 
   int thread_id = frag->threadID;
 
