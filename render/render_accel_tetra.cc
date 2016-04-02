@@ -115,18 +115,18 @@ FORCEINLINE double operator*(const Pluecker &p0, const Pluecker &p1) {
 void ComputeParametricDist(const double3 &orig, const double3 &dir,
                            const double3 &enterPoint, const double3 &leavePoint,
                            double &tEnter, double &tLeave) {
-  if (dir.x) {
-    double invDirx = 1.0 / dir.x;
-    tEnter = (enterPoint.x - orig.x) * invDirx;
-    tLeave = (leavePoint.x - orig.x) * invDirx;
-  } else if (dir.y) {
-    double invDiry = 1.0 / dir.y;
-    tEnter = (enterPoint.y - orig.y) * invDiry;
-    tLeave = (leavePoint.y - orig.y) * invDiry;
+  if (dir.x()) {
+    double invDirx = 1.0 / dir.x();
+    tEnter = (enterPoint.x() - orig.x()) * invDirx;
+    tLeave = (leavePoint.x() - orig.x()) * invDirx;
+  } else if (dir.y()) {
+    double invDiry = 1.0 / dir.y();
+    tEnter = (enterPoint.y() - orig.y()) * invDiry;
+    tLeave = (leavePoint.y() - orig.y()) * invDiry;
   } else {
-    double invDirz = 1.0 / dir.z;
-    tEnter = (enterPoint.z - orig.z) * invDirz;
-    tLeave = (leavePoint.z - orig.z) * invDirz;
+    double invDirz = 1.0 / dir.z();
+    tEnter = (enterPoint.z() - orig.z()) * invDirz;
+    tLeave = (leavePoint.z() - orig.z()) * invDirz;
   }
 }
 
