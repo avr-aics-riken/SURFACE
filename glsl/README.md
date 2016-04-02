@@ -18,7 +18,7 @@ Apply a patch to MESA's GLSL Compiler to add LSGL extension and also fix a bug o
 (Tested Mesa 9.0.1)
 
     $ cd $lsgl/glsl/deps
-    $ tar -jzxvf Mesa-9.0.1.tar.bz2
+    $ tar -jxvf Mesa-9.0.1.tar.bz2
     $ cd Mesa-9.0.1
     $ patch -p1 < ../../patch/mesa_glsl_fix.patch
 
