@@ -640,6 +640,12 @@ struct IntersectionState {
   unsigned int f0;
   unsigned f1;
   unsigned f2;
+  unsigned f3;
+  unsigned f4;
+  unsigned f5;
+  unsigned f6;
+  unsigned f7;
+  float d[8];
 };
 
 /// Base class of vertex and fragment shader.

@@ -79,7 +79,7 @@ FORCEINLINE double vdotd(double3 a, double3 b) {
 }
   
 FORCEINLINE double length(double3 a){
-  return sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+  return sqrt(a.x()*a.x() + a.y()*a.y() + a.z()*a.z());
 }
   
 FORCEINLINE double3 normalize(double3 a) {
