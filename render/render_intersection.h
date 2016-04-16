@@ -28,12 +28,18 @@ struct Intersection {
   real3 normal;    // shading normal
   real3 tangent;
   real3 binormal;
-
+  
   unsigned int f0;
   unsigned int f1;
   unsigned int f2;
-  unsigned int f3; // for tetra primitive
-
+  unsigned int f3;
+  unsigned int f4;
+  unsigned int f5;
+  unsigned int f6;
+  unsigned int f7; // for tetra and solid primitive
+  
+  float d[8];
+  
 #ifdef ENABLE_TRAVERSE_PROFILING
   unsigned int numTriangleTests_;
   unsigned int numTraversals_;

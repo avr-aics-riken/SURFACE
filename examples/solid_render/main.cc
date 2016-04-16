@@ -234,8 +234,8 @@ bool RandomPyramidMake(float *vertices, float bmin[3], float bmax[3]){
         p[2] = scale*2*rand_vertices();
         p[3] = p[2] + (p[2] - p[1]) * rand_(scale * 2) + (p[0] - p[1]) * rand_(scale * 2);
         p[4] = scale*2*rand_vertices();
-        if ((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.1f >
-            -vdot( p[4] - p[0], vcross(p[1] - p[0], p[2] - p[1])))
+        if ((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.3f <
+            vdot( p[4] - p[0], vcross(p[1] - p[0], p[2] - p[1])))
             break;
     }
     bool f = false;

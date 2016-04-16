@@ -1,5 +1,6 @@
 ADD_SUBDIRECTORY(tetra_render)
 ADD_SUBDIRECTORY(solid_render)
+ADD_SUBDIRECTORY(solid_interpolate_render)
 ADD_SUBDIRECTORY(nonuniform_volume_render)
 ADD_SUBDIRECTORY(sparse_volume_render)
 ADD_SUBDIRECTORY(sparse_lod_volume_render)

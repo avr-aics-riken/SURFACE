@@ -981,10 +981,18 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
   frag.shadow = shadow;
   frag.trace = trace;
   frag.random = randomreal;
-
+  
   unsigned int f0 = isectState.f0;
   unsigned int f1 = isectState.f1;
   unsigned int f2 = isectState.f2;
+  unsigned int f3 = isectState.f3;
+  unsigned int f4 = isectState.f4;
+  unsigned int f5 = isectState.f5;
+  unsigned int f6 = isectState.f6;
+  unsigned int f7 = isectState.f7;
+  
+  /// choice interpolate way for solid.
+  const int interpolateMode = 1;
 
   // Fill varying variables.
   // printf("index = %d\n", index);
@@ -1028,18 +1036,150 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
         }
       }
     } else if (isectState.primitiveType == GL_TETRAHEDRONS_EXT) {
-      // Only interpolate variables at the frontmost intersection.
-      // @todo { How to expose interpolated varying to GLSL shader? }
-
+      
+      int elems = varying.data.size() / sizeof(GL_FLOAT);
+      const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
+                                                               &varyingConn.ptr[f0 * varyingConn.stride]);
+      const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
+                                                               &varyingConn.ptr[f1 * varyingConn.stride]);
+      const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
+                                                               &varyingConn.ptr[f2 * varyingConn.stride]);
+      const GLfloat *f3ptr = reinterpret_cast<const GLfloat *>(
+                                                               &varyingConn.ptr[f3 * varyingConn.stride]);
+      
+      float weight[4];
+      for (int v = 0; v < 4; v++) {
+        switch (interpolateMode) {
+          case 0:
+            weight[v] = 1 - isectState.d[v];
+            break;
+          case 1:
+            weight[v] = isectState.d[v]*isectState.d[v]*(isectState.d[v]-1.5) + 0.5;
+            break;
+          case 2:
+            weight[v] = cos(PI*isectState.d[v])+1;
+            break;
+        }
+      }
+      
+      float w = weight[0] + weight[1] + weight[2] + weight[3];
+      for (int k = 0; k < elems; k++)
+        dst[k] = (f0ptr[k] * weight[0] + f1ptr[k] * weight[1] +
+                  f2ptr[k] * weight[2] + f3ptr[k] * weight[3])/w;
+      
     } else if (isectState.primitiveType == GL_PRISMS_EXT) {
-      // Only interpolate variables at the frontmost intersection.
-      // @todo { How to expose interpolated varying to GLSL shader? }
+      
+      int elems = varying.data.size() / sizeof(GL_FLOAT);
+      const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f0 * varyingConn.stride]);
+      const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f1 * varyingConn.stride]);
+      const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f2 * varyingConn.stride]);
+      const GLfloat *f3ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f3 * varyingConn.stride]);
+      const GLfloat *f4ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f4 * varyingConn.stride]);
+      const GLfloat *f5ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f5 * varyingConn.stride]);
+      
+      float weight[6];
+      for (int v = 0; v < 6; v++) {
+        switch (interpolateMode) {
+          case 0:
+            weight[v] = 1 - isectState.d[v];
+            break;
+          case 1:
+            weight[v] = isectState.d[v]*isectState.d[v]*(isectState.d[v]-1.5) + 0.5;
+            break;
+          case 2:
+            weight[v] = cos(PI*isectState.d[v])+1;
+            break;
+        }
+      }
+      
+      float w = weight[0] + weight[1] + weight[2] + weight[3] + weight[4] + weight[5];
+      for (int k = 0; k < elems; k++)
+        dst[k] = (f0ptr[k] * weight[0] + f1ptr[k] * weight[1] + f2ptr[k] * weight[2] +
+                  f3ptr[k] * weight[3] + f4ptr[k] * weight[4] + f5ptr[k] * weight[5]) / w;
+        // store to varying storage
+      
     } else if (isectState.primitiveType == GL_PYRAMIDS_EXT) {
-      // Only interpolate variables at the frontmost intersection.
-      // @todo { How to expose interpolated varying to GLSL shader? }
+      
+      int elems = varying.data.size() / sizeof(GL_FLOAT);
+      const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f0 * varyingConn.stride]);
+      const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f1 * varyingConn.stride]);
+      const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f2 * varyingConn.stride]);
+      const GLfloat *f3ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f3 * varyingConn.stride]);
+      const GLfloat *f4ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f4 * varyingConn.stride]);
+      
+      float weight[5];
+      for (int v = 0; v < 5; v++) {
+        switch (interpolateMode) {
+          case 0:
+            weight[v] = 1 - isectState.d[v];
+            break;
+          case 1:
+            weight[v] = isectState.d[v]*isectState.d[v]*(isectState.d[v]-1.5) + 0.5;
+            break;
+          case 2:
+            weight[v] = cos(PI*isectState.d[v])+1;
+            break;
+        }
+      }
+      
+      float w = weight[0] + weight[1] + weight[2] + weight[3] + weight[4];
+      for (int k = 0; k < elems; k++)
+        dst[k] = (f0ptr[k] * weight[0] + f1ptr[k] * weight[1] + f2ptr[k] * weight[2] +
+                  f3ptr[k] * weight[3] + f4ptr[k] * weight[4]) / w;
+      // store to varying storage
     } else if (isectState.primitiveType == GL_HEXAHEDRONS_EXT) {
-      // Only interpolate variables at the frontmost intersection.
-      // @todo { How to expose interpolated varying to GLSL shader? }
+      
+      int elems = varying.data.size() / sizeof(GL_FLOAT);
+      const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f0 * varyingConn.stride]);
+      const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f1 * varyingConn.stride]);
+      const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f2 * varyingConn.stride]);
+      const GLfloat *f3ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f3 * varyingConn.stride]);
+      const GLfloat *f4ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f4 * varyingConn.stride]);
+      const GLfloat *f5ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f5 * varyingConn.stride]);
+      const GLfloat *f6ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f6 * varyingConn.stride]);
+      const GLfloat *f7ptr = reinterpret_cast<const GLfloat *>(
+          &varyingConn.ptr[f7 * varyingConn.stride]);
+      
+      float weight[8];
+      for (int v = 0; v < 8; v++) {
+        switch (interpolateMode) {
+          case 0:
+            weight[v] = 1 - isectState.d[v];
+            break;
+          case 1:
+            weight[v] = isectState.d[v]*isectState.d[v]*(isectState.d[v]-1.5) + 0.5;
+            break;
+          case 2:
+            weight[v] = cos(PI*isectState.d[v])+1;
+            break;
+        }
+      }
+      
+      float w = weight[0] + weight[1] + weight[2] + weight[3] +
+                weight[4] + weight[5] + weight[6] + weight[7];
+      for (int k = 0; k < elems; k++)
+        dst[k] = (f0ptr[k] * weight[0] + f1ptr[k] * weight[1] + f2ptr[k] * weight[2] +
+                  f3ptr[k] * weight[3] + f4ptr[k] * weight[4] + f5ptr[k] * weight[5] +
+                  f6ptr[k] * weight[6] + f7ptr[k] * weight[7]) / w;
+      // store to varying storage
     } else {
       // ???
       assert(0);

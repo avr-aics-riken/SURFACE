@@ -486,6 +486,12 @@ void RaytraceEngine::ShadeFragment(float shadecol[4], bool &discarded /* out */,
     isectState.f0 = isect.f0;
     isectState.f1 = isect.f1;
     isectState.f2 = isect.f2;
+    isectState.f3 = isect.f3;
+    isectState.f4 = isect.f4;
+    isectState.f5 = isect.f5;
+    isectState.f6 = isect.f6;
+    isectState.f7 = isect.f7;
+    memcpy(isectState.d, isect.d, sizeof(isectState.d));
     isectState.primitiveType = renderElement->GetGLType();
 
     bool ret = prg->GetFragmentShader(0)->Eval(

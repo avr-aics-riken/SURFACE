@@ -77,6 +77,14 @@ FORCEINLINE double3 vcrossd(double3 a, double3 b) {
 FORCEINLINE double vdotd(double3 a, double3 b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
+  
+FORCEINLINE double length(double3 a){
+  return sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+}
+  
+FORCEINLINE double3 normalize(double3 a) {
+  return a / length(a);
+}
 
 FORCEINLINE int fsign(const double x) {
   //real eps = std::numeric_limits<real>::epsilon() * 16;
@@ -127,6 +135,68 @@ void ComputeParametricDist(const double3 &orig, const double3 &dir,
     double invDirz = 1.0 / dir.z;
     tEnter = (enterPoint.z - orig.z) * invDirz;
     tLeave = (leavePoint.z - orig.z) * invDirz;
+  }
+}
+  
+inline bool contain(const int &value, const int list[4]){
+  if (list[0] == value) return true;
+  if (list[1] == value) return true;
+  if (list[2] == value) return true;
+  if (list[3] == value) return true;
+  return false;
+}
+
+void InterpolateTetra(float d_out[12], const real3 &pt, real3 verts[4]) {
+  
+  // Vertices list of each face.
+  static const int faces[4][3] = {{0,2,1}, {1,2,3}, {0,3,2}, {0,1,3}};
+  
+  const float kEPS = 0.1;     //@fixme
+  
+  real3 edges[6];
+  
+  edges[0] = verts[1] - verts[0];
+  edges[1] = verts[2] - verts[1];
+  edges[2] = verts[0] - verts[2];
+  edges[3] = verts[3] - verts[0];
+  edges[4] = verts[3] - verts[1];
+  edges[5] = verts[3] - verts[2];
+  
+  bool cw_f[2][6];
+  float ws[6];
+    
+  for(int v = 0; v < 4; v++){
+    real3 rayorg (verts[v]);
+    real3 raydir (pt - verts[v]);
+    real3 raypc (cross(raydir, rayorg));
+    
+    float d = (pt - rayorg).length();
+    
+    for(int i = 0; i < 6; i++){
+      ws[i] = dot(raydir, cross(edges[i], verts[i%3])) + dot(edges[i], raypc);
+      if(ws[i] >= -kEPS)  cw_f[0][i] = true;
+      else cw_f[0][i] = false;
+      if(ws[i] <= kEPS)  cw_f[1][i] = true;
+      else cw_f[1][i] = false;
+    }
+    
+    real3 cp(1e16,1e16,1e16);
+    
+    if (cw_f[0][0] && cw_f[0][1] && cw_f[0][2] && !contain(v, faces[0]))
+      cp = (verts[2]*ws[0] + verts[0]*ws[1] + verts[1]*ws[2]) / (ws[0]+ws[1]+ws[2]);
+    else if (cw_f[1][1] && cw_f[0][4] && cw_f[1][5] && !contain(v, faces[1]))
+      cp = (verts[3]*ws[1] + verts[1]*ws[5] - verts[2]*ws[4]) / (ws[5]+ws[1]-ws[4]);
+    else if (cw_f[1][2] && cw_f[1][3] && cw_f[0][5] && !contain(v, faces[2]))
+      cp = (verts[3]*ws[2] + verts[2]*ws[3] - verts[0]*ws[5]) / (ws[2]+ws[3]-ws[5]);
+    else if (cw_f[1][0] && cw_f[0][3] && cw_f[1][4] && !contain(v, faces[3]))
+      cp = (verts[3]*ws[0] + verts[0]*ws[4] - verts[1]*ws[3]) / (ws[0]+ws[4]-ws[3]);
+    else {
+      d_out[v] = 0;
+    }
+    
+    // If the ray cross surface, compute distance.
+    if (d_out[v])
+      d_out[v] = d / (cp - rayorg).length();
   }
 }
 
@@ -2022,7 +2092,7 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
   isect.f1 = faces[4 * isect.prim_id + 1];
   isect.f2 = faces[4 * isect.prim_id + 2];
   isect.f3 = faces[4 * isect.prim_id + 3];
-
+  
   real3 p[4];
 
   if (tetras->isDoublePrecisionPos) {
@@ -2076,9 +2146,11 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
   real3 n = cross(p10, p20);
   // printf("n = %f, %f, %f\n", n[0], n[1], n[2]);
   n.normalize();
-
+  
   isect.geometric = n;
   isect.normal = n;
+  
+  InterpolateTetra(isect.d, isect.position, p);
 }
 
 } // namespace
