@@ -272,9 +272,13 @@ static void QuickSortKey30OMP(IndexKey30 *v, int firstIdx, int lastIdx) {
     startIdx[0] = firstIdx;
     endIdx[1] = lastIdx;
 
+#ifdef _OPENMP
 #pragma omp parallel
+#endif
     {
+#ifdef _OPENMP
 #pragma omp for nowait
+#endif
       for (int i = 0; i <= 1; i++) {
         QuickSortKey30(v, startIdx[i], endIdx[i]);
       }
@@ -506,13 +510,19 @@ static void MergeSort30(IndexKey30 *a, IndexKey30 *b, unsigned int low,
 
 #else
 
+#ifdef _OPENMP
 #pragma omp task
+#endif
       MergeSort30(a, b, low, pivot);
 
+#ifdef _OPENMP
 #pragma omp task
+#endif
       MergeSort30(a, b, pivot + 1, high);
 
+#ifdef _OPENMP
 #pragma omp taskwait
+#endif
 
 #endif
 

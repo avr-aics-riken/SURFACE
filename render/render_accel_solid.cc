@@ -28,7 +28,7 @@ using namespace lsgl::render;
 #ifdef __FUJITSU
 #define FORCEINLINE __attribute__((always_inline))
 #else
-#define FORCEINLINE  inline
+#define FORCEINLINE inline
 #endif
 
 #define MAX_LEAF_ELEMENTS (4)
@@ -56,18 +56,14 @@ using namespace lsgl::render;
 namespace {
 
 // assume real == float
-void PrintReal(std::string msg, real v)
-{
-  printf("%s : %f(0x%08x)\n", msg.c_str(),
-    v, *((unsigned int*)&v));
+void PrintReal(std::string msg, real v) {
+  printf("%s : %f(0x%08x)\n", msg.c_str(), v, *((unsigned int *)&v));
 }
 
-void PrintVec3(std::string msg, real3 v)
-{
-  printf("%s : %f(0x%08x), %f(0x%08x), %f(0x%08x)\n", msg.c_str(),
-    v[0], *((unsigned int*)&v[0]),
-    v[1], *((unsigned int*)&v[1]),
-    v[2], *((unsigned int*)&v[2]));
+void PrintVec3(std::string msg, real3 v) {
+  printf("%s : %f(0x%08x), %f(0x%08x), %f(0x%08x)\n", msg.c_str(), v[0],
+         *((unsigned int *)&v[0]), v[1], *((unsigned int *)&v[1]), v[2],
+         *((unsigned int *)&v[2]));
 }
 
 FORCEINLINE double3 vcrossd(double3 a, double3 b) {
@@ -82,20 +78,16 @@ FORCEINLINE double vdotd(double3 a, double3 b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-FORCEINLINE double length(double3 a){
-  return sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+FORCEINLINE double length(double3 a) {
+  return sqrt(a.x() * a.x() + a.y() * a.y() + a.z() * a.z());
 }
 
-FORCEINLINE double3 normalize(double3 a) {
-  return a / length(a);
-}
+FORCEINLINE double3 normalize(double3 a) { return a / length(a); }
 
-FORCEINLINE real3 toreal3(double3 a){
-  return real3(a.x, a.y, a.z);
-}
+FORCEINLINE real3 toreal3(double3 a) { return real3(a.x(), a.y(), a.z()); }
 
 FORCEINLINE int fsign(const double x) {
-  //real eps = std::numeric_limits<real>::epsilon() * 16;
+  // real eps = std::numeric_limits<real>::epsilon() * 16;
   double eps = DBL_EPSILON;
   return (x > eps ? 1 : (x < -eps ? -1 : 0));
 }
@@ -737,6 +729,485 @@ bool IntersectHexaF(const real3& rayorg, const real3& raydir,
     
   for (int j = 0; j < 3; j++)
     if (raydir[j] > 0.1 || raydir[j] < -0.1){
+=======
+//// Inner product
+//FORCEINLINE double operator*(const Pluecker &p0, const Pluecker &p1) {
+//  return vdotd(p0.d, p1.c) + vdotd(p1.d, p0.c);
+//}
+
+// Up to 12 edges(Hexahedron)
+void GetEdges(double3 *edges, int solidType, const double3 *vertices) {
+  if (solidType == 5) { // Pyramid
+    edges[0] = vertices[1] - vertices[0];
+    edges[1] = vertices[2] - vertices[1];
+    edges[2] = vertices[3] - vertices[2];
+    edges[3] = vertices[0] - vertices[3];
+    edges[4] = vertices[4] - vertices[0];
+    edges[5] = vertices[4] - vertices[1];
+    edges[6] = vertices[4] - vertices[2];
+    edges[7] = vertices[4] - vertices[3];
+  } else if (solidType == 6) { // Prism
+    edges[0] = vertices[1] - vertices[0];
+    edges[1] = vertices[2] - vertices[1];
+    edges[2] = vertices[0] - vertices[2];
+    edges[3] = vertices[4] - vertices[3];
+    edges[4] = vertices[5] - vertices[4];
+    edges[5] = vertices[3] - vertices[5];
+    edges[6] = vertices[3] - vertices[0];
+    edges[7] = vertices[4] - vertices[1];
+    edges[8] = vertices[5] - vertices[2];
+  } else if (solidType == 8) { // Hexa
+    edges[0] = vertices[1] - vertices[0];
+    edges[1] = vertices[2] - vertices[1];
+    edges[2] = vertices[3] - vertices[2];
+    edges[3] = vertices[0] - vertices[3];
+    edges[4] = vertices[5] - vertices[4];
+    edges[5] = vertices[6] - vertices[5];
+    edges[6] = vertices[7] - vertices[6];
+    edges[7] = vertices[4] - vertices[7];
+    edges[8] = vertices[4] - vertices[0];
+    edges[9] = vertices[5] - vertices[1];
+    edges[10] = vertices[6] - vertices[2];
+    edges[11] = vertices[7] - vertices[3];
+  }
+}
+
+void GetEdges(real3 *edges, int solidType, const real3 *vertices) {
+  if (solidType == 5) { // Pyramid
+    edges[0] = vertices[1] - vertices[0];
+    edges[1] = vertices[2] - vertices[1];
+    edges[2] = vertices[3] - vertices[2];
+    edges[3] = vertices[0] - vertices[3];
+    edges[4] = vertices[4] - vertices[0];
+    edges[5] = vertices[4] - vertices[1];
+    edges[6] = vertices[4] - vertices[2];
+    edges[7] = vertices[4] - vertices[3];
+  } else if (solidType == 6) { // Prism
+    edges[0] = vertices[1] - vertices[0];
+    edges[1] = vertices[2] - vertices[1];
+    edges[2] = vertices[0] - vertices[2];
+    edges[3] = vertices[4] - vertices[3];
+    edges[4] = vertices[5] - vertices[4];
+    edges[5] = vertices[3] - vertices[5];
+    edges[6] = vertices[3] - vertices[0];
+    edges[7] = vertices[4] - vertices[1];
+    edges[8] = vertices[5] - vertices[2];
+  } else if (solidType == 8) { // Hexa
+    edges[0] = vertices[1] - vertices[0];
+    edges[1] = vertices[2] - vertices[1];
+    edges[2] = vertices[3] - vertices[2];
+    edges[3] = vertices[0] - vertices[3];
+    edges[4] = vertices[5] - vertices[4];
+    edges[5] = vertices[6] - vertices[5];
+    edges[6] = vertices[7] - vertices[6];
+    edges[7] = vertices[4] - vertices[7];
+    edges[8] = vertices[4] - vertices[0];
+    edges[9] = vertices[5] - vertices[1];
+    edges[10] = vertices[6] - vertices[2];
+    edges[11] = vertices[7] - vertices[3];
+  }
+}
+
+// commpute ray-square_face cross point
+FORCEINLINE void SetCrossPoint_Sq(real3 &point, const double3 &v0,
+                                  const double3 &v1, const double3 &v2,
+                                  const double &ws0, const double &ws1,
+                                  const double &ws2, const double &ws3,
+                                  double3 &edge2, double3 &edge3,
+                                  const double3 &raydir) {
+  double w = ws2 + ws3 + vdotd(vcrossd(edge2, edge3), raydir);
+  point = toreal3((v2 * ws0 + v0 * ws1 + v1 * w) / (ws0 + ws1 + w));
+}
+
+FORCEINLINE void SetCrossPoint_Sq(real3 &point, const real3 &v0,
+                                  const real3 &v1, const real3 &v2,
+                                  const float &ws0, const float &ws1,
+                                  const float &ws2, const float &ws3,
+                                  real3 &edge2, real3 &edge3,
+                                  const real3 &raydir) {
+  double w = ws2 + ws3 + dot(cross(edge2, edge3), raydir);
+  point = (v2 * ws0 + v0 * ws1 + v1 * w) / (ws0 + ws1 + w);
+}
+
+// Pyramid
+bool IntersectPyramidD(const double3 &rayorg, const double3 &raydir,
+                       const double3 *vertices, Intersection *isects) {
+  bool cw_ccw[2][8];
+  double ws[8];
+
+  double3 edges[8];
+  GetEdges(edges, 5, vertices);
+
+  double3 raypc = vcrossd(raydir, rayorg);
+
+  for (int i = 0; i < 8; i++) {
+    ws[i] = vdotd(raydir, vcrossd(edges[i], vertices[i % 4])) +
+            vdotd(edges[i], raypc);
+    if (ws[i] >= 0)
+      cw_ccw[0][i] = true;
+    else
+      cw_ccw[0][i] = false;
+    if (ws[i] <= 0)
+      cw_ccw[1][i] = true;
+    else
+      cw_ccw[1][i] = false;
+  }
+
+  for (int i = 1, n = 0; n < 2; i--, n++)
+    if (cw_ccw[i][0] && cw_ccw[i][1] && cw_ccw[i][2] && cw_ccw[i][3]) {
+      SetCrossPoint_Sq(isects[n].position, vertices[0], vertices[1],
+                       vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2],
+                       edges[3], raydir);
+      isects[n].normal = toreal3(normalize(vcrossd(edges[1], edges[0])));
+    } else if (cw_ccw[n][0] && cw_ccw[i][4] && cw_ccw[n][5]) {
+      isects[n].position = toreal3(vertices[4] * -ws[0] + vertices[1] * ws[4] +
+                                   vertices[0] * -ws[5]) /
+                           (-ws[0] + ws[4] - ws[5]);
+      isects[n].normal = toreal3(normalize(vcrossd(edges[4], edges[0])));
+    } else if (cw_ccw[n][1] && cw_ccw[i][5] && cw_ccw[n][6]) {
+      isects[n].position = toreal3(vertices[4] * -ws[1] + vertices[2] * ws[5] +
+                                   vertices[1] * -ws[6]) /
+                           (-ws[1] + ws[5] - ws[6]);
+      isects[n].normal = toreal3(normalize(vcrossd(edges[5], edges[1])));
+    } else if (cw_ccw[n][2] && cw_ccw[i][6] && cw_ccw[n][7]) {
+      isects[n].position = toreal3(vertices[4] * -ws[2] + vertices[3] * ws[6] +
+                                   vertices[2] * -ws[7]) /
+                           (-ws[2] + ws[6] - ws[7]);
+      isects[n].normal = toreal3(normalize(vcrossd(edges[6], edges[2])));
+    } else if (cw_ccw[n][3] && cw_ccw[i][7] && cw_ccw[n][4]) {
+      isects[n].position = toreal3(vertices[4] * -ws[3] + vertices[0] * ws[7] +
+                                   vertices[3] * -ws[4]) /
+                           (-ws[3] + ws[7] - ws[4]);
+      isects[n].normal = toreal3(normalize(vcrossd(edges[7], edges[3])));
+    } else
+      return false;
+
+  for (int j = 0; j < 3; j++)
+    if (raydir[j] > 0.1 || raydir[j] < -0.1) {
+      isects[0].t = (isects[0].position[j] - rayorg[j]) / raydir[j];
+      isects[1].t = (isects[1].position[j] - rayorg[j]) / raydir[j];
+    }
+
+  isects[1].normal = -1 * isects[1].normal;
+
+  return true;
+}
+
+bool IntersectPyramidF(const real3 &rayorg, const real3 &raydir,
+                       const real3 *vertices, Intersection *isects) {
+  bool cw_ccw[2][8];
+  real ws[8];
+
+  real3 edges[8];
+  GetEdges(edges, 5, vertices);
+
+  real3 raypc = cross(raydir, rayorg);
+
+  for (int i = 0; i < 8; i++) {
+    ws[i] =
+        dot(raydir, cross(edges[i], vertices[i % 4])) + dot(edges[i], raypc);
+    if (ws[i] >= 0)
+      cw_ccw[0][i] = true;
+    else
+      cw_ccw[0][i] = false;
+    if (ws[i] <= 0)
+      cw_ccw[1][i] = true;
+    else
+      cw_ccw[1][i] = false;
+  }
+
+  for (int i = 1, n = 0; n < 2; i--, n++)
+    if (cw_ccw[i][0] && cw_ccw[i][1] && cw_ccw[i][2] && cw_ccw[i][3]) {
+      SetCrossPoint_Sq(isects[n].position, vertices[0], vertices[1],
+                       vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2],
+                       edges[3], raydir);
+      isects[i].normal = cross(edges[1], edges[0]).normalize();
+    } else if (cw_ccw[n][0] && cw_ccw[i][4] && cw_ccw[n][5]) {
+      isects[n].position =
+          (vertices[4] * -ws[0] + vertices[1] * ws[4] + vertices[0] * -ws[5]) /
+          (-ws[0] + ws[4] - ws[5]);
+      isects[n].normal = cross(edges[4], edges[0]).normalize();
+    } else if (cw_ccw[n][1] && cw_ccw[i][5] && cw_ccw[n][6]) {
+      isects[n].position =
+          (vertices[4] * -ws[1] + vertices[2] * ws[5] + vertices[1] * -ws[6]) /
+          (-ws[1] + ws[5] - ws[6]);
+      isects[n].normal = cross(edges[5], edges[1]).normalize();
+    } else if (cw_ccw[n][2] && cw_ccw[i][6] && cw_ccw[n][7]) {
+      isects[n].position =
+          (vertices[4] * -ws[2] + vertices[3] * ws[6] + vertices[2] * -ws[7]) /
+          (-ws[2] + ws[6] - ws[7]);
+      isects[n].normal = cross(edges[6], edges[2]).normalize();
+    } else if (cw_ccw[n][3] && cw_ccw[i][7] && cw_ccw[n][4]) {
+      isects[n].position =
+          (vertices[4] * -ws[3] + vertices[0] * ws[7] + vertices[3] * -ws[4]) /
+          (-ws[3] + ws[7] - ws[4]);
+      isects[n].normal = cross(edges[7], edges[3]).normalize();
+    } else
+      return false;
+
+  for (int j = 0; j < 3; j++)
+    if (raydir[j] > 0.1 || raydir[j] < -0.1) {
+      isects[0].t = (isects[0].position[j] - rayorg[j]) / raydir[j];
+      isects[1].t = (isects[1].position[j] - rayorg[j]) / raydir[j];
+    }
+
+  isects[1].normal = -1 * isects[1].normal;
+
+  return true;
+}
+
+// Prism
+bool IntersectPrismD(const double3 &rayorg, const double3 &raydir,
+                     const double3 *vertices, Intersection *isects) {
+  bool cw_ccw[2][9];
+  double ws[9];
+
+  double3 edges[9];
+  GetEdges(edges, 6, vertices);
+
+  double3 raypc = vcrossd(raydir, rayorg);
+
+  for (int i = 0; i < 9; i++) {
+    ws[i] = vdotd(raydir, vcrossd(edges[i], vertices[i % 6])) +
+            vdotd(edges[i], raypc);
+    if (ws[i] >= 0)
+      cw_ccw[0][i] = true;
+    else
+      cw_ccw[0][i] = false;
+    if (ws[i] <= 0)
+      cw_ccw[1][i] = true;
+    else
+      cw_ccw[1][i] = false;
+  }
+
+  for (int i = 0, n = 1; i < 2; i++, n--)
+    if (cw_ccw[n][0] && cw_ccw[n][1] && cw_ccw[n][2]) {
+      isects[i].position = toreal3(vertices[2] * ws[0] + vertices[0] * ws[1] +
+                                   vertices[1] * ws[2]) /
+                           (ws[0] + ws[1] + ws[2]);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[0], edges[1])));
+    } else if (cw_ccw[i][3] && cw_ccw[i][4] && cw_ccw[i][5]) {
+      isects[i].position = toreal3(vertices[5] * ws[3] + vertices[3] * ws[4] +
+                                   vertices[4] * ws[5]) /
+                           (ws[3] + ws[4] + ws[5]);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[3], edges[4])));
+    } else if (cw_ccw[i][2] && cw_ccw[i][6] && cw_ccw[n][5] && cw_ccw[n][8]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[2], vertices[0],
+                       vertices[3], ws[2], ws[6], -ws[5], -ws[8], edges[5],
+                       edges[8], raydir);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[2], edges[6])));
+    } else if (cw_ccw[i][0] && cw_ccw[i][7] && cw_ccw[n][3] && cw_ccw[n][6]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1],
+                       vertices[4], ws[0], ws[7], -ws[3], -ws[6], edges[3],
+                       edges[6], raydir);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[0], edges[7])));
+    } else if (cw_ccw[i][1] && cw_ccw[i][8] && cw_ccw[n][4] && cw_ccw[n][7]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[1], vertices[2],
+                       vertices[5], ws[1], ws[8], -ws[4], -ws[7], edges[4],
+                       edges[7], raydir);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[1], edges[8])));
+    } else
+      return false;
+
+  for (int j = 0; j < 3; j++)
+    if (raydir[j] > 0.1 || raydir[j] < -0.1) {
+      isects[0].t = (isects[0].position[j] - rayorg[j]) / raydir[j];
+      isects[1].t = (isects[1].position[j] - rayorg[j]) / raydir[j];
+    }
+
+  isects[1].normal = -1 * isects[1].normal;
+  return true;
+}
+
+bool IntersectPrismF(const real3 &rayorg, const real3 &raydir,
+                     const real3 *vertices, Intersection *isects) {
+  bool cw_ccw[2][9];
+  real ws[9];
+
+  real3 edges[9];
+  GetEdges(edges, 6, vertices);
+
+  real3 raypc = cross(raydir, rayorg);
+
+  for (int i = 0; i < 9; i++) {
+    ws[i] =
+        dot(raydir, cross(edges[i], vertices[i % 6])) + dot(edges[i], raypc);
+    if (ws[i] >= 0)
+      cw_ccw[0][i] = true;
+    else
+      cw_ccw[0][i] = false;
+    if (ws[i] <= 0)
+      cw_ccw[1][i] = true;
+    else
+      cw_ccw[1][i] = false;
+  }
+
+  for (int i = 0, n = 1; i < 2; i++, n--)
+    if (cw_ccw[n][0] && cw_ccw[n][1] && cw_ccw[n][2]) {
+      isects[i].position =
+          (vertices[2] * ws[0] + vertices[0] * ws[1] + vertices[1] * ws[2]) /
+          (ws[0] + ws[1] + ws[2]);
+      isects[i].normal = cross(edges[0], edges[1]).normalize();
+    } else if (cw_ccw[i][3] && cw_ccw[i][4] && cw_ccw[i][5]) {
+      isects[i].position =
+          (vertices[5] * ws[3] + vertices[3] * ws[4] + vertices[4] * ws[5]) /
+          (ws[3] + ws[4] + ws[5]);
+      isects[i].normal = cross(edges[3], edges[4]).normalize();
+    } else if (cw_ccw[i][2] && cw_ccw[i][6] && cw_ccw[n][5] && cw_ccw[n][8]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[2], vertices[0],
+                       vertices[3], ws[2], ws[6], -ws[5], -ws[8], edges[5],
+                       edges[8], raydir);
+      isects[i].normal = cross(edges[2], edges[6]).normalize();
+    } else if (cw_ccw[i][0] && cw_ccw[i][7] && cw_ccw[n][3] && cw_ccw[n][6]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1],
+                       vertices[4], ws[0], ws[7], -ws[3], -ws[6], edges[3],
+                       edges[6], raydir);
+      isects[i].normal = cross(edges[0], edges[7]).normalize();
+    } else if (cw_ccw[i][1] && cw_ccw[i][8] && cw_ccw[n][4] && cw_ccw[n][7]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[1], vertices[2],
+                       vertices[5], ws[1], ws[8], -ws[4], -ws[7], edges[4],
+                       edges[7], raydir);
+      isects[i].normal = cross(edges[1], edges[8]).normalize();
+    } else
+      return false;
+
+  for (int j = 0; j < 3; j++)
+    if (raydir[j] > 0.1 || raydir[j] < -0.1) {
+      isects[0].t = (isects[0].position[j] - rayorg[j]) / raydir[j];
+      isects[1].t = (isects[1].position[j] - rayorg[j]) / raydir[j];
+    }
+
+  isects[1].normal = -1 * isects[1].normal;
+  return true;
+}
+
+// Hexa
+bool IntersectHexaD(const double3 &rayorg, const double3 &raydir,
+                    const double3 *vertices, Intersection *isects) {
+  bool cw_ccw[2][12];
+  double ws[12];
+
+  double3 edges[12];
+  GetEdges(edges, 8, vertices);
+
+  double3 raypc = vcrossd(raydir, rayorg);
+
+  for (int i = 0; i < 12; i++) {
+    ws[i] = vdotd(raydir, vcrossd(edges[i], vertices[i % 8])) +
+            vdotd(edges[i], raypc);
+    if (ws[i] >= 0)
+      cw_ccw[0][i] = true;
+    else
+      cw_ccw[0][i] = false;
+    if (ws[i] <= 0)
+      cw_ccw[1][i] = true;
+    else
+      cw_ccw[1][i] = false;
+  }
+
+  for (int i = 0, n = 1; i < 2; i++, n--)
+    if (cw_ccw[n][0] && cw_ccw[n][1] && cw_ccw[n][2] && cw_ccw[n][3]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1],
+                       vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2],
+                       edges[3], raydir);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[0], edges[1])));
+    } else if (cw_ccw[i][4] && cw_ccw[i][5] && cw_ccw[i][6] && cw_ccw[i][7]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[4], vertices[5],
+                       vertices[6], ws[4], ws[5], ws[6], ws[7], edges[6],
+                       edges[7], raydir);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[4], edges[5])));
+    } else if (cw_ccw[i][0] && cw_ccw[i][9] && cw_ccw[n][4] && cw_ccw[n][8]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1],
+                       vertices[5], ws[0], ws[9], -ws[4], -ws[8], edges[4],
+                       edges[8], raydir);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[0], edges[9])));
+    } else if (cw_ccw[i][1] && cw_ccw[i][10] && cw_ccw[n][5] && cw_ccw[n][9]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[1], vertices[2],
+                       vertices[6], ws[1], ws[10], -ws[5], -ws[9], edges[5],
+                       edges[9], raydir);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[1], edges[10])));
+    } else if (cw_ccw[i][2] && cw_ccw[i][11] && cw_ccw[n][6] && cw_ccw[n][10]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[2], vertices[3],
+                       vertices[7], ws[2], ws[11], -ws[6], -ws[10], edges[6],
+                       edges[10], raydir);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[2], edges[11])));
+    } else if (cw_ccw[i][3] && cw_ccw[i][8] && cw_ccw[n][7] && cw_ccw[n][11]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[3], vertices[0],
+                       vertices[4], ws[3], ws[8], -ws[7], -ws[11], edges[7],
+                       edges[11], raydir);
+      isects[i].normal = toreal3(normalize(vcrossd(edges[3], edges[8])));
+    } else
+      return false;
+
+  for (int j = 0; j < 3; j++)
+    if (raydir[j] > 0.1 || raydir[j] < -0.1) {
+      isects[0].t = (isects[0].position[j] - rayorg[j]) / raydir[j];
+      isects[1].t = (isects[1].position[j] - rayorg[j]) / raydir[j];
+    }
+  isects[1].normal = -1 * isects[1].normal;
+  return true;
+}
+
+// Hexa
+bool IntersectHexaF(const real3 &rayorg, const real3 &raydir,
+                    const real3 *vertices, Intersection *isects) {
+  bool cw_ccw[2][12];
+  real ws[12];
+
+  real3 edges[12];
+  GetEdges(edges, 8, vertices);
+
+  real3 raypc = cross(raydir, rayorg);
+
+  for (int i = 0; i < 12; i++) {
+    ws[i] =
+        dot(raydir, cross(edges[i], vertices[i % 8])) + dot(edges[i], raypc);
+    if (ws[i] >= 0)
+      cw_ccw[0][i] = true;
+    else
+      cw_ccw[0][i] = false;
+    if (ws[i] <= 0)
+      cw_ccw[1][i] = true;
+    else
+      cw_ccw[1][i] = false;
+  }
+
+  for (int i = 0, n = 1; i < 2; i++, n--)
+    if (cw_ccw[n][0] && cw_ccw[n][1] && cw_ccw[n][2] && cw_ccw[n][3]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1],
+                       vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2],
+                       edges[3], raydir);
+      isects[i].normal = cross(edges[0], edges[1]).normalize();
+    } else if (cw_ccw[i][4] && cw_ccw[i][5] && cw_ccw[i][6] && cw_ccw[i][7]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[4], vertices[5],
+                       vertices[6], ws[4], ws[5], ws[6], ws[7], edges[6],
+                       edges[7], raydir);
+      isects[i].normal = cross(edges[4], edges[5]).normalize();
+    } else if (cw_ccw[i][0] && cw_ccw[i][9] && cw_ccw[n][4] && cw_ccw[n][8]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1],
+                       vertices[5], ws[0], ws[9], -ws[4], -ws[8], edges[4],
+                       edges[8], raydir);
+      isects[i].normal = cross(edges[0], edges[9]).normalize();
+    } else if (cw_ccw[i][1] && cw_ccw[i][10] && cw_ccw[n][5] && cw_ccw[n][9]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[1], vertices[2],
+                       vertices[6], ws[1], ws[10], -ws[5], -ws[9], edges[5],
+                       edges[9], raydir);
+      isects[i].normal = cross(edges[1], edges[10]).normalize();
+    } else if (cw_ccw[i][2] && cw_ccw[i][11] && cw_ccw[n][6] && cw_ccw[n][10]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[2], vertices[3],
+                       vertices[7], ws[2], ws[11], -ws[6], -ws[10], edges[6],
+                       edges[10], raydir);
+      isects[i].normal = cross(edges[2], edges[11]).normalize();
+    } else if (cw_ccw[i][3] && cw_ccw[i][8] && cw_ccw[n][7] && cw_ccw[n][11]) {
+      SetCrossPoint_Sq(isects[i].position, vertices[3], vertices[0],
+                       vertices[4], ws[3], ws[8], -ws[7], -ws[11], edges[7],
+                       edges[11], raydir);
+      isects[i].normal = cross(edges[3], edges[8]).normalize();
+    } else
+      return false;
+
+  for (int j = 0; j < 3; j++)
+    if (raydir[j] > 0.1 || raydir[j] < -0.1) {
       isects[0].t = (isects[0].position[j] - rayorg[j]) / raydir[j];
       isects[1].t = (isects[1].position[j] - rayorg[j]) / raydir[j];
     }
@@ -763,12 +1234,12 @@ struct BinBuffer {
 };
 
 real CalculateSurfaceArea(const real3 &min, const real3 &max) {
-  //PrintVec3("sah.bmin", min);
-  //PrintVec3("sah.bmax", max);
+  // PrintVec3("sah.bmin", min);
+  // PrintVec3("sah.bmax", max);
   real3 box = max - min;
-  //PrintVec3("sah.box", box);
-  real S =  2.0 * ((box[0] * box[1]) + (box[1] * box[2]) + (box[2] * box[0]));
-  //PrintReal("S", S);
+  // PrintVec3("sah.box", box);
+  real S = 2.0 * ((box[0] * box[1]) + (box[1] * box[2]) + (box[2] * box[0]));
+  // PrintReal("S", S);
   return S;
 }
 
@@ -777,23 +1248,23 @@ static inline void GetBoundingBoxOfSolid(real3 &bmin, real3 &bmax,
                                          unsigned int index) {
   int numIndices = solids->numVertsPerSolid;
 
-  //real3 p[16]; // Assume numIndices < 16
+  // real3 p[16]; // Assume numIndices < 16
 
   bmin = real3(REAL_MAX, REAL_MAX, REAL_MAX);
   bmax = real3(-REAL_MAX, -REAL_MAX, -REAL_MAX);
-  
+
   for (int j = 0; j < numIndices; j++) {
     unsigned int f = solids->indices[numIndices * index + j];
 
     real3 p;
     if (solids->isDoublePrecisionPos) {
       p = real3(solids->dvertices[3 * f + 0], solids->dvertices[3 * f + 1],
-                   solids->dvertices[3 * f + 2]);
+                solids->dvertices[3 * f + 2]);
     } else {
       p = real3(solids->vertices[3 * f + 0], solids->vertices[3 * f + 1],
-                   solids->vertices[3 * f + 2]);
+                solids->vertices[3 * f + 2]);
     }
-  
+
     bmin[0] = (std::min)(bmin[0], p[0]);
     bmin[1] = (std::min)(bmin[1], p[1]);
     bmin[2] = (std::min)(bmin[2], p[2]);
@@ -806,9 +1277,8 @@ static inline void GetBoundingBoxOfSolid(real3 &bmin, real3 &bmax,
 
 static void ContributeBinBuffer(BinBuffer *bins, // [out]
                                 const real3 &sceneMin, const real3 &sceneMax,
-                                const Solid *solids,
-                                unsigned int *indices, unsigned int leftIdx,
-                                unsigned int rightIdx) {
+                                const Solid *solids, unsigned int *indices,
+                                unsigned int leftIdx, unsigned int rightIdx) {
   static const real EPS = REAL_EPSILON * 16;
 
   real binSize = (real)bins->binSize;
@@ -828,7 +1298,7 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
 
   // Clear bin data
   bins->clear();
-  //memset(&bins->bin[0], 0, sizeof(2 * 3 * bins->binSize));
+  // memset(&bins->bin[0], 0, sizeof(2 * 3 * bins->binSize));
 
   size_t idxBMin[3];
   size_t idxBMax[3];
@@ -844,9 +1314,8 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
     real3 bmax;
 
     GetBoundingBoxOfSolid(bmin, bmax, solids, indices[i]);
-    debug("bbox[%d] = %f, %f, %f - %f, %f, %f\n",
-      (int)i, bmin[0], bmin[1], bmin[2],
-      bmax[0], bmax[1], bmax[2]);
+    debug("bbox[%d] = %f, %f, %f - %f, %f, %f\n", (int)i, bmin[0], bmin[1],
+          bmin[2], bmax[0], bmax[1], bmax[2]);
 
     real3 quantizedBMin = (bmin - sceneMin) * sceneInvSize;
     real3 quantizedBMax = (bmax - sceneMin) * sceneInvSize;
@@ -877,14 +1346,14 @@ static void ContributeBinBuffer(BinBuffer *bins, // [out]
   }
 }
 
-real SAH(size_t ns1, real leftArea, size_t ns2, real rightArea,
-                         real invS, real Taabb, real Ttri) {
+real SAH(size_t ns1, real leftArea, size_t ns2, real rightArea, real invS,
+         real Taabb, real Ttri) {
   // const real Taabb = 0.2f;
   // const real Ttri = 0.8f;
   real T;
 
-  T = 2.0f * Taabb + (leftArea * invS) * (real)(ns1) * Ttri +
-      (rightArea * invS) * (real)(ns2) * Ttri;
+  T = 2.0f * Taabb + (leftArea * invS) * (real)(ns1)*Ttri +
+      (rightArea * invS) * (real)(ns2)*Ttri;
 
   return T;
 }
@@ -959,11 +1428,14 @@ static bool FindCutFromBinBuffer(real *cutPos,     // [out] xyz
 
       real cost =
           SAH(left, saLeft, right, saRight, invSaTotal, costTaabb, costTtri);
-      debug("[%d] cost = %f(0x%08x), left = %d, right = %d\n", j, cost, *((unsigned int*)&cost), left, right);
+      debug("[%d] cost = %f(0x%08x), left = %d, right = %d\n", j, cost,
+            *((unsigned int *)&cost), left, right);
       if (cost < minCost[j]) {
-        debug("saLeft = %f(0x%08x), saRight = %f(0x%08x0\n", saLeft, *((unsigned int*)&saLeft), saRight, *((unsigned int*)&saRight));
+        debug("saLeft = %f(0x%08x), saRight = %f(0x%08x0\n", saLeft,
+              *((unsigned int *)&saLeft), saRight, *((unsigned int *)&saRight));
 
-        debug("[%d] i = %d, MinCost = %f(0x%08x), cutPos = %f(0x%08x)\n", j, i, cost, *((unsigned int *)&cost), pos, *((unsigned int*)&cost));
+        debug("[%d] i = %d, MinCost = %f(0x%08x), cutPos = %f(0x%08x)\n", j, i,
+              cost, *((unsigned int *)&cost), pos, *((unsigned int *)&cost));
         //
         // Update the min cost
         //
@@ -1008,10 +1480,7 @@ public:
     for (int j = 0; j < solids_->numVertsPerSolid; j++) {
       unsigned int f = solids_->indices[solids_->numVertsPerSolid * i + j];
 
-      real3 p(solids_->vertices[3 * f + 0], solids_->vertices[3 * f + 1],
-              solids_->vertices[3 * f + 2]);
-
-      center += p[axis];
+      center += solids_->vertices[3 * f + axis];
     }
 
     return (center < pos * (real)(solids_->numVertsPerSolid));
@@ -1037,10 +1506,7 @@ public:
     for (int j = 0; j < solids_->numVertsPerSolid; j++) {
       unsigned int f = solids_->indices[solids_->numVertsPerSolid * i + j];
 
-      real3 p(solids_->dvertices[3 * f + 0], solids_->dvertices[3 * f + 1],
-              solids_->dvertices[3 * f + 2]);
-
-      center += p[axis];
+      center += solids_->dvertices[3 * f + axis];
     }
 
     return (center < pos * (real)(solids_->numVertsPerSolid));
@@ -1053,9 +1519,9 @@ private:
 };
 
 template <typename T>
-static void ComputeBoundingBox(real3 &bmin, real3 &bmax, int numVertsPerSolid, const T *vertices,
-                               unsigned int *indices, unsigned int *primIds,
-                               unsigned int leftIndex,
+static void ComputeBoundingBox(real3 &bmin, real3 &bmax, int numVertsPerSolid,
+                               const T *vertices, unsigned int *indices,
+                               unsigned int *primIds, unsigned int leftIndex,
                                unsigned int rightIndex) {
   const real kEPS = REAL_EPSILON * 16;
 
@@ -1097,10 +1563,11 @@ static void ComputeBoundingBox(real3 &bmin, real3 &bmax, int numVertsPerSolid, c
 }
 
 template <typename T>
-static void
-ComputeBoundingBox30(real3 &bmin, real3 &bmax, int numVertsPerSolid, const T *vertices,
-                     const uint32_t *indices, const std::vector<IndexKey30> &keys,
-                     unsigned int leftIndex, unsigned int rightIndex) {
+static void ComputeBoundingBox30(real3 &bmin, real3 &bmax, int numVertsPerSolid,
+                                 const T *vertices, const uint32_t *indices,
+                                 const std::vector<IndexKey30> &keys,
+                                 unsigned int leftIndex,
+                                 unsigned int rightIndex) {
   const real kEPS = REAL_EPSILON * 16;
 
   bmin[0] = REAL_MAX;
@@ -1147,9 +1614,10 @@ ComputeBoundingBox30(real3 &bmin, real3 &bmax, int numVertsPerSolid, const T *ve
 
 #ifdef _OPENMP
 template <typename T>
-void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, int numVertsPerSolid, const T *vertices,
-                           const uint32_t *indices, unsigned int *primIndices,
-                           unsigned int leftIndex, unsigned int rightIndex) {
+void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, int numVertsPerSolid,
+                           const T *vertices, const uint32_t *indices,
+                           unsigned int *primIndices, unsigned int leftIndex,
+                           unsigned int rightIndex) {
 
   // assert(leftIndex < rightIndex);
   // assert(rightIndex - leftIndex > 0);
@@ -1191,13 +1659,19 @@ void ComputeBoundingBoxOMP(real3 &bmin, real3 &bmax, int numVertsPerSolid, const
       size_t idx = primIndices[i];
 
       for (int k = 0; k < numVertsPerSolid; k++) {
-        real minval_x = vertices[3 * indices[numVertsPerSolid * idx + k] + 0] - kEPS;
-        real minval_y = vertices[3 * indices[numVertsPerSolid * idx + k] + 1] - kEPS;
-        real minval_z = vertices[3 * indices[numVertsPerSolid * idx + k] + 2] - kEPS;
+        real minval_x =
+            vertices[3 * indices[numVertsPerSolid * idx + k] + 0] - kEPS;
+        real minval_y =
+            vertices[3 * indices[numVertsPerSolid * idx + k] + 1] - kEPS;
+        real minval_z =
+            vertices[3 * indices[numVertsPerSolid * idx + k] + 2] - kEPS;
 
-        real maxval_x = vertices[3 * indices[numVertsPerSolid * idx + k] + 0] + kEPS;
-        real maxval_y = vertices[3 * indices[numVertsPerSolid * idx + k] + 1] + kEPS;
-        real maxval_z = vertices[3 * indices[numVertsPerSolid * idx + k] + 2] + kEPS;
+        real maxval_x =
+            vertices[3 * indices[numVertsPerSolid * idx + k] + 0] + kEPS;
+        real maxval_y =
+            vertices[3 * indices[numVertsPerSolid * idx + k] + 1] + kEPS;
+        real maxval_z =
+            vertices[3 * indices[numVertsPerSolid * idx + k] + 2] + kEPS;
 
         local_bmin[0] = (std::min)(local_bmin[0], minval_x);
         local_bmin[1] = (std::min)(local_bmin[1], minval_y);
@@ -1299,13 +1773,14 @@ int GetSplitAxis(uint32_t key) {
 }
 
 template <typename T>
-void MakeLeaf32(SolidNode &leaf, int numVersPerSolid, const T *vertices, const uint32_t *indices,
-                real3 &bmin, real3 &bmax, const std::vector<IndexKey30> &keys,
-                uint32_t leftIndex, uint32_t rightIndex) {
+void MakeLeaf32(SolidNode &leaf, int numVersPerSolid, const T *vertices,
+                const uint32_t *indices, real3 &bmin, real3 &bmax,
+                const std::vector<IndexKey30> &keys, uint32_t leftIndex,
+                uint32_t rightIndex) {
 
   // 1. Compute leaf AABB
-  ComputeBoundingBox30(bmin, bmax, numVersPerSolid, vertices, indices, keys, leftIndex,
-                       rightIndex);
+  ComputeBoundingBox30(bmin, bmax, numVersPerSolid, vertices, indices, keys,
+                       leftIndex, rightIndex);
 
   // 2. Create leaf node. `n' may be null(create empty leaf node for that case.)
   int n = rightIndex - leftIndex;
@@ -1330,7 +1805,8 @@ void MakeLeaf32(SolidNode &leaf, int numVersPerSolid, const T *vertices, const u
 //
 template <typename T>
 size_t BuildTreeRecursive32(std::vector<SolidNode> &nodes, real3 &bmin,
-                            real3 &bmax, int numVersPerSolid, const std::vector<IndexKey30> &keys,
+                            real3 &bmax, int numVersPerSolid,
+                            const std::vector<IndexKey30> &keys,
                             const std::vector<NodeInfo32> &nodeInfos,
                             const T *vertices, const uint32_t *indices,
                             uint32_t rootIndex, uint32_t leftIndex,
@@ -1351,7 +1827,8 @@ size_t BuildTreeRecursive32(std::vector<SolidNode> &nodes, real3 &bmin,
     //}
 
     SolidNode leaf;
-    MakeLeaf32(leaf, numVersPerSolid, vertices, indices, bmin, bmax, keys, leftIndex, endIndex);
+    MakeLeaf32(leaf, numVersPerSolid, vertices, indices, bmin, bmax, keys,
+               leftIndex, endIndex);
 
     size_t offset = nodes.size();
     nodes.push_back(leaf); // need atomic update.
@@ -1393,11 +1870,11 @@ size_t BuildTreeRecursive32(std::vector<SolidNode> &nodes, real3 &bmin,
   }
 
   size_t leftChildIndex = BuildTreeRecursive32(
-      nodes, leftBMin, leftBMax, numVersPerSolid, keys, nodeInfos, vertices, indices, midIndex,
-      leftIndex, midIndex, isLeftLeaf, depth + 1);
+      nodes, leftBMin, leftBMax, numVersPerSolid, keys, nodeInfos, vertices,
+      indices, midIndex, leftIndex, midIndex, isLeftLeaf, depth + 1);
   size_t rightChildIndex = BuildTreeRecursive32(
-      nodes, rightBMin, rightBMax, numVersPerSolid, keys, nodeInfos, vertices, indices,
-      midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1);
+      nodes, rightBMin, rightBMax, numVersPerSolid, keys, nodeInfos, vertices,
+      indices, midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1);
 
   MergeBoundingBox(bmin, bmax, leftBMin, leftBMax, rightBMin, rightBMax);
 
@@ -1422,7 +1899,8 @@ size_t BuildTreeRecursive32(std::vector<SolidNode> &nodes, real3 &bmin,
 #if defined(_OPENMP) && !defined(_MSC_VER)
 template <typename T>
 size_t BuildTreeRecursive32OMP(std::vector<SolidNode> &nodes, real3 &bmin,
-                               real3 &bmax, int numVersPerSolid, const std::vector<IndexKey30> &keys,
+                               real3 &bmax, int numVersPerSolid,
+                               const std::vector<IndexKey30> &keys,
                                const std::vector<NodeInfo32> &nodeInfos,
                                const T *vertices, const uint32_t *indices,
                                uint32_t rootIndex, uint32_t leftIndex,
@@ -1441,7 +1919,8 @@ size_t BuildTreeRecursive32OMP(std::vector<SolidNode> &nodes, real3 &bmin,
     uint32_t endIndex = rightIndex + 1;
 
     SolidNode leaf;
-    MakeLeaf32(leaf, numVersPerSolid, vertices, indices, bmin, bmax, keys, leftIndex, endIndex);
+    MakeLeaf32(leaf, numVersPerSolid, vertices, indices, bmin, bmax, keys,
+               leftIndex, endIndex);
 
     // @{ critical section }
     size_t offset;
@@ -1480,13 +1959,15 @@ size_t BuildTreeRecursive32OMP(std::vector<SolidNode> &nodes, real3 &bmin,
     // Enough number of tasks was launched. Switch to sequential code.
     std::vector<SolidNode> sub_nodes;
 
-    leftChildIndex = BuildTreeRecursive32(
-        sub_nodes, leftBMin, leftBMax, numVersPerSolid, keys, nodeInfos, vertices, indices,
-        midIndex, leftIndex, midIndex, isLeftLeaf, depth + 1);
+    leftChildIndex =
+        BuildTreeRecursive32(sub_nodes, leftBMin, leftBMax, numVersPerSolid,
+                             keys, nodeInfos, vertices, indices, midIndex,
+                             leftIndex, midIndex, isLeftLeaf, depth + 1);
 
-    rightChildIndex = BuildTreeRecursive32(
-        sub_nodes, rightBMin, rightBMax, numVersPerSolid, keys, nodeInfos, vertices, indices,
-        midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1);
+    rightChildIndex =
+        BuildTreeRecursive32(sub_nodes, rightBMin, rightBMax, numVersPerSolid,
+                             keys, nodeInfos, vertices, indices, midIndex + 1,
+                             midIndex + 1, rightIndex, isRightLeaf, depth + 1);
 
 #pragma omp critical
     {
@@ -1528,15 +2009,16 @@ size_t BuildTreeRecursive32OMP(std::vector<SolidNode> &nodes, real3 &bmin,
                         leftBMax, keys, nodeInfos, vertices,                   \
                         indices) firstprivate(midIndex) if (depth < 10)
     leftChildIndex = BuildTreeRecursive32OMP(
-        nodes, leftBMin, leftBMax, numVersPerSolid, keys, nodeInfos, vertices, indices, midIndex,
-        leftIndex, midIndex, isLeftLeaf, depth + 1);
+        nodes, leftBMin, leftBMax, numVersPerSolid, keys, nodeInfos, vertices,
+        indices, midIndex, leftIndex, midIndex, isLeftLeaf, depth + 1);
 
 #pragma omp task shared(leftIndex, rightChildIndex, nodes, rightBMin,          \
                         rightBMax, keys, nodeInfos, vertices,                  \
                         indices) firstprivate(midIndex) if (depth < 10)
     rightChildIndex = BuildTreeRecursive32OMP(
-        nodes, rightBMin, rightBMax, numVersPerSolid, keys, nodeInfos, vertices, indices,
-        midIndex + 1, midIndex + 1, rightIndex, isRightLeaf, depth + 1);
+        nodes, rightBMin, rightBMax, numVersPerSolid, keys, nodeInfos, vertices,
+        indices, midIndex + 1, midIndex + 1, rightIndex, isRightLeaf,
+        depth + 1);
 
 #pragma omp taskwait
   }
@@ -1589,10 +2071,12 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
 
   real3 bmin, bmax;
   if (solids->isDoublePrecisionPos) {
-    ComputeBoundingBox<double>(bmin, bmax, solids->numVertsPerSolid, solids->dvertices, solids->indices,
+    ComputeBoundingBox<double>(bmin, bmax, solids->numVertsPerSolid,
+                               solids->dvertices, solids->indices,
                                &indices_.at(0), leftIdx, rightIdx);
   } else {
-    ComputeBoundingBox<float>(bmin, bmax, solids->numVertsPerSolid, solids->vertices, solids->indices,
+    ComputeBoundingBox<float>(bmin, bmax, solids->numVertsPerSolid,
+                              solids->vertices, solids->indices,
                               &indices_.at(0), leftIdx, rightIdx);
   }
 
@@ -1603,7 +2087,6 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
 
     debug("leaf.bmin = %f, %f, %f\n", bmin[0], bmin[1], bmin[2]);
     debug("leaf.bmax = %f, %f, %f\n", bmax[0], bmax[1], bmax[2]);
-
 
     leaf.bmin[0] = bmin[0];
     leaf.bmin[1] = bmin[1];
@@ -1649,10 +2132,10 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
   // Try all 3 axis until good cut position avaiable.
   unsigned int midIdx;
   int cutAxis = minCutAxis;
-  for (int axisTry = 0; axisTry < 1; axisTry++) {
+  for (int axisTry = 0; axisTry < 3; axisTry++) {
 
     unsigned int *begin = &indices_[leftIdx];
-    unsigned int *end = &indices_[rightIdx];
+    unsigned int *end = &indices_[rightIdx - 1] + 1;
     unsigned int *mid = 0;
 
     // try minCutAxis first.
@@ -1713,8 +2196,7 @@ size_t SolidAccel::BuildTree(const Solid *solids, unsigned int leftIdx,
   return offset;
 }
 
-bool SolidAccel::Build(const Solid *solids,
-                       const SolidBuildOptions &options) {
+bool SolidAccel::Build(const Solid *solids, const SolidBuildOptions &options) {
   options_ = options;
   buildStats_ = SolidBuildStatistics();
 
@@ -1723,8 +2205,7 @@ bool SolidAccel::Build(const Solid *solids,
   assert(solids);
 
   size_t n = solids->numSolids;
-  trace("[SolidAccel] Input # of solids    = %lu\n",
-        solids->numSolids);
+  trace("[SolidAccel] Input # of solids    = %lu\n", solids->numSolids);
 
   //
   // 1. Create primtive indices(this will be permutated in BuildTree)
@@ -1773,8 +2254,7 @@ bool SolidAccel::Build32(const Solid *solids,
     return Build(solids, options);
   }
 
-  trace("[LSGL] [SolidAccel2] Input # of solids    = %lu\n",
-        solids->numSolids);
+  trace("[LSGL] [SolidAccel2] Input # of solids    = %lu\n", solids->numSolids);
 
   //
   // 1. Create indices(this will be permutated in BuildTree)
@@ -1801,21 +2281,24 @@ bool SolidAccel::Build32(const Solid *solids,
     if (solids->isDoublePrecisionPos) {
 
 #ifdef _OPENMP
-      ComputeBoundingBoxOMP(bmin, bmax, solids->numVertsPerSolid, solids->dvertices, solids->indices,
-                            &indices_.at(0), 0, n);
+      ComputeBoundingBoxOMP(bmin, bmax, solids->numVertsPerSolid,
+                            solids->dvertices, solids->indices, &indices_.at(0),
+                            0, n);
 #else
-      ComputeBoundingBox(bmin, bmax, solids->numVertsPerSolid, solids->dvertices, solids->indices,
-                         &indices_.at(0), 0, n);
+      ComputeBoundingBox(bmin, bmax, solids->numVertsPerSolid,
+                         solids->dvertices, solids->indices, &indices_.at(0), 0,
+                         n);
 #endif
 
     } else {
 
 #ifdef _OPENMP
-      ComputeBoundingBoxOMP(bmin, bmax, solids->numVertsPerSolid, solids->vertices, solids->indices,
-                            &indices_.at(0), 0, n);
+      ComputeBoundingBoxOMP(bmin, bmax, solids->numVertsPerSolid,
+                            solids->vertices, solids->indices, &indices_.at(0),
+                            0, n);
 #else
-      ComputeBoundingBox(bmin, bmax, solids->numVertsPerSolid, solids->vertices, solids->indices,
-                         &indices_.at(0), 0, n);
+      ComputeBoundingBox(bmin, bmax, solids->numVertsPerSolid, solids->vertices,
+                         solids->indices, &indices_.at(0), 0, n);
 #endif
     }
 
@@ -1833,11 +2316,13 @@ bool SolidAccel::Build32(const Solid *solids,
       t.start();
 
       if (solids->isDoublePrecisionPos) {
-        CalculateMortonCodesSolidDouble30(&codes.at(0), solids->numVertsPerSolid, solids->dvertices,
-                                          solids->indices, bmin, bmax, 0, n);
+        CalculateMortonCodesSolidDouble30(
+            &codes.at(0), solids->numVertsPerSolid, solids->dvertices,
+            solids->indices, bmin, bmax, 0, n);
       } else {
-        CalculateMortonCodesSolidFloat30(&codes.at(0), solids->numVertsPerSolid, solids->vertices,
-                                         solids->indices, bmin, bmax, 0, n);
+        CalculateMortonCodesSolidFloat30(&codes.at(0), solids->numVertsPerSolid,
+                                         solids->vertices, solids->indices,
+                                         bmin, bmax, 0, n);
       }
       t.end();
       trace("[LSGL] [3:morton calculation] %d msec\n", (int)t.msec());
@@ -1939,16 +2424,17 @@ bool SolidAccel::Build32(const Solid *solids,
 #pragma omp single
           {
             leftChildIndex = BuildTreeRecursive32OMP(
-                nodes_, leftBMin, leftBMax, solids->numVertsPerSolid, keys, nodeInfos, solids->dvertices,
-                solids->indices, midIndex, 0, midIndex, isLeftLeaf, 0);
+                nodes_, leftBMin, leftBMax, solids->numVertsPerSolid, keys,
+                nodeInfos, solids->dvertices, solids->indices, midIndex, 0,
+                midIndex, isLeftLeaf, 0);
           }
 
 #pragma omp single
           {
             rightChildIndex = BuildTreeRecursive32OMP(
-                nodes_, rightBMin, rightBMax, solids->numVertsPerSolid, keys, nodeInfos,
-                solids->dvertices, solids->indices, midIndex + 1, midIndex + 1,
-                n - 1, isRightLeaf, 0);
+                nodes_, rightBMin, rightBMax, solids->numVertsPerSolid, keys,
+                nodeInfos, solids->dvertices, solids->indices, midIndex + 1,
+                midIndex + 1, n - 1, isRightLeaf, 0);
           }
         }
 #pragma omp barrier
@@ -1960,16 +2446,17 @@ bool SolidAccel::Build32(const Solid *solids,
 #pragma omp single
           {
             leftChildIndex = BuildTreeRecursive32OMP(
-                nodes_, leftBMin, leftBMax, solids->numVertsPerSolid, keys, nodeInfos, solids->vertices,
-                solids->indices, midIndex, 0, midIndex, isLeftLeaf, 0);
+                nodes_, leftBMin, leftBMax, solids->numVertsPerSolid, keys,
+                nodeInfos, solids->vertices, solids->indices, midIndex, 0,
+                midIndex, isLeftLeaf, 0);
           }
 
 #pragma omp single
           {
             rightChildIndex = BuildTreeRecursive32OMP(
-                nodes_, rightBMin, rightBMax, solids->numVertsPerSolid, keys, nodeInfos, solids->vertices,
-                solids->indices, midIndex + 1, midIndex + 1, n - 1, isRightLeaf,
-                0);
+                nodes_, rightBMin, rightBMax, solids->numVertsPerSolid, keys,
+                nodeInfos, solids->vertices, solids->indices, midIndex + 1,
+                midIndex + 1, n - 1, isRightLeaf, 0);
           }
         }
 #pragma omp barrier
@@ -1983,20 +2470,24 @@ bool SolidAccel::Build32(const Solid *solids,
       if (solids->isDoublePrecisionPos) {
 
         leftChildIndex = BuildTreeRecursive32(
-            nodes_, leftBMin, leftBMax, solids->numVertsPerSolid, keys, nodeInfos, solids->dvertices,
-            solids->indices, midIndex, 0, midIndex, isLeftLeaf, 0);
+            nodes_, leftBMin, leftBMax, solids->numVertsPerSolid, keys,
+            nodeInfos, solids->dvertices, solids->indices, midIndex, 0,
+            midIndex, isLeftLeaf, 0);
         rightChildIndex = BuildTreeRecursive32(
-            nodes_, rightBMin, rightBMax, solids->numVertsPerSolid, keys, nodeInfos, solids->dvertices,
-            solids->indices, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+            nodes_, rightBMin, rightBMax, solids->numVertsPerSolid, keys,
+            nodeInfos, solids->dvertices, solids->indices, midIndex + 1,
+            midIndex + 1, n - 1, isRightLeaf, 0);
 
       } else {
 
         leftChildIndex = BuildTreeRecursive32(
-            nodes_, leftBMin, leftBMax, solids->numVertsPerSolid, keys, nodeInfos, solids->vertices,
-            solids->indices, midIndex, 0, midIndex, isLeftLeaf, 0);
+            nodes_, leftBMin, leftBMax, solids->numVertsPerSolid, keys,
+            nodeInfos, solids->vertices, solids->indices, midIndex, 0, midIndex,
+            isLeftLeaf, 0);
         rightChildIndex = BuildTreeRecursive32(
-            nodes_, rightBMin, rightBMax, solids->numVertsPerSolid, keys, nodeInfos, solids->vertices,
-            solids->indices, midIndex + 1, midIndex + 1, n - 1, isRightLeaf, 0);
+            nodes_, rightBMin, rightBMax, solids->numVertsPerSolid, keys,
+            nodeInfos, solids->vertices, solids->indices, midIndex + 1,
+            midIndex + 1, n - 1, isRightLeaf, 0);
       }
 
       assert(leftChildIndex != (size_t)(-1));
@@ -2159,8 +2650,8 @@ inline bool IntersectRayAABB(real &tminOut, // [out]
 
 bool TestLeafNode(Intersection &isect, // [inout]
                   const SolidNode &node,
-                  const std::vector<unsigned int> &indices,
-                  const Solid *solids, const Ray &ray) {
+                  const std::vector<unsigned int> &indices, const Solid *solids,
+                  const Ray &ray) {
 
   bool hit = false;
 
@@ -2168,7 +2659,6 @@ bool TestLeafNode(Intersection &isect, // [inout]
   unsigned int offset = node.data[1];
 
   real t = isect.t; // current hit distance
-
 
   double3 rayOrg;
   rayOrg[0] = ray.origin()[0];
@@ -2194,7 +2684,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
 
     for (int j = 0; j < numVertsPerSolid; j++) {
       int f = solids->indices[numVertsPerSolid * primIdx + j];
-    
+
       if (solids->isDoublePrecisionPos) {
         vtx[j][0] = solids->dvertices[3 * f + 0];
         vtx[j][1] = solids->dvertices[3 * f + 1];
@@ -2206,7 +2696,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
       }
     }
 
-    Intersection isects[2]; // isects[0].t < isects[1].t 
+    Intersection isects[2]; // isects[0].t < isects[1].t
 
     bool hit = false;
 
@@ -2274,8 +2764,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
   return hit;
 }
 
-void BuildIntersection(Intersection &isect, const Solid *solids,
-                       Ray &ray) {
+void BuildIntersection(Intersection &isect, const Solid *solids, Ray &ray) {
 
   // position and normal are already computed.
 
@@ -2325,8 +2814,8 @@ bool SolidAccel::Traverse(Intersection &isect, Ray &ray) const {
 
     nodeStackIndex--;
 
-    bool hit = IntersectRayAABB(minT, maxT, hitT, node.bmin, node.bmax,
-                                rayOrg, rayInvDir, dirSign);
+    bool hit = IntersectRayAABB(minT, maxT, hitT, node.bmin, node.bmax, rayOrg,
+                                rayInvDir, dirSign);
 
     if (node.flag == 0) { // branch node
 
@@ -2394,18 +2883,22 @@ void SolidAccel::BoundingBox(double bmin[3], double bmax[3]) const {
   }
 }
 
-void SolidAccel::ResetTraversalStatistics() const
-{
+void SolidAccel::ResetTraversalStatistics() const {
   traversalStats_ = SolidTraversalStatistics();
 }
 
-void SolidAccel::ReportTraversalStatistics() const
-{
+void SolidAccel::ReportTraversalStatistics() const {
 #if ENABLE_TRAVERSAL_STATISTICS
   double numRays = traversalStats_.numRays;
-  printf("[LSGL] SolidAccel | # of rays              : %lld\n", traversalStats_.numRays);
-  printf("[LSGL] SolidAccel | # of leaf node tests   : %lld(avg %f)\n", traversalStats_.numLeafTests, traversalStats_.numLeafTests / numRays);
-  printf("[LSGL] SolidAccel | # of node traversals   : %lld(avg %f)\n", traversalStats_.numNodeTraversals, traversalStats_.numNodeTraversals / numRays);
-  printf("[LSGL] SolidAccel | # of prim isect tests  : %lld(avg %f)\n", traversalStats_.numPrimIsectTests, traversalStats_.numPrimIsectTests / numRays);
+  printf("[LSGL] SolidAccel | # of rays              : %lld\n",
+         traversalStats_.numRays);
+  printf("[LSGL] SolidAccel | # of leaf node tests   : %lld(avg %f)\n",
+         traversalStats_.numLeafTests, traversalStats_.numLeafTests / numRays);
+  printf("[LSGL] SolidAccel | # of node traversals   : %lld(avg %f)\n",
+         traversalStats_.numNodeTraversals,
+         traversalStats_.numNodeTraversals / numRays);
+  printf("[LSGL] SolidAccel | # of prim isect tests  : %lld(avg %f)\n",
+         traversalStats_.numPrimIsectTests,
+         traversalStats_.numPrimIsectTests / numRays);
 #endif
 }

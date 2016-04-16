@@ -238,7 +238,7 @@ size_t LineAccel::BuildTree(const Lines *lines, unsigned int leftIdx,
   // Try all 3 axis until good cut position avaiable.
   unsigned int midIdx = 0;
   int cutAxis = 0;
-  for (int axisTry = 0; axisTry < 1; axisTry++) {
+  for (int axisTry = 0; axisTry < 3; axisTry++) {
 
     unsigned int *begin = &indices_[leftIdx];
     unsigned int *end = begin + (rightIdx - leftIdx); // &indices_[rightIdx];
