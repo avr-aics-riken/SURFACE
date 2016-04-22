@@ -138,11 +138,10 @@ void ComputeParametricDist(const double3 &orig, const double3 &dir,
   }
 }
   
-inline bool contain(const int &value, const int list[4]){
+inline bool contain(const int &value, const int list[3]){
   if (list[0] == value) return true;
   if (list[1] == value) return true;
   if (list[2] == value) return true;
-  if (list[3] == value) return true;
   return false;
 }
 
@@ -151,7 +150,7 @@ void InterpolateTetra(float d_out[12], const real3 &pt, real3 verts[4]) {
   // Vertices list of each face.
   static const int faces[4][3] = {{0,2,1}, {1,2,3}, {0,3,2}, {0,1,3}};
   
-  const float kEPS = 0.1;     //@fixme
+  const float kEPS = 0.001;     //@fixme
   
   real3 edges[6];
   
@@ -195,8 +194,7 @@ void InterpolateTetra(float d_out[12], const real3 &pt, real3 verts[4]) {
     }
     
     // If the ray cross surface, compute distance.
-    if (d_out[v])
-      d_out[v] = d / (cp - rayorg).length();
+    d_out[v] = d / (cp - rayorg).length();
   }
 }
 

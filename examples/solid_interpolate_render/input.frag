@@ -94,10 +94,10 @@ void main(void) {
 
     int depth = 0;
     depth = raydepth(depth);
-
-    vec3 ncol = 0.5 * n + 0.5;
-    gl_FragColor = vec4(ncol, 1.0);
-    gl_FragColor = vec4(colors, 1.0);
+    float a = dot(n,lightdir);
+    a = ( a + 3.0) * 0.25;
+    vec3 color = colors * a;
+    gl_FragColor = vec4(color, 1.0);
     return;
     
 #if 0

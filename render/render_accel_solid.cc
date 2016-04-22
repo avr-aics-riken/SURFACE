@@ -244,66 +244,61 @@ void GetEdges(real3 *edges, int solidType, const real3 *vertices)
     return (v2*ws0 + v0*ws1 + v1*w) / (ws0+ws1+w);
   }
   
-  void interpolate(float d_out[12], float p[3], const int solid_type, double3 vertices[12]) {
-    static const int faces[][6][4] = {
-      {{}}, {{}}, {{}}, {{}},        // 0,1,2,3
-      {{0,2,1,-1}, {1,2,3,-1}, {0,3,2,-1}, {0,1,3,-1} },  //tetra
-      {{0,3,2,1}, {0,1,4,-1}, {1,2,4,-1}, {2,3,4,-1}, {0,4,3,-1} },  //pyramid
-      {{0,2,1,-1}, {3,4,5,-1}, {0,3,5,2}, {0,1,4,3}, {1,2,5,4} },   //prism
-      {{}},       // 7
-      {{0,3,2,1}, {4,5,6,7}, {0,1,5,4}, {1,2,6,5}, {2,3,7,6}, {0,4,7,3}, },  //hexa
-    };
+void interpolate(float d_out[12], float p[3], const int solid_type, const double3 vertices[12]) {
+  static const int faces[][6][4] = {
+    {{}}, {{}}, {{}}, {{}},        // 0,1,2,3
+    {{0,2,1,-1}, {1,2,3,-1}, {0,3,2,-1}, {0,1,3,-1} },  //tetra
+    {{0,3,2,1}, {0,1,4,-1}, {1,2,4,-1}, {2,3,4,-1}, {0,4,3,-1} },  //pyramid
+    {{0,2,1,-1}, {3,4,5,-1}, {0,3,5,2}, {0,1,4,3}, {1,2,5,4} },   //prism
+    {{}},       // 7
+    {{0,3,2,1}, {4,5,6,7}, {0,1,5,4}, {1,2,6,5}, {2,3,7,6}, {0,4,7,3}, },  //hexa
+  };
+  
+  real3 pt (p);
+  real3 verts[8];
+  for (int i = 0; i < solid_type; i++) {
+    verts[i] = toreal3(vertices[i]);
+  }
+  
+  real3 edges[16];
+  GetEdges(edges,solid_type, verts);
+  
+  float kEPS;     //@fixme
+  for (int i = 0; i < edge_n(solid_type); i++)
+    kEPS += edges[i].length();
+  
+  kEPS = kEPS / edge_n(solid_type) * 1e-6;
     
-    const float kEPS = 0.1;     //@fixme
+  bool cw_f[2][16]; // Alloc enough size. edges.size()
+  float ws[16]; // Alloc enough size. edges.size()
+  
+  real3 edgepc[16]; // Alloc enough size. edges.size()
+  ComputeEdgePcs(edgepc, verts, edges, solid_type);
+  
+  for(int v = 0; v < solid_type; v++){
     
-    real3 pt (p);
-    real3 verts[8];
-    for (int i = 0; i < solid_type; i++) {
-      verts[i] = toreal3(vertices[i]);
+    real3 rayorg (verts[v]);
+    real3 raydir (pt - rayorg);
+    real3 raypc (cross(raydir, rayorg));
+    
+    float d = (pt - rayorg).length();
+    
+    // cross flag of ray vs edges.
+    bool cross_rve[edge_n(solid_type)];
+    
+    for(int i = 0; i < edge_n(solid_type) ; i++){
+      ws[i] = dot(raydir, edgepc[i]) + dot(edges[i], raypc);
+      if(ws[i] >= -kEPS)  cw_f[0][i] = true;
+      else cw_f[0][i] = false;
+      if(ws[i] <= kEPS)  cw_f[1][i] = true;
+      else cw_f[1][i] = false;
+      if (cw_f[0][i] && cw_f[1][i]) cross_rve[i] = 1;
     }
     
-    real3 edges[12];
-    GetEdges(edges,solid_type, verts);
+    real3 cp(1e16,1e16,1e16);
     
-    bool cw_f[2][16]; // Alloc enough size. edges.size()
-    float ws[16]; // Alloc enough size. edges.size()
-    
-    for(int v = 0; v < solid_type; v++){
-      
-      real3 rayorg (verts[v]);
-      real3 raydir (pt - verts[v]);
-      real3 raypc (cross(raydir, rayorg));
-      
-      float d = (pt - rayorg).length();
-      
-      int xxx = 1;
-      switch (solid_type) {
-        case 4:
-          xxx = 3;
-          break;
-        case 5:
-          xxx = 4;
-          break;
-        case 6:
-          xxx = 6;
-          break;
-        case 8:
-          xxx = 8;
-          break;
-      }
-      
-      for(int i = 0; i < edge_n(solid_type) ; i++){
-        ws[i] = dot(raydir, cross(edges[i], verts[i%xxx])) + dot(edges[i], raypc);
-        if(ws[i] >= -kEPS)  cw_f[0][i] = true;
-        else cw_f[0][i] = false;
-        if(ws[i] <= kEPS)  cw_f[1][i] = true;
-        else cw_f[1][i] = false;
-      }
-      
-      real3 cp(1e16,1e16,1e16);
-      
-      switch(solid_type){
-        case 4:     //tetra
+    switch(solid_type){
+      case 4:     //tetra
         if( cw_f[0][0] && cw_f[0][1] && cw_f[0][2] && !contain(v, faces[solid_type][0]) )
           cp = (verts[2]*ws[0] + verts[0]*ws[1] + verts[1]*ws[2]) / (ws[0]+ws[1]+ws[2]);
         else if( cw_f[1][1] && cw_f[0][4] && cw_f[1][5] && !contain(v, faces[solid_type][1]) )
@@ -318,92 +313,146 @@ void GetEdges(real3 *edges, int solidType, const real3 *vertices)
         }
         break;
       case 5:     //Pyramid
-        if (cw_f[0][0] && cw_f[0][1] && cw_f[0][2] && cw_f[0][3] &&
-              !contain(v, faces[solid_type][0])){
-            cp = getCP_sq(verts[0], verts[1], verts[2],
-                          ws[0], ws[1], ws[2], ws[3], edges[2], edges[3], raydir);
-        }else if (cw_f[1][0] && cw_f[1][5] && cw_f[0][4] &&
-                    !contain(v, faces[solid_type][1])){
-            cp = (verts[4]*-ws[0] + verts[1]*ws[4] + verts[0]*-ws[5])
-            / (-ws[0]+ws[4]-ws[5]);
-        }else if (cw_f[1][1] && cw_f[1][6] && cw_f[0][5] &&
-                    !contain(v, faces[solid_type][2])){
-            cp = (verts[4]*-ws[1] + verts[2]*ws[5] + verts[1]*-ws[6])
-            / (-ws[1]+ws[5]-ws[6]);
-        }else if (cw_f[1][2] && cw_f[1][7] && cw_f[0][6] &&
-                  !contain(v, faces[solid_type][3])){
-          cp = (verts[4]*-ws[2] + verts[3]*ws[6] + verts[2]*-ws[7])
-          / (-ws[2]+ws[6]-ws[7]);
-        }else if (cw_f[1][3] && cw_f[1][4] && cw_f[0][7] &&
-                  !contain(v, faces[solid_type][4])){
-          cp = (verts[4]*-ws[3] + verts[0]*ws[7] + verts[3]*-ws[4])
-          / (-ws[3]+ws[7]-ws[4]);
-        }else{
+//        {{0,3,2,1}, {0,1,4,-1}, {1,2,4,-1}, {2,3,4,-1}, {0,4,3,-1} },  //pyramid
+        if(cw_f[1][0] && cw_f[1][1] && cw_f[1][2] && cw_f[1][3] && !contain(v, faces[solid_type][0])){
+          cp = getCP_sq(verts[0], verts[1], verts[2], ws[0], ws[1], ws[2], ws[3],
+                        edges[2], edges[3], raydir);
+        }else if (cw_f[0][0] && cw_f[1][4] && cw_f[0][5] && !contain(v, faces[solid_type][1])){
+          cp = (verts[4]*-ws[0] + verts[1]*ws[4] + verts[0]*-ws[5]) / (-ws[0]+ws[4]-ws[5]);
+        }else if (cw_f[0][1] && cw_f[1][5] && cw_f[0][6] && !contain(v, faces[solid_type][2])){
+          cp = (verts[4]*-ws[1] + verts[2]*ws[5] + verts[1]*-ws[6]) / (-ws[1]+ws[5]-ws[6]);
+        }else if (cw_f[0][2] && cw_f[1][6] && cw_f[0][7] && !contain(v, faces[solid_type][3])){
+          cp = (verts[4]*-ws[2] + verts[3]*ws[6] + verts[2]*-ws[7]) / (-ws[2]+ws[6]-ws[7]);
+        }else if (cw_f[0][3] && cw_f[1][7] && cw_f[0][4] && !contain(v, faces[solid_type][4])){
+          cp = (verts[4]*-ws[3] + verts[0]*ws[7] + verts[3]*-ws[4]) / (-ws[3]+ws[7]-ws[4]);
+        }else {
           d_out[v] = 0;
           continue;
         }
         break;
       case 6:     //Prism
-        if (cw_f[0][0] && cw_f[0][1] && cw_f[0][2] &&
-              !contain(v, faces[solid_type][0])){
-          cp = (verts[2]*ws[0] + verts[0]*ws[1] + verts[1]*ws[2])
-            / (ws[0]+ws[1]+ws[2]);
-        }else if (cw_f[1][3] && cw_f[1][4] && cw_f[1][5] &&
-                    !contain(v, faces[solid_type][1])){
-          cp = (verts[5]*ws[3] + verts[3]*ws[4] + verts[4]*ws[5]) / (ws[3]+ws[4]+ws[5]);
-        }else if (cw_f[1][2] && cw_f[1][6] && cw_f[0][5] && cw_f[0][8] &&
-                    !contain(v, faces[solid_type][2])){
-          cp = getCP_sq(verts[2], verts[0], verts[3],
-                          ws[2], ws[6], -ws[5], -ws[8], edges[5], edges[8], raydir);
-        }else if (cw_f[1][0] && cw_f[1][7] && cw_f[0][3] && cw_f[0][6] &&
-                    !contain(v, faces[solid_type][3])){
-          cp = getCP_sq(verts[0], verts[1], verts[4],
-                          ws[0], ws[7], -ws[3], -ws[6], edges[3], edges[6], raydir);
-        }else if (cw_f[1][1] && cw_f[1][8] && cw_f[0][4] && cw_f[0][7] &&
-                    !contain(v, faces[solid_type][4])){
-          cp = getCP_sq(verts[1], verts[2], verts[5],
-                          ws[1], ws[8], -ws[4], -ws[7], edges[4], edges[7], raydir);
-        }else{
+        if(cw_f[0][0] && cw_f[0][1] && cw_f[0][2] &&
+           !contain(v, faces[solid_type][0])){
+          int c = cross_rve[0];
+          if (cross_rve[1]) c++;
+          if (cross_rve[2]) c++;
+          if (c == 2){
+            if (cross_rve[0] && cross_rve[1])
+              cp = verts[1];
+            else if (cross_rve[1] && cross_rve[2])
+              cp = verts[2];
+            else if (cross_rve[2] && cross_rve[0])
+              cp = verts[0];
+          } else
+            cp = (verts[2]*ws[0] + verts[0]*ws[1] + verts[1]*ws[2]) / (ws[0]+ws[1]+ws[2]);
+          
+        } else if(cw_f[1][3] && cw_f[1][4] && cw_f[1][5] &&
+                  !contain(v, faces[solid_type][1])){
+          int c = cross_rve[3];
+          if (cross_rve[4]) c++;
+          if (cross_rve[5]) c++;
+          if (c == 2){
+            if (cross_rve[3] && cross_rve[4])
+              cp = verts[4];
+            else if (cross_rve[4] && cross_rve[5])
+              cp = verts[5];
+            else if (cross_rve[5] && cross_rve[3])
+              cp = verts[3];
+          } else
+            cp = (verts[5]*ws[3] + verts[3]*ws[4] + verts[4]*ws[5]) / (ws[3]+ws[4]+ws[5]);
+        }else if(cw_f[1][2] && cw_f[1][6] && cw_f[0][5] && cw_f[0][8] &&
+                 !contain(v, faces[solid_type][2])){
+          int c = cross_rve[2];
+          if (cross_rve[6]) c++;
+          if (cross_rve[5]) c++;
+          if (cross_rve[8]) c++;
+          if (c == 2){
+            if (cross_rve[2] && cross_rve[6])
+              cp = verts[0];
+            else if (cross_rve[6] && cross_rve[5])
+              cp = verts[3];
+            else if (cross_rve[5] && cross_rve[8])
+              cp = verts[5];
+            else if (cross_rve[8] && cross_rve[2])
+              cp = verts[2];
+          } else
+            cp = getCP_sq(verts[2], verts[0], verts[3],
+                        ws[2], ws[6], -ws[5], -ws[8], edges[5], edges[8], raydir);
+        }else if(cw_f[1][0] && cw_f[1][7] && cw_f[0][3] && cw_f[0][6] &&
+                 !contain(v, faces[solid_type][3])){
+          int c = cross_rve[0];
+          if (cross_rve[7]) c++;
+          if (cross_rve[3]) c++;
+          if (cross_rve[6]) c++;
+          if (c == 2){
+            if (cross_rve[0] && cross_rve[7])
+              cp = verts[1];
+            else if (cross_rve[7] && cross_rve[3])
+              cp = verts[4];
+            else if (cross_rve[3] && cross_rve[6])
+              cp = verts[3];
+            else if (cross_rve[6] && cross_rve[0])
+              cp = verts[0];
+          } else
+            cp = getCP_sq(verts[0], verts[1], verts[4],
+                        ws[0], ws[7], -ws[3], -ws[6], edges[3], edges[6], raydir);
+        }else if(cw_f[1][1] && cw_f[1][8] && cw_f[0][4] && cw_f[0][7] &&
+                 !contain(v, faces[solid_type][4])){
+          int c = cross_rve[1];
+          if (cross_rve[8]) c++;
+          if (cross_rve[4]) c++;
+          if (cross_rve[7]) c++;
+          if (c == 2){
+            if (cross_rve[1] && cross_rve[8])
+              cp = verts[2];
+            else if (cross_rve[8] && cross_rve[4])
+              cp = verts[5];
+            else if (cross_rve[4] && cross_rve[7])
+              cp = verts[4];
+            else if (cross_rve[7] && cross_rve[1])
+              cp = verts[1];
+          } else
+            cp = getCP_sq(verts[1], verts[2], verts[5],
+                        ws[1], ws[8], -ws[4], -ws[7], edges[4], edges[7], raydir);
+        }else {
           d_out[v] = 0;
           continue;
         }
         break;
       case 8:     //hexahedron
         if (cw_f[0][0] && cw_f[0][1] && cw_f[0][2] && cw_f[0][3] &&
-              !contain(v, faces[solid_type][0])){
-            cp = getCP_sq(verts[0], verts[1], verts[2],
-                          ws[0], ws[1], ws[2], ws[3], edges[2], edges[3],raydir);
+            !contain(v, faces[solid_type][0])){
+          cp = getCP_sq(verts[0], verts[1], verts[2], ws[0], ws[1], ws[2], ws[3],
+                        edges[2], edges[3], raydir);
         }else if (cw_f[1][4] && cw_f[1][5] && cw_f[1][6] && cw_f[1][7] &&
-                    !contain(v, faces[solid_type][1])){
-            cp = getCP_sq(verts[4], verts[5], verts[6],
-                          ws[4], ws[5], ws[6], ws[7], edges[6], edges[7],raydir);
+                  !contain(v, faces[solid_type][1])){
+          cp = getCP_sq(verts[4], verts[5], verts[6], ws[4], ws[5], ws[6], ws[7],
+                        edges[6], edges[7],raydir);
         }else if (cw_f[1][0] && cw_f[1][9] && cw_f[0][4] && cw_f[0][8] &&
-                    !contain(v, faces[solid_type][2])){
-            cp = getCP_sq(verts[0], verts[1], verts[5],
-                          ws[0], ws[9], -ws[4], -ws[8], edges[4], edges[8],raydir);
+                 !contain(v, faces[solid_type][2])){
+          cp = getCP_sq(verts[0], verts[1], verts[5], ws[0], ws[9], -ws[4], -ws[8],
+                        edges[4], edges[8],raydir);
         }else if (cw_f[1][1] && cw_f[1][10] && cw_f[0][5] && cw_f[0][9] &&
-                  !contain(v, faces[solid_type][3])){
-          cp = getCP_sq(verts[1], verts[2], verts[6],
-                        ws[1], ws[10], -ws[5], -ws[9], edges[5], edges[9],raydir);
+                 !contain(v, faces[solid_type][3])){
+          cp = getCP_sq(verts[1], verts[2], verts[6], ws[1], ws[10], -ws[5], -ws[9],
+                        edges[5], edges[9],raydir);
         }else if (cw_f[1][2] && cw_f[1][11] && cw_f[0][6] && cw_f[0][10] &&
-                  !contain(v, faces[solid_type][4])){
-          cp = getCP_sq(verts[2], verts[3], verts[7],
-                          ws[2], ws[11], -ws[6], -ws[10], edges[6], edges[10],raydir);
+                 !contain(v, faces[solid_type][4])){
+          cp = getCP_sq(verts[2], verts[3], verts[7], ws[2], ws[11], -ws[6], -ws[10],
+                        edges[6], edges[10],raydir);
         }else if (cw_f[1][3] && cw_f[1][8] && cw_f[0][7] && cw_f[0][11] &&
-                  !contain(v, faces[solid_type][5])){
-          cp = getCP_sq(verts[3], verts[0], verts[4],
-                        ws[3], ws[8], -ws[7], -ws[11], edges[7], edges[11],raydir);
-          
-        }else{
+                 !contain(v, faces[solid_type][5])){
+          cp = getCP_sq(verts[3], verts[0], verts[4], ws[3], ws[8], -ws[7], -ws[11],
+                        edges[7], edges[11],raydir);
+        }else {
           d_out[v] = 0;
           continue;
         }
         break;
     }
     d_out[v] = d / (cp - rayorg).length();
-      
-    }
   }
+}
 
 // commpute ray-square_face cross point
 FORCEINLINE void SetCrossPoint_Sq(real3 &point,const double3 &v0,const double3 &v1,
@@ -426,7 +475,7 @@ FORCEINLINE void SetCrossPoint_Sq(real3 &point,const real3 &v0,const real3 &v1,
 bool IntersectPyramidD(const double3& rayorg, const double3& raydir,
                        const double3* vertices, Intersection *isects)
 {
-  bool cw_ccw[2][8];
+  bool cw_f[2][8];
   double ws[8];
   
   double3 edges[8];
@@ -438,27 +487,27 @@ bool IntersectPyramidD(const double3& rayorg, const double3& raydir,
   for(int i = 0; i < 8; i ++){
     edgepc[i] = vcrossd(edges[i],vertices[i%4]);
     ws[i] = vdotd(raydir, edgepc[i]) + vdotd(edges[i], raypc);
-    if(ws[i] >= 0)  cw_ccw[0][i] = true;
-    else cw_ccw[0][i] = false;
-    if(ws[i] <= 0)  cw_ccw[1][i] = true;
-    else cw_ccw[1][i] = false;
+    if(ws[i] >= 0)  cw_f[0][i] = true;
+    else cw_f[0][i] = false;
+    if(ws[i] <= 0)  cw_f[1][i] = true;
+    else cw_f[1][i] = false;
   }
     
   for (int i = 1,n = 0; n < 2; i--,n++)
-    if(cw_ccw[i][0] && cw_ccw[i][1] && cw_ccw[i][2] && cw_ccw[i][3]){
+    if(cw_f[i][0] && cw_f[i][1] && cw_f[i][2] && cw_f[i][3]){
       SetCrossPoint_Sq(isects[n].position, vertices[0], vertices[1], vertices[2],
                        ws[0], ws[1], ws[2], ws[3], edges[2], edges[3], raydir);
       isects[n].normal = toreal3(normalize(vcrossd(edges[1], edges[0])));
-    }else if (cw_ccw[n][0] && cw_ccw[i][4] && cw_ccw[n][5]){
+    }else if (cw_f[n][0] && cw_f[i][4] && cw_f[n][5]){
       isects[n].position = toreal3(vertices[4]*-ws[0] + vertices[1]*ws[4] + vertices[0]*-ws[5]) / (-ws[0]+ws[4]-ws[5]);
       isects[n].normal = toreal3(normalize(vcrossd(edges[4], edges[0])));
-    }else if (cw_ccw[n][1] && cw_ccw[i][5] && cw_ccw[n][6]){
+    }else if (cw_f[n][1] && cw_f[i][5] && cw_f[n][6]){
       isects[n].position = toreal3(vertices[4]*-ws[1] + vertices[2]*ws[5] + vertices[1]*-ws[6]) / (-ws[1]+ws[5]-ws[6]);
       isects[n].normal = toreal3(normalize(vcrossd(edges[5], edges[1])));
-    }else if (cw_ccw[n][2] && cw_ccw[i][6] && cw_ccw[n][7]){
+    }else if (cw_f[n][2] && cw_f[i][6] && cw_f[n][7]){
       isects[n].position = toreal3(vertices[4]*-ws[2] + vertices[3]*ws[6] + vertices[2]*-ws[7]) / (-ws[2]+ws[6]-ws[7]);
       isects[n].normal = toreal3(normalize(vcrossd(edges[6], edges[2])));
-    }else if (cw_ccw[n][3] && cw_ccw[i][7] && cw_ccw[n][4]){
+    }else if (cw_f[n][3] && cw_f[i][7] && cw_f[n][4]){
       isects[n].position = toreal3(vertices[4]*-ws[3] + vertices[0]*ws[7] + vertices[3]*-ws[4]) / (-ws[3]+ws[7]-ws[4]);
       isects[n].normal = toreal3(normalize(vcrossd(edges[7], edges[3])));
     }else
@@ -478,7 +527,7 @@ bool IntersectPyramidD(const double3& rayorg, const double3& raydir,
 bool IntersectPyramidF(const real3& rayorg, const real3& raydir,
                        const real3* vertices, Intersection *isects)
 {
-  bool cw_ccw[2][8];
+  bool cw_f[2][8];
   real ws[8];
     
   real3 edges[8];
@@ -490,26 +539,26 @@ bool IntersectPyramidF(const real3& rayorg, const real3& raydir,
   for(int i = 0; i < 8; i ++){
     edgepc[i] = cross(edges[i],vertices[i%4]);
     ws[i] = dot(raydir, edgepc[i]) + dot(edges[i], raypc);
-    if(ws[i] >= 0)  cw_ccw[0][i] = true;
-    else cw_ccw[0][i] = false;
-    if(ws[i] <= 0)  cw_ccw[1][i] = true;
-    else cw_ccw[1][i] = false;
+    if(ws[i] >= 0)  cw_f[0][i] = true;
+    else cw_f[0][i] = false;
+    if(ws[i] <= 0)  cw_f[1][i] = true;
+    else cw_f[1][i] = false;
   }
     
   for (int i = 1,n = 0; n < 2; i--,n++)
-    if(cw_ccw[i][0] && cw_ccw[i][1] && cw_ccw[i][2] && cw_ccw[i][3]){
+    if(cw_f[i][0] && cw_f[i][1] && cw_f[i][2] && cw_f[i][3]){
       SetCrossPoint_Sq(isects[n].position, vertices[0], vertices[1], vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2], edges[3], raydir);
       isects[i].normal = cross(edges[1], edges[0]).normalize();
-    }else if (cw_ccw[n][0] && cw_ccw[i][4] && cw_ccw[n][5]){
+    }else if (cw_f[n][0] && cw_f[i][4] && cw_f[n][5]){
       isects[n].position = (vertices[4]*-ws[0] + vertices[1]*ws[4] + vertices[0]*-ws[5]) / (-ws[0]+ws[4]-ws[5]);
       isects[n].normal = cross(edges[4], edges[0]).normalize();
-    }else if (cw_ccw[n][1] && cw_ccw[i][5] && cw_ccw[n][6]){
+    }else if (cw_f[n][1] && cw_f[i][5] && cw_f[n][6]){
       isects[n].position = (vertices[4]*-ws[1] + vertices[2]*ws[5] + vertices[1]*-ws[6]) / (-ws[1]+ws[5]-ws[6]);
       isects[n].normal = cross(edges[5], edges[1]).normalize();
-    }else if (cw_ccw[n][2] && cw_ccw[i][6] && cw_ccw[n][7]){
+    }else if (cw_f[n][2] && cw_f[i][6] && cw_f[n][7]){
       isects[n].position = (vertices[4]*-ws[2] + vertices[3]*ws[6] + vertices[2]*-ws[7]) / (-ws[2]+ws[6]-ws[7]);
         isects[n].normal = cross(edges[6], edges[2]).normalize();
-      }else if (cw_ccw[n][3] && cw_ccw[i][7] && cw_ccw[n][4]){
+      }else if (cw_f[n][3] && cw_f[i][7] && cw_f[n][4]){
         isects[n].position = (vertices[4]*-ws[3] + vertices[0]*ws[7] + vertices[3]*-ws[4]) / (-ws[3]+ws[7]-ws[4]);
         isects[n].normal = cross(edges[7], edges[3]).normalize();
       }else
@@ -528,41 +577,109 @@ bool IntersectPyramidF(const real3& rayorg, const real3& raydir,
   
 // Prism
 bool IntersectPrismD(const double3& rayorg, const double3& raydir,
-                     const double3* vertices, Intersection *isects)
+                     const double3* verts, Intersection *isects)
 {
-  bool cw_ccw[2][9];
+  bool cw_f[2][9];
   double ws[9];
     
   double3 edges[9];
-  GetEdges(edges, 6, vertices);
+  GetEdges(edges, 6, verts);
   
   double3 raypc = vcrossd(raydir, rayorg);
   double3 edgepc[9];
   
+  // cross flag of ray vs edges.
+  bool cross_rve[9];
+  
   for(int i = 0; i < 9; i ++){
-    edgepc[i] = vcrossd(edges[i], vertices[i%6]);
+    edgepc[i] = vcrossd(edges[i], verts[i%6]);
     ws[i] = vdotd(raydir, edgepc[i]) + vdotd(edges[i], raypc);
-    if(ws[i] >= 0)  cw_ccw[0][i] = true;
-    else cw_ccw[0][i] = false;
-    if(ws[i] <= 0)  cw_ccw[1][i] = true;
-    else cw_ccw[1][i] = false;
+    if(ws[i] >= 0)  cw_f[0][i] = true;
+    else cw_f[0][i] = false;
+    if(ws[i] <= 0)  cw_f[1][i] = true;
+    else cw_f[1][i] = false;
+    if (cw_f[0][i] && cw_f[1][i]) cross_rve[i] = 1;
   }
   
   for (int i = 0,n = 1; i < 2; i++,n--)
-    if(cw_ccw[n][0] && cw_ccw[n][1] && cw_ccw[n][2]){
-      isects[i].position = toreal3(vertices[2]*ws[0] + vertices[0]*ws[1] + vertices[1]*ws[2]) / (ws[0]+ws[1]+ws[2]);
+    if(cw_f[n][0] && cw_f[n][1] && cw_f[n][2]){
+      int c = cross_rve[0];
+      if (cross_rve[1]) c++;
+      if (cross_rve[2]) c++;
+      if (c == 2){
+        if (cross_rve[0] && cross_rve[1])
+          isects[i].position = toreal3(verts[1]);
+        else if (cross_rve[1] && cross_rve[2])
+          isects[i].position = toreal3(verts[2]);
+        else if (cross_rve[2] && cross_rve[0])
+          isects[i].position = toreal3(verts[0]);
+      } else
+      isects[i].position = toreal3(verts[2]*ws[0] + verts[0]*ws[1] + verts[1]*ws[2]) / (ws[0]+ws[1]+ws[2]);
       isects[i].normal = toreal3( normalize(vcrossd(edges[0], edges[1])));
-    } else if(cw_ccw[i][3] && cw_ccw[i][4] && cw_ccw[i][5]){
-      isects[i].position = toreal3(vertices[5]*ws[3] + vertices[3]*ws[4] + vertices[4]*ws[5]) / (ws[3]+ws[4]+ws[5]);
+    } else if(cw_f[i][3] && cw_f[i][4] && cw_f[i][5]){
+      int c = cross_rve[3];
+      if (cross_rve[4]) c++;
+      if (cross_rve[5]) c++;
+      if (c == 2){
+        if (cross_rve[3] && cross_rve[4])
+          isects[i].position = toreal3(verts[4]);
+        else if (cross_rve[4] && cross_rve[5])
+          isects[i].position = toreal3(verts[5]);
+        else if (cross_rve[5] && cross_rve[3])
+          isects[i].position = toreal3(verts[3]);
+      } else
+      isects[i].position = toreal3(verts[5]*ws[3] + verts[3]*ws[4] + verts[4]*ws[5]) / (ws[3]+ws[4]+ws[5]);
       isects[i].normal = toreal3( normalize(vcrossd(edges[3], edges[4])));
-    }else if(cw_ccw[i][2] && cw_ccw[i][6] && cw_ccw[n][5] && cw_ccw[n][8]){
-      SetCrossPoint_Sq(isects[i].position, vertices[2], vertices[0], vertices[3], ws[2], ws[6], -ws[5], -ws[8], edges[5], edges[8], raydir);
+    }else if(cw_f[i][2] && cw_f[i][6] && cw_f[n][5] && cw_f[n][8]){
+      int c = cross_rve[0];
+      if (cross_rve[7]) c++;
+      if (cross_rve[3]) c++;
+      if (cross_rve[6]) c++;
+      if (c == 2){
+        if (cross_rve[0] && cross_rve[7])
+          isects[i].position = toreal3(verts[1]);
+        else if (cross_rve[7] && cross_rve[3])
+          isects[i].position = toreal3(verts[4]);
+        else if (cross_rve[3] && cross_rve[6])
+          isects[i].position = toreal3(verts[3]);
+        else if (cross_rve[6] && cross_rve[0])
+          isects[i].position = toreal3(verts[0]);
+      } else
+      SetCrossPoint_Sq(isects[i].position, verts[2], verts[0], verts[3], ws[2], ws[6], -ws[5], -ws[8], edges[5], edges[8], raydir);
       isects[i].normal = toreal3( normalize(vcrossd(edges[2],edges[6])));
-    }else if(cw_ccw[i][0] && cw_ccw[i][7] && cw_ccw[n][3] && cw_ccw[n][6]){
-      SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1], vertices[4], ws[0], ws[7], -ws[3], -ws[6], edges[3], edges[6], raydir);
+    }else if(cw_f[i][0] && cw_f[i][7] && cw_f[n][3] && cw_f[n][6]){
+      int c = cross_rve[0];
+      if (cross_rve[7]) c++;
+      if (cross_rve[3]) c++;
+      if (cross_rve[6]) c++;
+      if (c == 2){
+        if (cross_rve[0] && cross_rve[7])
+          isects[i].position = toreal3(verts[1]);
+        else if (cross_rve[7] && cross_rve[3])
+          isects[i].position = toreal3(verts[4]);
+        else if (cross_rve[3] && cross_rve[6])
+          isects[i].position = toreal3(verts[3]);
+        else if (cross_rve[6] && cross_rve[0])
+          isects[i].position = toreal3(verts[0]);
+      } else
+      SetCrossPoint_Sq(isects[i].position, verts[0], verts[1], verts[4], ws[0], ws[7], -ws[3], -ws[6], edges[3], edges[6], raydir);
       isects[i].normal = toreal3( normalize(vcrossd(edges[0], edges[7])));
-    }else if(cw_ccw[i][1] && cw_ccw[i][8] && cw_ccw[n][4] && cw_ccw[n][7]){
-      SetCrossPoint_Sq(isects[i].position, vertices[1], vertices[2], vertices[5], ws[1], ws[8], -ws[4], -ws[7], edges[4], edges[7], raydir);
+    }else if(cw_f[i][1] && cw_f[i][8] && cw_f[n][4] && cw_f[n][7]){
+      int c = cross_rve[1];
+      if (cross_rve[8]) c++;
+      if (cross_rve[4]) c++;
+      if (cross_rve[7]) c++;
+      if (c == 2){
+        if (cross_rve[1] && cross_rve[8])
+          isects[i].position = toreal3(verts[2]);
+        else if (cross_rve[8] && cross_rve[4])
+          isects[i].position = toreal3(verts[5]);
+        else if (cross_rve[4] && cross_rve[7])
+          isects[i].position = toreal3(verts[4]);
+        else if (cross_rve[7] && cross_rve[1])
+          isects[i].position = toreal3(verts[1]);
+      } else
+      SetCrossPoint_Sq(isects[i].position, verts[1], verts[2], verts[5], ws[1], ws[8], -ws[4], -ws[7], edges[4], edges[7], raydir);
       isects[i].normal = toreal3( normalize(vcrossd(edges[1], edges[8])));
     }else
       return false;
@@ -580,7 +697,7 @@ bool IntersectPrismD(const double3& rayorg, const double3& raydir,
 bool IntersectPrismF(const real3& rayorg, const real3& raydir,
                      const real3* vertices, Intersection *isects)
 {
-  bool cw_ccw[2][9];
+  bool cw_f[2][9];
   real ws[9];
     
   real3 edges[9];
@@ -592,26 +709,26 @@ bool IntersectPrismF(const real3& rayorg, const real3& raydir,
   for(int i = 0; i < 9; i ++){
     edgepc[i] = cross(edges[i], vertices[i%6]);
     ws[i] = dot(raydir, edgepc[i]) + dot(edges[i], raypc);
-    if(ws[i] >= 0)  cw_ccw[0][i] = true;
-    else cw_ccw[0][i] = false;
-    if(ws[i] <= 0)  cw_ccw[1][i] = true;
-    else cw_ccw[1][i] = false;
+    if(ws[i] >= 0)  cw_f[0][i] = true;
+    else cw_f[0][i] = false;
+    if(ws[i] <= 0)  cw_f[1][i] = true;
+    else cw_f[1][i] = false;
   }
   
   for (int i = 0,n = 1; i < 2; i++,n--)
-    if(cw_ccw[n][0] && cw_ccw[n][1] && cw_ccw[n][2]){
+    if(cw_f[n][0] && cw_f[n][1] && cw_f[n][2]){
       isects[i].position = (vertices[2]*ws[0] + vertices[0]*ws[1] + vertices[1]*ws[2]) / (ws[0]+ws[1]+ws[2]);
       isects[i].normal =  cross(edges[0], edges[1]).normalize();
-    } else if(cw_ccw[i][3] && cw_ccw[i][4] && cw_ccw[i][5]){
+    } else if(cw_f[i][3] && cw_f[i][4] && cw_f[i][5]){
       isects[i].position = (vertices[5]*ws[3] + vertices[3]*ws[4] + vertices[4]*ws[5]) / (ws[3]+ws[4]+ws[5]);
       isects[i].normal = cross(edges[3], edges[4]).normalize();
-    }else if(cw_ccw[i][2] && cw_ccw[i][6] && cw_ccw[n][5] && cw_ccw[n][8]){
+    }else if(cw_f[i][2] && cw_f[i][6] && cw_f[n][5] && cw_f[n][8]){
       SetCrossPoint_Sq(isects[i].position, vertices[2], vertices[0], vertices[3], ws[2], ws[6], -ws[5], -ws[8], edges[5], edges[8], raydir);
       isects[i].normal = cross(edges[2],edges[6]).normalize();
-    }else if(cw_ccw[i][0] && cw_ccw[i][7] && cw_ccw[n][3] && cw_ccw[n][6]){
+    }else if(cw_f[i][0] && cw_f[i][7] && cw_f[n][3] && cw_f[n][6]){
       SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1], vertices[4], ws[0], ws[7], -ws[3], -ws[6], edges[3], edges[6], raydir);
       isects[i].normal = cross(edges[0], edges[7]).normalize();
-    }else if(cw_ccw[i][1] && cw_ccw[i][8] && cw_ccw[n][4] && cw_ccw[n][7]){
+    }else if(cw_f[i][1] && cw_f[i][8] && cw_f[n][4] && cw_f[n][7]){
       SetCrossPoint_Sq(isects[i].position, vertices[1], vertices[2], vertices[5], ws[1], ws[8], -ws[4], -ws[7], edges[4], edges[7], raydir);
       isects[i].normal = cross(edges[1], edges[8]).normalize();
     }else
@@ -631,7 +748,7 @@ bool IntersectPrismF(const real3& rayorg, const real3& raydir,
 bool IntersectHexaD(const double3& rayorg, const double3& raydir,
                     const double3* vertices, Intersection *isects)
 {
-  bool cw_ccw[2][12];
+  bool cw_f[2][12];
   double ws[12];
     
   double3 edges[12];
@@ -643,29 +760,29 @@ bool IntersectHexaD(const double3& rayorg, const double3& raydir,
   for(int i = 0; i < 12; i ++){
     edgepc[i] = vcrossd(edges[i], vertices[i%8]);
     ws[i] = vdotd(raydir, edgepc[i]) + vdotd(edges[i], raypc);
-    if(ws[i] >= 0)  cw_ccw[0][i] = true;
-    else cw_ccw[0][i] = false;
-    if(ws[i] <= 0)  cw_ccw[1][i] = true;
-    else cw_ccw[1][i] = false;
+    if(ws[i] >= 0)  cw_f[0][i] = true;
+    else cw_f[0][i] = false;
+    if(ws[i] <= 0)  cw_f[1][i] = true;
+    else cw_f[1][i] = false;
   }
     
   for (int i = 0,n = 1; i < 2; i++,n-- )
-    if     (cw_ccw[n][0] && cw_ccw[n][1] && cw_ccw[n][2] && cw_ccw[n][3]){
+    if     (cw_f[n][0] && cw_f[n][1] && cw_f[n][2] && cw_f[n][3]){
       SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1], vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2], edges[3], raydir);
       isects[i].normal = toreal3(normalize(vcrossd(edges[0], edges[1])));
-    }else if(cw_ccw[i][4] && cw_ccw[i][5] && cw_ccw[i][6] && cw_ccw[i][7]){
+    }else if(cw_f[i][4] && cw_f[i][5] && cw_f[i][6] && cw_f[i][7]){
       SetCrossPoint_Sq(isects[i].position, vertices[4], vertices[5], vertices[6], ws[4], ws[5], ws[6], ws[7], edges[6], edges[7],raydir);
       isects[i].normal = toreal3(normalize(vcrossd(edges[4], edges[5])));
-    }else if(cw_ccw[i][0] && cw_ccw[i][9] && cw_ccw[n][4] && cw_ccw[n][8]){
+    }else if(cw_f[i][0] && cw_f[i][9] && cw_f[n][4] && cw_f[n][8]){
       SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1], vertices[5], ws[0], ws[9], -ws[4], -ws[8], edges[4], edges[8],raydir);
       isects[i].normal = toreal3(normalize(vcrossd(edges[0], edges[9])));
-    }else if(cw_ccw[i][1] && cw_ccw[i][10] && cw_ccw[n][5] && cw_ccw[n][9]){
+    }else if(cw_f[i][1] && cw_f[i][10] && cw_f[n][5] && cw_f[n][9]){
       SetCrossPoint_Sq(isects[i].position, vertices[1], vertices[2], vertices[6], ws[1], ws[10], -ws[5], -ws[9], edges[5], edges[9],raydir);
       isects[i].normal = toreal3(normalize(vcrossd(edges[1], edges[10])));
-    }else if(cw_ccw[i][2] && cw_ccw[i][11] && cw_ccw[n][6] && cw_ccw[n][10]){
+    }else if(cw_f[i][2] && cw_f[i][11] && cw_f[n][6] && cw_f[n][10]){
       SetCrossPoint_Sq(isects[i].position, vertices[2], vertices[3], vertices[7], ws[2], ws[11], -ws[6], -ws[10], edges[6], edges[10],raydir);
       isects[i].normal = toreal3(normalize(vcrossd(edges[2], edges[11])));
-    }else if(cw_ccw[i][3] && cw_ccw[i][8] && cw_ccw[n][7] && cw_ccw[n][11]){
+    }else if(cw_f[i][3] && cw_f[i][8] && cw_f[n][7] && cw_f[n][11]){
       SetCrossPoint_Sq(isects[i].position, vertices[3], vertices[0], vertices[4], ws[3], ws[8], -ws[7], -ws[11], edges[7], edges[11],raydir);
       isects[i].normal = toreal3(normalize(vcrossd(edges[3], edges[8])));
     }else
@@ -685,41 +802,41 @@ bool IntersectHexaD(const double3& rayorg, const double3& raydir,
 bool IntersectHexaF(const real3& rayorg, const real3& raydir,
                     const real3* vertices, Intersection *isects)
 {
-  bool cw_ccw[2][12];
+  bool cw_f[2][12];
   real ws[12];
   
   real3 edges[12];
   GetEdges(edges, 8, vertices);
-    
+  
   real3 raypc = cross(raydir, rayorg);
   real3 edgepc[12];
   
   for(int i = 0; i < 12; i ++){
     edgepc[i] = cross(edges[i], vertices[i%8]);
     ws[i] = dot(raydir, edgepc[i]) + dot(edges[i], raypc);
-    if(ws[i] >= 0)  cw_ccw[0][i] = true;
-    else cw_ccw[0][i] = false;
-    if(ws[i] <= 0)  cw_ccw[1][i] = true;
-    else cw_ccw[1][i] = false;
+    if(ws[i] >= 0)  cw_f[0][i] = true;
+    else cw_f[0][i] = false;
+    if(ws[i] <= 0)  cw_f[1][i] = true;
+    else cw_f[1][i] = false;
   }
     
   for (int i = 0,n = 1; i < 2; i++,n-- )
-    if     (cw_ccw[n][0] && cw_ccw[n][1] && cw_ccw[n][2] && cw_ccw[n][3]){
+    if     (cw_f[n][0] && cw_f[n][1] && cw_f[n][2] && cw_f[n][3]){
       SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1], vertices[2], ws[0], ws[1], ws[2], ws[3], edges[2], edges[3], raydir);
       isects[i].normal = cross(edges[0], edges[1]).normalize();
-    }else if(cw_ccw[i][4] && cw_ccw[i][5] && cw_ccw[i][6] && cw_ccw[i][7]){
+    }else if(cw_f[i][4] && cw_f[i][5] && cw_f[i][6] && cw_f[i][7]){
       SetCrossPoint_Sq(isects[i].position, vertices[4], vertices[5], vertices[6], ws[4], ws[5], ws[6], ws[7], edges[6], edges[7],raydir);
       isects[i].normal = cross(edges[4], edges[5]).normalize();
-    }else if(cw_ccw[i][0] && cw_ccw[i][9] && cw_ccw[n][4] && cw_ccw[n][8]){
+    }else if(cw_f[i][0] && cw_f[i][9] && cw_f[n][4] && cw_f[n][8]){
       SetCrossPoint_Sq(isects[i].position, vertices[0], vertices[1], vertices[5], ws[0], ws[9], -ws[4], -ws[8], edges[4], edges[8],raydir);
       isects[i].normal = cross(edges[0], edges[9]).normalize();
-    }else if(cw_ccw[i][1] && cw_ccw[i][10] && cw_ccw[n][5] && cw_ccw[n][9]){
+    }else if(cw_f[i][1] && cw_f[i][10] && cw_f[n][5] && cw_f[n][9]){
       SetCrossPoint_Sq(isects[i].position, vertices[1], vertices[2], vertices[6], ws[1], ws[10], -ws[5], -ws[9], edges[5], edges[9],raydir);
       isects[i].normal = cross(edges[1], edges[10]).normalize();
-    }else if(cw_ccw[i][2] && cw_ccw[i][11] && cw_ccw[n][6] && cw_ccw[n][10]){
+    }else if(cw_f[i][2] && cw_f[i][11] && cw_f[n][6] && cw_f[n][10]){
       SetCrossPoint_Sq(isects[i].position, vertices[2], vertices[3], vertices[7], ws[2], ws[11], -ws[6], -ws[10], edges[6], edges[10],raydir);
       isects[i].normal = cross(edges[2], edges[11]).normalize();
-    }else if(cw_ccw[i][3] && cw_ccw[i][8] && cw_ccw[n][7] && cw_ccw[n][11]){
+    }else if(cw_f[i][3] && cw_f[i][8] && cw_f[n][7] && cw_f[n][11]){
       SetCrossPoint_Sq(isects[i].position, vertices[3], vertices[0], vertices[4], ws[3], ws[8], -ws[7], -ws[11], edges[7], edges[11],raydir);
       isects[i].normal = cross(edges[3], edges[8]).normalize();
     }else
@@ -731,6 +848,7 @@ bool IntersectHexaF(const real3& rayorg, const real3& raydir,
       isects[1].t = (isects[1].position[j] - rayorg[j]) / raydir[j];
     }
   isects[1].normal = -1 * isects[1].normal;
+  
   
   return true;
 }
@@ -2240,18 +2358,16 @@ bool TestLeafNode(Intersection &isect, // [inout]
         isect.subface_id = 0; // fixme
         isect.position = isects[0].position;
         isect.normal = isects[0].normal;
-        float d[12];
-        interpolate(d, &(isect.position[0]), numVertsPerSolid, vtx);
-        for (int i = 0; i < numVertsPerSolid; i++)
-          isect.d[i] = d[i];
-        isect.f0 = solids->indices[numVertsPerSolid * primIdx + 0];
-        isect.f1 = solids->indices[numVertsPerSolid * primIdx + 1];
-        isect.f2 = solids->indices[numVertsPerSolid * primIdx + 2];
-        isect.f3 = solids->indices[numVertsPerSolid * primIdx + 3];
-        isect.f4 = solids->indices[numVertsPerSolid * primIdx + 4];
-        isect.f5 = solids->indices[numVertsPerSolid * primIdx + 5];
-        isect.f6 = solids->indices[numVertsPerSolid * primIdx + 6];
-        isect.f7 = solids->indices[numVertsPerSolid * primIdx + 7];
+        float p[3] = {isect.position[0], isect.position[1], isect.position[2]};
+        interpolate(isect.d, p, numVertsPerSolid, vtx);
+        isect.f0 = numVertsPerSolid * primIdx + 0;
+        isect.f1 = numVertsPerSolid * primIdx + 1;
+        isect.f2 = numVertsPerSolid * primIdx + 2;
+        isect.f3 = numVertsPerSolid * primIdx + 3;
+        isect.f4 = numVertsPerSolid * primIdx + 4;
+        isect.f5 = numVertsPerSolid * primIdx + 5;
+        isect.f6 = numVertsPerSolid * primIdx + 6;
+        isect.f7 = numVertsPerSolid * primIdx + 7;
         t = isect.t;
         hit = true;
       }
@@ -2264,18 +2380,16 @@ bool TestLeafNode(Intersection &isect, // [inout]
         isect.subface_id = 0; // fixme
         isect.position = isects[1].position;
         isect.normal = isects[1].normal;
-        float d[12];
-        interpolate(d, &(isect.position[0]), numVertsPerSolid, vtx);
-        for (int i = 0; i < numVertsPerSolid; i++)
-          isect.d[i] = d[i];
-        isect.f0 = solids->indices[numVertsPerSolid * primIdx + 0];
-        isect.f1 = solids->indices[numVertsPerSolid * primIdx + 1];
-        isect.f2 = solids->indices[numVertsPerSolid * primIdx + 2];
-        isect.f3 = solids->indices[numVertsPerSolid * primIdx + 3];
-        isect.f4 = solids->indices[numVertsPerSolid * primIdx + 4];
-        isect.f5 = solids->indices[numVertsPerSolid * primIdx + 5];
-        isect.f6 = solids->indices[numVertsPerSolid * primIdx + 6];
-        isect.f7 = solids->indices[numVertsPerSolid * primIdx + 7];
+        float p[3] = {isect.position[0], isect.position[1], isect.position[2]};
+        interpolate(isect.d, p, numVertsPerSolid, vtx);
+        isect.f0 = numVertsPerSolid * primIdx + 0;
+        isect.f1 = numVertsPerSolid * primIdx + 1;
+        isect.f2 = numVertsPerSolid * primIdx + 2;
+        isect.f3 = numVertsPerSolid * primIdx + 3;
+        isect.f4 = numVertsPerSolid * primIdx + 4;
+        isect.f5 = numVertsPerSolid * primIdx + 5;
+        isect.f6 = numVertsPerSolid * primIdx + 6;
+        isect.f7 = numVertsPerSolid * primIdx + 7;
         t = isect.t;
         hit = true;
       }
