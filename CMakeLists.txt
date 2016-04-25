@@ -30,6 +30,7 @@ SET(SURFACE_BUILD_K_CROSS_COMPILE OFF CACHE BOOL "Build for K/FX10 target with c
 SET(SURFACE_BUILD_WITH_MPI OFF CACHE BOOL "Build with MPI support?")
 SET(SURFACE_BUILD_WITH_OPENMP OFF CACHE BOOL "Build with OpenMP support?")
 SET(SURFACE_BUILD_WITH_ASAN OFF CACHE BOOL "Build with Address Sanitizer support?(clang or gcc only)")
+SET(SURFACE_BUILD_WITH_MSAN OFF CACHE BOOL "Build with Memory Sanitizer support?(clang only)")
 
 # Deprecated. to be removed.
 SET(SURFACE_BUILD_SCREEN_PARALLEL OFF CACHE BOOL "[DEPRECATED] Build with screen parallel support?(Also need to enable SURFACE_BUILD_WITH_MPI option)")
@@ -123,9 +124,15 @@ ELSE() # non K cross env
     ENDIF() 
 
     IF (SURFACE_BUILD_WITH_ASAN)
-      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
       SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+    ENDIF()
+
+    IF (SURFACE_BUILD_WITH_MSAN)
+      SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -stdlib=libc++ -fsanitize=memory -fno-omit-frame-pointer")
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fsanitize=memory -fno-omit-frame-pointer")
+      SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++  -fsanitize=memory")
     ENDIF()
   ENDIF()	  
 ENDIF()

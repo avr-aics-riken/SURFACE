@@ -18,6 +18,15 @@ using namespace lsgl;
 void Context::glVertexAttrib1f(GLuint indx, GLfloat x) {
   TRACE_EVENT("(GLuint indx = %d, GLfloat x = %f)", indx, x);
 
+  if (-1 == static_cast<int>(indx)) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+  if (indx >= kMaxVertexAttribs) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+    
   assert(indx < kMaxVertexAttribs);
 
   int k = state_.currentDrawStackIndex;
@@ -32,6 +41,15 @@ void Context::glVertexAttrib1f(GLuint indx, GLfloat x) {
 void Context::glVertexAttrib2f(GLuint indx, GLfloat x, GLfloat y) {
   TRACE_EVENT("(GLuint indx = %d, GLfloat x = %f, GLfloat y = %f)", indx, x, y);
 
+  if (-1 == static_cast<int>(indx)) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+  if (indx >= kMaxVertexAttribs) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+    
   assert(indx < kMaxVertexAttribs);
 
   int k = state_.currentDrawStackIndex;
@@ -49,6 +67,15 @@ void Context::glVertexAttrib3f(GLuint indx, GLfloat x, GLfloat y, GLfloat z) {
       "(GLuint indx = %d, GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)",
       indx, x, y, z);
 
+  if (-1 == static_cast<int>(indx)) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+  if (indx >= kMaxVertexAttribs) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+    
   assert(indx < kMaxVertexAttribs);
 
   int k = state_.currentDrawStackIndex;
@@ -68,6 +95,15 @@ void Context::glVertexAttrib4f(GLuint indx, GLfloat x, GLfloat y, GLfloat z,
               "%f, GLfloat w = %f)",
               indx, x, y, z, w);
 
+  if (-1 == static_cast<int>(indx)) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+  if (indx >= kMaxVertexAttribs) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+    
   assert(indx < kMaxVertexAttribs);
 
   int k = state_.currentDrawStackIndex;
@@ -112,6 +148,15 @@ void Context::glVertexAttribPointer(GLuint indx, GLint size, GLenum type,
   TRACE_EVENT("(GLuint indx = %d, GLint size = %d, GLenum type = %d, GLboolean "
               "normalized = %d, GLsizei stride = %d, const GLvoid* ptr = %p)",
               indx, size, type, normalized, stride, ptr);
+  if (-1 == static_cast<int>(indx)) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+  if (indx >= kMaxVertexAttribs) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+    
   assert(indx < kMaxVertexAttribs);
 
   int handle = -1;
@@ -133,6 +178,15 @@ void Context::glVertexAttribPointer(GLuint indx, GLint size, GLenum type,
 
 void Context::glEnableVertexAttribArray(GLuint indx) {
   TRACE_EVENT("(GLuint indx = %d)", indx);
+  if (-1 == static_cast<int>(indx)) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+  if (indx >= kMaxVertexAttribs) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+    
   assert(indx < kMaxVertexAttribs);
   int k = state_.currentDrawStackIndex;
   assert(k < kMaxDrawStack);
@@ -141,6 +195,15 @@ void Context::glEnableVertexAttribArray(GLuint indx) {
 
 void Context::glDisableVertexAttribArray(GLuint indx) {
   TRACE_EVENT("(GLuint indx = %d)", indx);
+  if (-1 == static_cast<int>(indx)) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+  if (indx >= kMaxVertexAttribs) {
+    SetGLError(GL_INVALID_VALUE);
+    return;
+  }
+    
   assert(indx < kMaxVertexAttribs);
   int k = state_.currentDrawStackIndex;
   assert(k < kMaxDrawStack);
