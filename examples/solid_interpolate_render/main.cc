@@ -169,17 +169,14 @@ bool RandomTetraMake(float *vertices, float bmin[3], float bmax[3]){
     
     float3 p[4];
     
-    p[0] = scale*2*rand_vertices();
-    p[1] = scale*2*rand_vertices();
-    p[2] = scale*2*rand_vertices();
-    p[3] = scale*2*rand_vertices();
-    
-    while((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.5f <
-          vdot( p[3] - p[0], vcross(p[1] - p[0], p[2] - p[1]))) {
+    while(1) {
         p[0] = scale*2*rand_vertices();
         p[1] = scale*2*rand_vertices();
         p[2] = scale*2*rand_vertices();
         p[3] = scale*2*rand_vertices();
+        if ((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.3f <
+            vdot( p[3] - p[0], vcross(p[1] - p[0], p[2] - p[1])))
+            break;
     }
     
     bool f = false;
@@ -231,7 +228,7 @@ bool RandomPyramidMake(float *vertices, float bmin[3], float bmax[3]){
         p[2] = scale*2*rand_vertices();
         p[3] = p[2] + (p[2] - p[1]) * rand_(scale * 2) + (p[0] - p[1]) * rand_(scale * 2);
         p[4] = scale*2*rand_vertices();
-        if (0 >
+        if (-(bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.3f >
             vdot( p[4] - p[0], vcross(p[1] - p[0], p[2] - p[1]))){
             bool f = true;
 //            for (int i = 1; i < 5; i++)
@@ -407,8 +404,10 @@ bool RandomHexaMake(float *vertices, float *bmin, float *bmax){
         
         if(f) return false;
         
-        if((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.06f
-           < vdot( float3(verts[4].x - verts[0].x, verts[4].y - verts[0].y, verts[4].z - verts[0].z), vcross(float3(verts[1].x - verts[0].x, verts[1].y - verts[0].y, verts[1].z - verts[0].z ), float3(verts[2].x - verts[1].x, verts[2].y - verts[1].y, verts[2].z - verts[2].z))))break;
+        if ((bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.06f < vdot(vcross(verts[1] - verts[0], verts[3] - verts[0]), verts[4] - verts[0])){
+            break;
+        }
+        
     }
     
     for(int n = 0; n < 8; n++){
@@ -594,6 +593,7 @@ main(
     positions.resize(numPoints*3);
     if (solidType == 4) {
         RandomTetraMake(&positions.at(0), bmin, bmax, numSolids);
+//        GenerateRandomTetras<float>(&positions[0], numSolids, bmin, bmax, 1234);
     } else if (solidType == 5) {
         RandomPyramidMake(positions, bmin, bmax, numSolids);
     } else if (solidType == 6) {
@@ -655,7 +655,9 @@ main(
     for (int i = 0; i < colors_list.size(); i++) {
         colors_list[i] = (i % 15 == 0) ||(i % 15 == 4) ||(i % 15 == 8) ||
         (i % 15 == 9)||(i % 15 == 10)||(i % 15 == 11);
+//        colors_list[i] = 1;
     }
+    
     
     colors_list[12] = 1;
     colors_list[13] = 1;

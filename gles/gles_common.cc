@@ -992,7 +992,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
   unsigned int f7 = isectState.f7;
   
   /// choice interpolate way for solid.
-  const int interpolateMode = 3;
+  const int interpolateMode = 2;
 
   // Fill varying variables.
   // printf("index = %d\n", index);

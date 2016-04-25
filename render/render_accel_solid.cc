@@ -313,7 +313,6 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
         }
         break;
       case 5:     //Pyramid
-//        {{0,3,2,1}, {0,1,4,-1}, {1,2,4,-1}, {2,3,4,-1}, {0,4,3,-1} },  //pyramid
         if(cw_f[1][0] && cw_f[1][1] && cw_f[1][2] && cw_f[1][3] && !contain(v, faces[solid_type][0])){
           cp = getCP_sq(verts[0], verts[1], verts[2], ws[0], ws[1], ws[2], ws[3],
                         edges[2], edges[3], raydir);
@@ -331,87 +330,21 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
         }
         break;
       case 6:     //Prism
-        if(cw_f[0][0] && cw_f[0][1] && cw_f[0][2] &&
-           !contain(v, faces[solid_type][0])){
-          int c = cross_rve[0];
-          if (cross_rve[1]) c++;
-          if (cross_rve[2]) c++;
-          if (c == 2){
-            if (cross_rve[0] && cross_rve[1])
-              cp = verts[1];
-            else if (cross_rve[1] && cross_rve[2])
-              cp = verts[2];
-            else if (cross_rve[2] && cross_rve[0])
-              cp = verts[0];
-          } else
+        if(cw_f[0][0] && cw_f[0][1] && cw_f[0][2] && !contain(v, faces[solid_type][0])){
             cp = (verts[2]*ws[0] + verts[0]*ws[1] + verts[1]*ws[2]) / (ws[0]+ws[1]+ws[2]);
-          
         } else if(cw_f[1][3] && cw_f[1][4] && cw_f[1][5] &&
                   !contain(v, faces[solid_type][1])){
-          int c = cross_rve[3];
-          if (cross_rve[4]) c++;
-          if (cross_rve[5]) c++;
-          if (c == 2){
-            if (cross_rve[3] && cross_rve[4])
-              cp = verts[4];
-            else if (cross_rve[4] && cross_rve[5])
-              cp = verts[5];
-            else if (cross_rve[5] && cross_rve[3])
-              cp = verts[3];
-          } else
             cp = (verts[5]*ws[3] + verts[3]*ws[4] + verts[4]*ws[5]) / (ws[3]+ws[4]+ws[5]);
         }else if(cw_f[1][2] && cw_f[1][6] && cw_f[0][5] && cw_f[0][8] &&
                  !contain(v, faces[solid_type][2])){
-          int c = cross_rve[2];
-          if (cross_rve[6]) c++;
-          if (cross_rve[5]) c++;
-          if (cross_rve[8]) c++;
-          if (c == 2){
-            if (cross_rve[2] && cross_rve[6])
-              cp = verts[0];
-            else if (cross_rve[6] && cross_rve[5])
-              cp = verts[3];
-            else if (cross_rve[5] && cross_rve[8])
-              cp = verts[5];
-            else if (cross_rve[8] && cross_rve[2])
-              cp = verts[2];
-          } else
             cp = getCP_sq(verts[2], verts[0], verts[3],
                         ws[2], ws[6], -ws[5], -ws[8], edges[5], edges[8], raydir);
         }else if(cw_f[1][0] && cw_f[1][7] && cw_f[0][3] && cw_f[0][6] &&
                  !contain(v, faces[solid_type][3])){
-          int c = cross_rve[0];
-          if (cross_rve[7]) c++;
-          if (cross_rve[3]) c++;
-          if (cross_rve[6]) c++;
-          if (c == 2){
-            if (cross_rve[0] && cross_rve[7])
-              cp = verts[1];
-            else if (cross_rve[7] && cross_rve[3])
-              cp = verts[4];
-            else if (cross_rve[3] && cross_rve[6])
-              cp = verts[3];
-            else if (cross_rve[6] && cross_rve[0])
-              cp = verts[0];
-          } else
             cp = getCP_sq(verts[0], verts[1], verts[4],
                         ws[0], ws[7], -ws[3], -ws[6], edges[3], edges[6], raydir);
         }else if(cw_f[1][1] && cw_f[1][8] && cw_f[0][4] && cw_f[0][7] &&
                  !contain(v, faces[solid_type][4])){
-          int c = cross_rve[1];
-          if (cross_rve[8]) c++;
-          if (cross_rve[4]) c++;
-          if (cross_rve[7]) c++;
-          if (c == 2){
-            if (cross_rve[1] && cross_rve[8])
-              cp = verts[2];
-            else if (cross_rve[8] && cross_rve[4])
-              cp = verts[5];
-            else if (cross_rve[4] && cross_rve[7])
-              cp = verts[4];
-            else if (cross_rve[7] && cross_rve[1])
-              cp = verts[1];
-          } else
             cp = getCP_sq(verts[1], verts[2], verts[5],
                         ws[1], ws[8], -ws[4], -ws[7], edges[4], edges[7], raydir);
         }else {
