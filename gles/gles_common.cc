@@ -21,6 +21,8 @@
 #include <cstdlib>
 #include <algorithm>
 
+#include <cmath>
+
 #include <fstream>
 
 #include "GLES2/gl2.h"
@@ -1049,6 +1051,9 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       float weight[4];
       for (int v = 0; v < 4; v++) {
+#ifdef _DEBUG
+        if (!isfinite(weight[v])) printf("error! \n");
+#endif
         switch (interpolateMode) {
           case 0:
             weight[v] = 1 - isectState.d[v];
@@ -1086,8 +1091,13 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       const GLfloat *f5ptr = reinterpret_cast<const GLfloat *>(
           &varyingConn.ptr[f5 * varyingConn.stride]);
       
+      
+      
       float weight[6];
       for (int v = 0; v < 6; v++) {
+#ifdef _DEBUG
+        if (!isfinite(weight[v])) printf("error! \n");
+#endif
         switch (interpolateMode) {
           case 0:
             weight[v] = 1 - isectState.d[v];
@@ -1103,6 +1113,8 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
             break;
         }
       }
+//      printf("w = %f, %f, %f, %f, %f, %f \n",
+//             weight[0], weight[1], weight[2], weight[3], weight[4], weight[5] );
       
       float w = weight[0] + weight[1] + weight[2] + weight[3] + weight[4] + weight[5];
       for (int k = 0; k < elems; k++)
@@ -1126,6 +1138,9 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       float weight[5];
       for (int v = 0; v < 5; v++) {
+#ifdef _DEBUG
+        if (!isfinite(weight[v])) printf("error! \n");
+#endif
         switch (interpolateMode) {
           case 0:
             weight[v] = 1 - isectState.d[v];
@@ -1169,6 +1184,9 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       float weight[8];
       for (int v = 0; v < 8; v++) {
+#ifdef _DEBUG
+        if (!isfinite(weight[v])) printf("error! \n");
+#endif
         switch (interpolateMode) {
           case 0:
             weight[v] = (1 - isectState.d[v]);

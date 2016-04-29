@@ -74,8 +74,7 @@ void orthoBasis(out vec3 basis0,out vec3 basis1,out vec3 basis2, vec3 n)
 }
 
 void main(void) {
-
-	
+    
     vec3 lightdir = normalize(vec3(1, 1, -1));
 	
     //vec3 eye, lookat, up;

@@ -383,7 +383,13 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
         }
         break;
     }
+    
+    if ((cp-rayorg).length() < 0.0001) printf("error \n");
+    
     d_out[v] = d / (cp - rayorg).length();
+    
+    if (d_out[v] > 1) d_out[v] = 1;
+    else if (d_out[v] < 0) d_out[v] = 0;
   }
 }
 
@@ -536,82 +542,18 @@ bool IntersectPrismD(const double3& rayorg, const double3& raydir,
   
   for (int i = 0,n = 1; i < 2; i++,n--)
     if(cw_f[n][0] && cw_f[n][1] && cw_f[n][2]){
-      int c = cross_rve[0];
-      if (cross_rve[1]) c++;
-      if (cross_rve[2]) c++;
-      if (c == 2){
-        if (cross_rve[0] && cross_rve[1])
-          isects[i].position = toreal3(verts[1]);
-        else if (cross_rve[1] && cross_rve[2])
-          isects[i].position = toreal3(verts[2]);
-        else if (cross_rve[2] && cross_rve[0])
-          isects[i].position = toreal3(verts[0]);
-      } else
       isects[i].position = toreal3(verts[2]*ws[0] + verts[0]*ws[1] + verts[1]*ws[2]) / (ws[0]+ws[1]+ws[2]);
       isects[i].normal = toreal3( normalize(vcrossd(edges[0], edges[1])));
     } else if(cw_f[i][3] && cw_f[i][4] && cw_f[i][5]){
-      int c = cross_rve[3];
-      if (cross_rve[4]) c++;
-      if (cross_rve[5]) c++;
-      if (c == 2){
-        if (cross_rve[3] && cross_rve[4])
-          isects[i].position = toreal3(verts[4]);
-        else if (cross_rve[4] && cross_rve[5])
-          isects[i].position = toreal3(verts[5]);
-        else if (cross_rve[5] && cross_rve[3])
-          isects[i].position = toreal3(verts[3]);
-      } else
       isects[i].position = toreal3(verts[5]*ws[3] + verts[3]*ws[4] + verts[4]*ws[5]) / (ws[3]+ws[4]+ws[5]);
       isects[i].normal = toreal3( normalize(vcrossd(edges[3], edges[4])));
     }else if(cw_f[i][2] && cw_f[i][6] && cw_f[n][5] && cw_f[n][8]){
-      int c = cross_rve[0];
-      if (cross_rve[7]) c++;
-      if (cross_rve[3]) c++;
-      if (cross_rve[6]) c++;
-      if (c == 2){
-        if (cross_rve[0] && cross_rve[7])
-          isects[i].position = toreal3(verts[1]);
-        else if (cross_rve[7] && cross_rve[3])
-          isects[i].position = toreal3(verts[4]);
-        else if (cross_rve[3] && cross_rve[6])
-          isects[i].position = toreal3(verts[3]);
-        else if (cross_rve[6] && cross_rve[0])
-          isects[i].position = toreal3(verts[0]);
-      } else
       SetCrossPoint_Sq(isects[i].position, verts[2], verts[0], verts[3], ws[2], ws[6], -ws[5], -ws[8], edges[5], edges[8], raydir);
       isects[i].normal = toreal3( normalize(vcrossd(edges[2],edges[6])));
     }else if(cw_f[i][0] && cw_f[i][7] && cw_f[n][3] && cw_f[n][6]){
-      int c = cross_rve[0];
-      if (cross_rve[7]) c++;
-      if (cross_rve[3]) c++;
-      if (cross_rve[6]) c++;
-      if (c == 2){
-        if (cross_rve[0] && cross_rve[7])
-          isects[i].position = toreal3(verts[1]);
-        else if (cross_rve[7] && cross_rve[3])
-          isects[i].position = toreal3(verts[4]);
-        else if (cross_rve[3] && cross_rve[6])
-          isects[i].position = toreal3(verts[3]);
-        else if (cross_rve[6] && cross_rve[0])
-          isects[i].position = toreal3(verts[0]);
-      } else
       SetCrossPoint_Sq(isects[i].position, verts[0], verts[1], verts[4], ws[0], ws[7], -ws[3], -ws[6], edges[3], edges[6], raydir);
       isects[i].normal = toreal3( normalize(vcrossd(edges[0], edges[7])));
     }else if(cw_f[i][1] && cw_f[i][8] && cw_f[n][4] && cw_f[n][7]){
-      int c = cross_rve[1];
-      if (cross_rve[8]) c++;
-      if (cross_rve[4]) c++;
-      if (cross_rve[7]) c++;
-      if (c == 2){
-        if (cross_rve[1] && cross_rve[8])
-          isects[i].position = toreal3(verts[2]);
-        else if (cross_rve[8] && cross_rve[4])
-          isects[i].position = toreal3(verts[5]);
-        else if (cross_rve[4] && cross_rve[7])
-          isects[i].position = toreal3(verts[4]);
-        else if (cross_rve[7] && cross_rve[1])
-          isects[i].position = toreal3(verts[1]);
-      } else
       SetCrossPoint_Sq(isects[i].position, verts[1], verts[2], verts[5], ws[1], ws[8], -ws[4], -ws[7], edges[4], edges[7], raydir);
       isects[i].normal = toreal3( normalize(vcrossd(edges[1], edges[8])));
     }else
