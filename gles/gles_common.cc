@@ -993,6 +993,16 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
   unsigned int f6 = isectState.f6;
   unsigned int f7 = isectState.f7;
   
+  float d[8];
+  d[0] = isectState.d0;
+  d[1] = isectState.d1;
+  d[2] = isectState.d2;
+  d[3] = isectState.d3;
+  d[4] = isectState.d4;
+  d[5] = isectState.d5;
+  d[6] = isectState.d6;
+  d[7] = isectState.d7;
+  
   /// choice interpolate way for solid.
   const int interpolateMode = 2;
 
@@ -1051,29 +1061,32 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       float weight[4];
       for (int v = 0; v < 4; v++) {
-#ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("error! \n");
-#endif
         switch (interpolateMode) {
           case 0:
-            weight[v] = 1 - isectState.d[v];
+            weight[v] = 1 - d[v];
             break;
           case 1:
-            weight[v] = isectState.d[v]*isectState.d[v]*(isectState.d[v]-1.5) + 0.5;
+            weight[v] = d[v]*d[v]*(d[v]-1.5) + 0.5;
             break;
           case 2:
-            weight[v] = cos(PI*isectState.d[v])+1;
+            weight[v] = cos(PI*d[v])+1;
             break;
           default:
-            weight[v] = -pow(cos(0.5*PI*(isectState.d[v])), interpolateMode);
+            weight[v] = -pow(cos(0.5*PI*(d[v])), interpolateMode);
             break;
         }
+#ifdef _DEBUG
+        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
+#endif
       }
       
       float w = weight[0] + weight[1] + weight[2] + weight[3];
-      for (int k = 0; k < elems; k++)
+      for (int k = 0; k < elems; k++){
         dst[k] = (f0ptr[k] * weight[0] + f1ptr[k] * weight[1] +
                   f2ptr[k] * weight[2] + f3ptr[k] * weight[3])/w;
+        if (dst[k] < 0) dst[k] = 0;
+        else if (dst[k] > 1) dst[k] = 1;
+      }
       
     } else if (isectState.primitiveType == GL_PRISMS_EXT) {
       
@@ -1093,32 +1106,33 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       float weight[6];
       for (int v = 0; v < 6; v++) {
-#ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("error! \n");
-#endif
-        if (!isfinite(weight[v])) printf("error! \n");
         switch (interpolateMode) {
           case 0:
-            weight[v] = 1 - isectState.d[v];
+            weight[v] = 1 - d[v];
             break;
           case 1:
-            weight[v] = isectState.d[v]*isectState.d[v]*(isectState.d[v]-1.5) + 0.5;
+            weight[v] = d[v]*d[v]*(d[v]-1.5) + 0.5;
             break;
           case 2:
-            weight[v] = cos(PI*isectState.d[v])+1;
+            weight[v] = cos(PI*d[v])+1;
             break;
           default:
-            weight[v] = -pow(cos(0.5*PI*(isectState.d[v])), interpolateMode);
+            weight[v] = -pow(cos(0.5*PI*(d[v])), interpolateMode);
             break;
         }
+#ifdef _DEBUG
+        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
+#endif
+        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
       }
-//      printf("w = %f, %f, %f, %f, %f, %f \n",
-//             weight[0], weight[1], weight[2], weight[3], weight[4], weight[5] );
       
       float w = weight[0] + weight[1] + weight[2] + weight[3] + weight[4] + weight[5];
-      for (int k = 0; k < elems; k++)
+      for (int k = 0; k < elems; k++){
         dst[k] = (f0ptr[k] * weight[0] + f1ptr[k] * weight[1] + f2ptr[k] * weight[2] +
                   f3ptr[k] * weight[3] + f4ptr[k] * weight[4] + f5ptr[k] * weight[5]) / w;
+        if (dst[k] < 0) dst[k] = 0;
+        else if (dst[k] > 1) dst[k] = 1;
+      }
         // store to varying storage
       
     } else if (isectState.primitiveType == GL_PYRAMIDS_EXT) {
@@ -1137,30 +1151,33 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       float weight[5];
       for (int v = 0; v < 5; v++) {
-#ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("error! \n");
-#endif
-        if (!isfinite(weight[v])) printf("error! \n");
         switch (interpolateMode) {
           case 0:
-            weight[v] = 1 - isectState.d[v];
+            weight[v] = 1 - d[v];
             break;
           case 1:
-            weight[v] = isectState.d[v]*isectState.d[v]*(isectState.d[v]-1.5) + 0.5;
+            weight[v] = d[v]*d[v]*(d[v]-1.5) + 0.5;
             break;
           case 2:
-            weight[v] = cos(PI*isectState.d[v])+1;
+            weight[v] = cos(PI*d[v])+1;
             break;
           default:
-            weight[v] = -pow(cos(0.5*PI*(isectState.d[v])), interpolateMode);
+            weight[v] = -pow(cos(0.5*PI*(d[v])), interpolateMode);
             break;
         }
+#ifdef _DEBUG
+        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
+#endif
+        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
       }
       
       float w = weight[0] + weight[1] + weight[2] + weight[3] + weight[4];
-      for (int k = 0; k < elems; k++)
+      for (int k = 0; k < elems; k++){
         dst[k] = (f0ptr[k] * weight[0] + f1ptr[k] * weight[1] + f2ptr[k] * weight[2] +
                   f3ptr[k] * weight[3] + f4ptr[k] * weight[4]) / w;
+        if (dst[k] < 0) dst[k] = 0;
+        else if (dst[k] > 1) dst[k] = 1;
+      }
       // store to varying storage
     } else if (isectState.primitiveType == GL_HEXAHEDRONS_EXT) {
       
@@ -1184,31 +1201,34 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       float weight[8];
       for (int v = 0; v < 8; v++) {
-#ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("error! \n");
-#endif
         switch (interpolateMode) {
           case 0:
-            weight[v] = (1 - isectState.d[v]);
+            weight[v] = (1 - d[v]);
             break;
           case 1:
-            weight[v] = isectState.d[v]*isectState.d[v]*(isectState.d[v]-1.5) + 0.5;
+            weight[v] = d[v]*d[v]*(d[v]-1.5) + 0.5;
             break;
           case 2:
-            weight[v] = cos(PI*isectState.d[v])+1;
+            weight[v] = cos(PI*d[v])+1;
             break;
           default:
-            weight[v] = -pow(cos(0.5*PI*(isectState.d[v])), interpolateMode);
+            weight[v] = -pow(cos(0.5*PI*(d[v])), interpolateMode);
             break;
         }
+#ifdef _DEBUG
+        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
+#endif
       }
       
       float w = weight[0] + weight[1] + weight[2] + weight[3] +
                 weight[4] + weight[5] + weight[6] + weight[7];
-      for (int k = 0; k < elems; k++)
+      for (int k = 0; k < elems; k++){
         dst[k] = (f0ptr[k] * weight[0] + f1ptr[k] * weight[1] + f2ptr[k] * weight[2] +
                   f3ptr[k] * weight[3] + f4ptr[k] * weight[4] + f5ptr[k] * weight[5] +
                   f6ptr[k] * weight[6] + f7ptr[k] * weight[7]) / w;
+        if (dst[k] < 0) dst[k] = 0;
+        else if (dst[k] > 1) dst[k] = 1;
+      }
       // store to varying storage
     } else {
       // ???

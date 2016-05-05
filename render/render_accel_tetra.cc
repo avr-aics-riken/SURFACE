@@ -2149,8 +2149,12 @@ void BuildIntersection(Intersection &isect, const Tetrahedron *tetras,
   
   isect.geometric = n;
   isect.normal = n;
-  
-  InterpolateTetra(isect.d, isect.position, p);
+  float d[4];
+  InterpolateTetra(d, isect.position, p);
+  isect.d0 = d[0];
+  isect.d1 = d[1];
+  isect.d2 = d[2];
+  isect.d3 = d[3];
 }
 
 } // namespace
