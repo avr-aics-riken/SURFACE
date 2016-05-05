@@ -1091,13 +1091,12 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       const GLfloat *f5ptr = reinterpret_cast<const GLfloat *>(
           &varyingConn.ptr[f5 * varyingConn.stride]);
       
-      
-      
       float weight[6];
       for (int v = 0; v < 6; v++) {
 #ifdef _DEBUG
         if (!isfinite(weight[v])) printf("error! \n");
 #endif
+        if (!isfinite(weight[v])) printf("error! \n");
         switch (interpolateMode) {
           case 0:
             weight[v] = 1 - isectState.d[v];
@@ -1141,6 +1140,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
 #ifdef _DEBUG
         if (!isfinite(weight[v])) printf("error! \n");
 #endif
+        if (!isfinite(weight[v])) printf("error! \n");
         switch (interpolateMode) {
           case 0:
             weight[v] = 1 - isectState.d[v];

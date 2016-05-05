@@ -267,7 +267,7 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
   for (int i = 0; i < edge_n(solid_type); i++)
     kEPS += edges[i].length();
   
-  kEPS = kEPS / edge_n(solid_type) * 1e-6;
+  kEPS = (kEPS * 1e-6) / edge_n(solid_type);
     
   bool cw_f[2][16]; // Alloc enough size. edges.size()
   float ws[16]; // Alloc enough size. edges.size()
@@ -383,9 +383,6 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
         }
         break;
     }
-    
-    if ((cp-rayorg).length() < 0.0001) printf("error \n");
-    
     d_out[v] = d / (cp - rayorg).length();
     
     if (d_out[v] > 1) d_out[v] = 1;
