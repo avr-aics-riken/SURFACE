@@ -244,7 +244,7 @@ void GetEdges(real3 *edges, int solidType, const real3 *vertices)
     return (v2*ws0 + v0*ws1 + v1*w) / (ws0+ws1+w);
   }
   
-void interpolate(float d_out[12], float p[3], const int solid_type, const double3 vertices[12]) {
+void interpolate(float d_out[12], float p[3], const int solid_type, const double3 vertices[12], int interpolate_mode = 0) {
   static const int faces[][6][4] = {
     {{}}, {{}}, {{}}, {{}},        // 0,1,2,3
     {{0,2,1,-1}, {1,2,3,-1}, {0,3,2,-1}, {0,1,3,-1} },  //tetra
@@ -385,9 +385,45 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
     }
     d_out[v] = d / (cp - rayorg).length();
     
-    if (d_out[v] > 1) d_out[v] = 1;
-    else if (d_out[v] < 0) d_out[v] = 0;
+    if (d_out[v] < 0) d_out[v] = 0;
+    
+    else if (!(d_out[v] < 1) && !(d_out[v] > 0)){
+      d_out[v] = 1;
+    }
+    
+    switch (interpolate_mode) {
+      case 0:
+        d_out[v] = 1 - d_out[v];
+        break;
+      case 1:
+        d_out[v] = d_out[v]*d_out[v]*(d_out[v]-1.5) + 0.5;
+        break;
+      case 2:
+        d_out[v] = cos(3.141592*d_out[v])+1;
+        break;
+    }
+    
   }
+  
+  float ds = 0, dss = 0, d[solid_type], w = 0;
+  for (int i = 0; i < solid_type; i++) {
+    ds += (pt - verts[i]).length();
+  }
+  
+  for (int i = 0; i < solid_type; i++) {
+    d[i] = ds/(pt - verts[i]).length();
+    dss += d[i];
+  }
+  
+  for (int i = 0; i < solid_type; i++) {
+    d_out[i] *= d[i];
+    w += d_out[i];
+  }
+  
+  for (int i = 0; i < solid_type; i++) {
+    d_out[i] = d_out[i] / w;
+  }
+  
 }
 
 // commpute ray-square_face cross point
@@ -2231,7 +2267,16 @@ bool TestLeafNode(Intersection &isect, // [inout]
         isect.position = isects[0].position;
         isect.normal = isects[0].normal;
         float p[3] = {isect.position[0], isect.position[1], isect.position[2]};
-        interpolate(isect.d, p, numVertsPerSolid, vtx);
+        float d[8];
+        interpolate(d, p, numVertsPerSolid, vtx);
+        isect.d0 = d[0];
+        isect.d1 = d[1];
+        isect.d2 = d[2];
+        isect.d3 = d[3];
+        isect.d4 = d[4];
+        isect.d5 = d[5];
+        isect.d6 = d[6];
+        isect.d7 = d[7];
         isect.f0 = numVertsPerSolid * primIdx + 0;
         isect.f1 = numVertsPerSolid * primIdx + 1;
         isect.f2 = numVertsPerSolid * primIdx + 2;
@@ -2253,7 +2298,16 @@ bool TestLeafNode(Intersection &isect, // [inout]
         isect.position = isects[1].position;
         isect.normal = isects[1].normal;
         float p[3] = {isect.position[0], isect.position[1], isect.position[2]};
-        interpolate(isect.d, p, numVertsPerSolid, vtx);
+        float d[8];
+        interpolate(d, p, numVertsPerSolid, vtx);
+        isect.d0 = d[0];
+        isect.d1 = d[1];
+        isect.d2 = d[2];
+        isect.d3 = d[3];
+        isect.d4 = d[4];
+        isect.d5 = d[5];
+        isect.d6 = d[6];
+        isect.d7 = d[7];
         isect.f0 = numVertsPerSolid * primIdx + 0;
         isect.f1 = numVertsPerSolid * primIdx + 1;
         isect.f2 = numVertsPerSolid * primIdx + 2;

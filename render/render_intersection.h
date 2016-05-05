@@ -38,7 +38,14 @@ struct Intersection {
   unsigned int f6;
   unsigned int f7; // for tetra and solid primitive
   
-  float d[8];
+  float d0;
+  float d1;
+  float d2;
+  float d3;
+  float d4;
+  float d5;
+  float d6;
+  float d7;
   
 #ifdef ENABLE_TRAVERSE_PROFILING
   unsigned int numTriangleTests_;

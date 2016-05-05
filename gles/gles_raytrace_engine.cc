@@ -492,9 +492,14 @@ void RaytraceEngine::ShadeFragment(float shadecol[4], bool &discarded /* out */,
     isectState.f6 = isect.f6;
     isectState.f7 = isect.f7;
     
-    for (int i = 0; i < 8; i++) {
-      isectState.d[i] = isect.d[i];
-    }
+    isectState.d0 = isect.d0;
+    isectState.d1 = isect.d1;
+    isectState.d2 = isect.d2;
+    isectState.d3 = isect.d3;
+    isectState.d4 = isect.d4;
+    isectState.d5 = isect.d5;
+    isectState.d6 = isect.d6;
+    isectState.d7 = isect.d7;
     
     isectState.primitiveType = renderElement->GetGLType();
 
