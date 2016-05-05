@@ -100,7 +100,7 @@ inline float vdot(float3 a, float3 b) {
 }
 
 inline float rand_(float size){
-    return (float)rand() / RAND_MAX * size;
+    return ((float)rand() * size) / RAND_MAX;
 }
 
 inline float rand_(){
@@ -145,14 +145,14 @@ void SpaceDivision(double *bmin, double *bmax,int number, std::vector< std::vect
         room[(ir * j + jr) * k + kr] = true;
         
         out_d_min[n].resize(3);
-        out_d_min[n][0] = bmin[0] + (bmax[0] - bmin[0]) / i * ir;
-        out_d_min[n][1] = bmin[1] + (bmax[1] - bmin[1]) / j * jr;
-        out_d_min[n][2] = bmin[2] + (bmax[2] - bmin[2]) / k * kr;
+        out_d_min[n][0] = bmin[0] + ((bmax[0] - bmin[0]) / i) * ir;
+        out_d_min[n][1] = bmin[1] + ((bmax[1] - bmin[1]) / j) * jr;
+        out_d_min[n][2] = bmin[2] + ((bmax[2] - bmin[2]) / k) * kr;
         
         out_d_max[n].resize(3);
-        out_d_max[n][0] = bmin[0] + (bmax[0] - bmin[0]) / i * (ir + 1);
-        out_d_max[n][1] = bmin[1] + (bmax[1] - bmin[1]) / j * (jr + 1);
-        out_d_max[n][2] = bmin[2] + (bmax[2] - bmin[2]) / k * (kr + 1);
+        out_d_max[n][0] = bmin[0] + ((bmax[0] - bmin[0]) / i) * (ir + 1);
+        out_d_max[n][1] = bmin[1] + ((bmax[1] - bmin[1]) / j) * (jr + 1);
+        out_d_max[n][2] = bmin[2] + ((bmax[2] - bmin[2]) / k) * (kr + 1);
         
         n++;
         
@@ -217,8 +217,8 @@ void RandomTetraMake(float *vertices, double bmin[3], double bmax[3], int PrismN
 
 bool RandomPyramidMake(float *vertices, float bmin[3], float bmax[3]){
     
-    float scale = (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.25f;
-    scale = pow(scale, 0.333);
+    const float box_vol = (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]);
+    const float scale = pow(box_vol * 0.25, 0.333);
     
     float3 p[5];
     
@@ -228,18 +228,9 @@ bool RandomPyramidMake(float *vertices, float bmin[3], float bmax[3]){
         p[2] = scale*2*rand_vertices();
         p[3] = p[2] + (p[2] - p[1]) * rand_(scale * 2) + (p[0] - p[1]) * rand_(scale * 2);
         p[4] = scale*2*rand_vertices();
-        if (-(bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1]) * 0.3f >
-            vdot( p[4] - p[0], vcross(p[1] - p[0], p[2] - p[1]))){
-            bool f = true;
-//            for (int i = 1; i < 5; i++)
-//                for (int n = 0; n < i; n++)
-//                    if ((p[i] - p[n]).length() < scale) f = false;
-            if (f) break;
-            
-        }
+        if (box_vol * 0.3f < vdot( p[4] - p[0], vcross(p[2] - p[1], p[1] - p[0])))
+            break;
     }
-    
-//    printf("%d\n", 0 > vdot( p[4] - p[0], vcross(p[1] - p[0], p[2] - p[1])));
     
     bool f = false;
     
@@ -252,7 +243,7 @@ bool RandomPyramidMake(float *vertices, float bmin[3], float bmax[3]){
     
     if(f) return false;
     
-    for(int n = 0; n < 5; n ++ ){
+    for (int n = 0; n < 5; n++){
         vertices[n*3 + 0] = p[n].x;
         vertices[n*3 + 1] = p[n].y;
         vertices[n*3 + 2] = p[n].z;
@@ -593,7 +584,6 @@ main(
     positions.resize(numPoints*3);
     if (solidType == 4) {
         RandomTetraMake(&positions.at(0), bmin, bmax, numSolids);
-//        GenerateRandomTetras<float>(&positions[0], numSolids, bmin, bmax, 1234);
     } else if (solidType == 5) {
         RandomPyramidMake(positions, bmin, bmax, numSolids);
     } else if (solidType == 6) {
@@ -601,39 +591,6 @@ main(
     } else if (solidType == 8) {
         RandomHexaMake(positions, bmin, bmax, numSolids);
     }
-    
-//    positions[0] = 0;
-//    positions[1] = 0;
-//    positions[2] = 0;
-//    
-//    positions[3] = 1;
-//    positions[4] = 0;
-//    positions[5] = 0;
-//    
-//    positions[6] = 1;
-//    positions[7] = 1;
-//    positions[8] = 0;
-//    
-//    positions[9] = 0;
-//    positions[10] = 1;
-//    positions[11] = 0;
-//    
-//    positions[12] = 0;
-//    positions[13] = 0;
-//    positions[14] = 1;
-//    
-//    positions[15] = 1;
-//    positions[16] = 0;
-//    positions[17] = 1;
-//    
-//    positions[18] = 1;
-//    positions[19] = 1;
-//    positions[20] = 1;
-//    
-//    positions[21] = 0;
-//    positions[22] = 1;
-//    positions[23] = 1;
-    
     
     // gen indices
     std::vector<unsigned int> indices;
@@ -650,18 +607,13 @@ main(
     lsglBufferDataPointer(GL_ARRAY_BUFFER, numPoints * sizeof(float) * 3,
                           &positions.at(0), GL_STATIC_DRAW);
     
-    // gen colorlist
+    // generate colorlist
     std::vector<float> colors_list(numSolids * solidType * 3);
     for (int i = 0; i < colors_list.size(); i++) {
-        colors_list[i] = (i % 15 == 0) ||(i % 15 == 4) ||(i % 15 == 8) ||
-        (i % 15 == 9)||(i % 15 == 10)||(i % 15 == 11);
-//        colors_list[i] = 1;
+        colors_list[i] =(i % 15 == 0) || (i % 15 == 4) || (i % 15 == 8) ||
+                        (i % 15 == 9) || (i % 15 == 10) || (i % 15 == 11) ||
+                        (i % 15 == 12) || (i % 15 == 13);
     }
-    
-    
-    colors_list[12] = 1;
-    colors_list[13] = 1;
-    colors_list[14] = 0;
     
     // 2. Create Attrib Buffers. (color)
     GLuint ptcolors;

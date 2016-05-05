@@ -194,7 +194,11 @@ void InterpolateTetra(float d_out[12], const real3 &pt, real3 verts[4]) {
     }
     
     // If the ray cross surface, compute distance.
+    
     d_out[v] = d / (cp - rayorg).length();
+    
+    if (d_out[v] > 1) d_out[v] = 1;
+    else if (d_out[v] < 0) d_out[v] = 0;
   }
 }
 
