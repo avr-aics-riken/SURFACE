@@ -145,7 +145,7 @@ inline bool contain(const int &value, const int list[3]){
   return false;
 }
 
-void InterpolateTetra(float d_out[12], const real3 &pt, real3 verts[4]) {
+void InterpolateTetra(float d_out[12], const real3 &pt, real3 verts[4], int interpolate_mode = 0) {
   
   // Vertices list of each face.
   static const int faces[4][3] = {{0,2,1}, {1,2,3}, {0,3,2}, {0,1,3}};
@@ -197,9 +197,47 @@ void InterpolateTetra(float d_out[12], const real3 &pt, real3 verts[4]) {
     
     d_out[v] = d / (cp - rayorg).length();
     
-    if (d_out[v] > 1) d_out[v] = 1;
-    else if (d_out[v] < 0) d_out[v] = 0;
+    if (d_out[v] < 0) d_out[v] = 0;
+    
+    else if (!(d_out[v] < 1) && !(d_out[v] > 0)){
+      d_out[v] = 1;
+    }
+    
+    switch (interpolate_mode) {
+      case 0:
+        d_out[v] = 1 - d_out[v];
+        break;
+      case 1:
+        d_out[v] = d_out[v]*d_out[v]*(d_out[v]-1.5) + 0.5;
+        break;
+      case 2:
+        d_out[v] = cos(3.141592*d_out[v])+1;
+        break;
+    }
+    
   }
+  
+  const int solid_type = 4;
+  
+  float ds = 0, dss = 0, d[solid_type], w = 0;
+  for (int i = 0; i < solid_type; i++) {
+    ds += (pt - verts[i]).length();
+  }
+  
+  for (int i = 0; i < solid_type; i++) {
+    d[i] = ds/(pt - verts[i]).length();
+    dss += d[i];
+  }
+  
+  for (int i = 0; i < solid_type; i++) {
+    d_out[i] *= d[i];
+    w += d_out[i];
+  }
+  
+  for (int i = 0; i < solid_type; i++) {
+    d_out[i] = d_out[i] / w;
+  }
+  
 }
 
 bool RayTetraPluecker(const double3 &orig, const double3 &dir,

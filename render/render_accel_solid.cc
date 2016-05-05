@@ -244,7 +244,7 @@ void GetEdges(real3 *edges, int solidType, const real3 *vertices)
     return (v2*ws0 + v0*ws1 + v1*w) / (ws0+ws1+w);
   }
   
-void interpolate(float d_out[12], float p[3], const int solid_type, const double3 vertices[12]) {
+void interpolate(float d_out[12], float p[3], const int solid_type, const double3 vertices[12], int interpolate_mode = 0) {
   static const int faces[][6][4] = {
     {{}}, {{}}, {{}}, {{}},        // 0,1,2,3
     {{0,2,1,-1}, {1,2,3,-1}, {0,3,2,-1}, {0,1,3,-1} },  //tetra
@@ -385,12 +385,45 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
     }
     d_out[v] = d / (cp - rayorg).length();
     
-    if (d_out[v] > 1) d_out[v] = 1;
-    else if (d_out[v] < 0) d_out[v] = 0;
+    if (d_out[v] < 0) d_out[v] = 0;
     
-    if (isinf(d_out[v])) printf("interporate() : inf error\n");
+    else if (!(d_out[v] < 1) && !(d_out[v] > 0)){
+      d_out[v] = 1;
+    }
+    
+    switch (interpolate_mode) {
+      case 0:
+        d_out[v] = 1 - d_out[v];
+        break;
+      case 1:
+        d_out[v] = d_out[v]*d_out[v]*(d_out[v]-1.5) + 0.5;
+        break;
+      case 2:
+        d_out[v] = cos(3.141592*d_out[v])+1;
+        break;
+    }
     
   }
+  
+  float ds = 0, dss = 0, d[solid_type], w = 0;
+  for (int i = 0; i < solid_type; i++) {
+    ds += (pt - verts[i]).length();
+  }
+  
+  for (int i = 0; i < solid_type; i++) {
+    d[i] = ds/(pt - verts[i]).length();
+    dss += d[i];
+  }
+  
+  for (int i = 0; i < solid_type; i++) {
+    d_out[i] *= d[i];
+    w += d_out[i];
+  }
+  
+  for (int i = 0; i < solid_type; i++) {
+    d_out[i] = d_out[i] / w;
+  }
+  
 }
 
 // commpute ray-square_face cross point
