@@ -260,6 +260,11 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
     verts[i] = toreal3(vertices[i]);
   }
   
+  pt = pt - verts[0];
+  for (int i = solid_type - 1; i >= 0; i--) {
+    verts[i] = verts[i] - verts[0];
+  }
+  
   real3 edges[16];
   GetEdges(edges,solid_type, verts);
   
@@ -400,6 +405,9 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
         break;
       case 2:
         d_out[v] = cos(3.141592*d_out[v])+1;
+        break;
+      default:
+        d_out[v] = -pow(cos(0.5*3.141592*(d_out[v])), interpolate_mode);
         break;
     }
     
@@ -2268,7 +2276,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
         isect.normal = isects[0].normal;
         float p[3] = {isect.position[0], isect.position[1], isect.position[2]};
         float d[8];
-        interpolate(d, p, numVertsPerSolid, vtx);
+        interpolate(d, p, numVertsPerSolid, vtx, 0);
         isect.d0 = d[0];
         isect.d1 = d[1];
         isect.d2 = d[2];
@@ -2299,7 +2307,7 @@ bool TestLeafNode(Intersection &isect, // [inout]
         isect.normal = isects[1].normal;
         float p[3] = {isect.position[0], isect.position[1], isect.position[2]};
         float d[8];
-        interpolate(d, p, numVertsPerSolid, vtx);
+        interpolate(d, p, numVertsPerSolid, vtx, 0);
         isect.d0 = d[0];
         isect.d1 = d[1];
         isect.d2 = d[2];

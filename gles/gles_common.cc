@@ -1002,9 +1002,6 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
   d[5] = isectState.d5;
   d[6] = isectState.d6;
   d[7] = isectState.d7;
-  
-  /// choice interpolate way for solid.
-  const int interpolateMode = 2;
 
   // Fill varying variables.
   // printf("index = %d\n", index);
@@ -1051,42 +1048,17 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       int elems = varying.data.size() / sizeof(GL_FLOAT);
       const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
-                                                               &varyingConn.ptr[f0 * varyingConn.stride]);
+             &varyingConn.ptr[f0 * varyingConn.stride]);
       const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
-                                                               &varyingConn.ptr[f1 * varyingConn.stride]);
+             &varyingConn.ptr[f1 * varyingConn.stride]);
       const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
-                                                               &varyingConn.ptr[f2 * varyingConn.stride]);
+             &varyingConn.ptr[f2 * varyingConn.stride]);
       const GLfloat *f3ptr = reinterpret_cast<const GLfloat *>(
-                                                               &varyingConn.ptr[f3 * varyingConn.stride]);
-      /*
-      float weight[4];
-      for (int v = 0; v < 4; v++) {
-        switch (interpolateMode) {
-          case 0:
-            weight[v] = 1 - d[v];
-            break;
-          case 1:
-            weight[v] = d[v]*d[v]*(d[v]-1.5) + 0.5;
-            break;
-          case 2:
-            weight[v] = cos(PI*d[v])+1;
-            break;
-          default:
-            weight[v] = -pow(cos(0.5*PI*(d[v])), interpolateMode);
-            break;
-        }
-#ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
-#endif
-      }
+             &varyingConn.ptr[f3 * varyingConn.stride]);
       
-      float w = weight[0] + weight[1] + weight[2] + weight[3];
-      */
       for (int k = 0; k < elems; k++){
         dst[k] = (f0ptr[k] * d[0] + f1ptr[k] * d[1] +
                   f2ptr[k] * d[2] + f3ptr[k] * d[3]);
-        if (dst[k] < 0) dst[k] = 0;
-        else if (dst[k] > 1) dst[k] = 1;
       }
       
     } else if (isectState.primitiveType == GL_PRISMS_EXT) {
@@ -1104,36 +1076,10 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
           &varyingConn.ptr[f4 * varyingConn.stride]);
       const GLfloat *f5ptr = reinterpret_cast<const GLfloat *>(
           &varyingConn.ptr[f5 * varyingConn.stride]);
-      /*
-      float weight[6];
-      for (int v = 0; v < 6; v++) {
-        switch (interpolateMode) {
-          case 0:
-            weight[v] = 1 - d[v];
-            break;
-          case 1:
-            weight[v] = d[v]*d[v]*(d[v]-1.5) + 0.5;
-            break;
-          case 2:
-            weight[v] = cos(PI*d[v])+1;
-            break;
-          default:
-            weight[v] = -pow(cos(0.5*PI*(d[v])), interpolateMode);
-            break;
-        }
-#ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
-#endif
-        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
-      }
       
-      float w = weight[0] + weight[1] + weight[2] + weight[3] + weight[4] + weight[5];
-      */
       for (int k = 0; k < elems; k++){
         dst[k] = (f0ptr[k] * d[0] + f1ptr[k] * d[1] + f2ptr[k] * d[2] +
                   f3ptr[k] * d[3] + f4ptr[k] * d[4] + f5ptr[k] * d[5]);
-        if (dst[k] < 0) dst[k] = 0;
-        else if (dst[k] > 1) dst[k] = 1;
       }
         // store to varying storage
       
@@ -1150,30 +1096,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
           &varyingConn.ptr[f3 * varyingConn.stride]);
       const GLfloat *f4ptr = reinterpret_cast<const GLfloat *>(
           &varyingConn.ptr[f4 * varyingConn.stride]);
-      /*
-      float weight[5];
-      for (int v = 0; v < 5; v++) {
-        switch (interpolateMode) {
-          case 0:
-            weight[v] = 1 - d[v];
-            break;
-          case 1:
-            weight[v] = d[v]*d[v]*(d[v]-1.5) + 0.5;
-            break;
-          case 2:
-            weight[v] = cos(PI*d[v])+1;
-            break;
-          default:
-            weight[v] = -pow(cos(0.5*PI*(d[v])), interpolateMode);
-            break;
-        }
-#ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
-#endif
-        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
-      }
-      float w = weight[0] + weight[1] + weight[2] + weight[3] + weight[4];
-      */
+      
       for (int k = 0; k < elems; k++){
         dst[k] = f0ptr[k] * d[0] + f1ptr[k] * d[1] + f2ptr[k] * d[2] +
                   f3ptr[k] * d[3] + f4ptr[k] * d[4];
@@ -1198,37 +1121,11 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
           &varyingConn.ptr[f6 * varyingConn.stride]);
       const GLfloat *f7ptr = reinterpret_cast<const GLfloat *>(
           &varyingConn.ptr[f7 * varyingConn.stride]);
-      /*
-      float weight[8];
-      for (int v = 0; v < 8; v++) {
-        switch (interpolateMode) {
-          case 0:
-            weight[v] = (1 - d[v]);
-            break;
-          case 1:
-            weight[v] = d[v]*d[v]*(d[v]-1.5) + 0.5;
-            break;
-          case 2:
-            weight[v] = cos(PI*d[v])+1;
-            break;
-          default:
-            weight[v] = -pow(cos(0.5*PI*(d[v])), interpolateMode);
-            break;
-        }
-#ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("Eval() : inf error! \n");
-#endif
-      }
       
-      float w = weight[0] + weight[1] + weight[2] + weight[3] +
-                weight[4] + weight[5] + weight[6] + weight[7];
-       */
       for (int k = 0; k < elems; k++){
         dst[k] = f0ptr[k] * d[0] + f1ptr[k] * d[1] + f2ptr[k] * d[2] +
                  f3ptr[k] * d[3] + f4ptr[k] * d[4] + f5ptr[k] * d[5] +
                  f6ptr[k] * d[6] + f7ptr[k] * d[7];
-        if (dst[k] < 0) dst[k] = 0;
-        else if (dst[k] > 1) dst[k] = 1;
       }
       // store to varying storage
     } else {
