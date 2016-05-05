@@ -20,6 +20,7 @@
 #include <cerrno>
 #include <cstdlib>
 #include <algorithm>
+#include <cfloat>
 
 #include <cmath>
 
@@ -41,6 +42,8 @@
 // Interface with shader function
 #include "../glsl/glsl_runtime.h"
 #include "../render/tinymt64.h"
+
+#define _DEBUG
 
 using namespace lsgl;
 
