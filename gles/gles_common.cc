@@ -20,6 +20,7 @@
 #include <cerrno>
 #include <cstdlib>
 #include <algorithm>
+#include <cfloat>
 
 #include <cmath>
 
@@ -41,6 +42,8 @@
 // Interface with shader function
 #include "../glsl/glsl_runtime.h"
 #include "../render/tinymt64.h"
+
+#define _DEBUG
 
 using namespace lsgl;
 
@@ -1052,7 +1055,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       float weight[4];
       for (int v = 0; v < 4; v++) {
 #ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("error! \n");
+        if (!std::isfinite(weight[v])) printf("error! \n");
 #endif
         switch (interpolateMode) {
           case 0:
@@ -1096,7 +1099,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       float weight[6];
       for (int v = 0; v < 6; v++) {
 #ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("error! \n");
+        if (!std::isfinite(weight[v])) printf("error! \n");
 #endif
         switch (interpolateMode) {
           case 0:
@@ -1139,7 +1142,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       float weight[5];
       for (int v = 0; v < 5; v++) {
 #ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("error! \n");
+        if (!std::isfinite(weight[v])) printf("error! \n");
 #endif
         switch (interpolateMode) {
           case 0:
@@ -1185,7 +1188,7 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       float weight[8];
       for (int v = 0; v < 8; v++) {
 #ifdef _DEBUG
-        if (!isfinite(weight[v])) printf("error! \n");
+        if (!std::isfinite(weight[v])) printf("error! \n");
 #endif
         switch (interpolateMode) {
           case 0:
