@@ -55,6 +55,7 @@ Solution file will be geneted in `build` directory.
 * SURFACE_BUILD_K_CROSS_COMPILE On/Off Set cross compile environment using Fujitsu cross compiler.
 * SURFACE_BUILD_WITH_MPI On/Off Enable MPI.
 * SURFACE_BUILD_WITH_OPENMP On/Off Enable OpenMP.
+* SURFACE_BUILD_WITH_DEBUG_TRACE On/Off Enable debug trace of GLES functions.
 * SANITIZE_ADDRESS On/Off Enable Address Sanitizer(Linux/macOS + gcc4.8+ or clang only)
 
 ## Setup GLSL compiler
