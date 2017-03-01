@@ -132,6 +132,9 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
 
   // lookup the current shader program
   const Program *prg = resourceManager_.GetProgram(state_.currentProgram);
+  if (prg == NULL) {
+    return SetGLError(GL_INVALID_OPERATION);
+  }
 
   AccelBuilder::PrimitiveType primTy;
   if (mode == GL_TRIANGLES) {
