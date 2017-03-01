@@ -826,19 +826,24 @@ bool FragmentShader::PrepareEval(
 
     const Varying &varying = varyings[varyingLocation.index];
 
-    // printf("  src = %ld, dst = %d\n", i, varyingLocation.index);
-    // printf("  attrib : ty = %d, n = %d, ptr = %p\n", vertexAttribute.type,
-    // vertexAttribute.size, vertexAttribute.ptr);
-    // printf("  varying: ty = %d, n = %d\n", varying.type, varying.count);
-    // printf("  va.stride %d\n", vertexAttribute.stride);
-    // printf("  varying.data.size = %ld\n", varying.data.size());
+    //printf("  i = %ld, varyingLocation.index = %d\n", i, varyingLocation.index);
+    //printf("  attrib : ty = %d, n = %d, ptr = %p\n", vertexAttribute.type,
+    //vertexAttribute.size, vertexAttribute.ptr);
+    //printf("  varying: ty = %d, n = %d\n", varying.type, varying.count);
+    //printf("  va.stride %d\n", vertexAttribute.stride);
+    //printf("  varying.data.size = %ld\n", varying.data.size());
 
     if ((vertexAttribute.type == varying.type) &&
         (vertexAttribute.size == varying.count)) {
       // printf("  ==> type signature OK!\n");
+    } else {
+      // Signature mistmach.
+      // We may continue to proceed, but for now skip this invalid varying/attrib pair for safety.
+      continue;
     }
 
-    const unsigned char *ptr = NULL;
+    const unsigned char *bufPtr = NULL;
+    GLsizei bufSize = 0;
     if (vertexAttribute.ptr == NULL) {
       // Use vertex buffer
 
@@ -849,7 +854,8 @@ bool FragmentShader::PrepareEval(
       const Buffer *buf = ctx.resourceManager_.GetBuffer(handle);
       assert(buf && "Unexpected behavior");
 
-      ptr = buf->GetData();
+      bufPtr = buf->GetData();
+      bufSize = buf->GetSize();
 
     } else {
       assert(0 && "TODO: Vertex attribute should be specified by vertex buffer "
@@ -861,7 +867,8 @@ bool FragmentShader::PrepareEval(
     VaryingConnection varyingConn;
     varyingConn.srcIndex = i;
     varyingConn.dstIndex = varyingLocation.index;
-    varyingConn.ptr = ptr;
+    varyingConn.bufPtr = bufPtr;
+    varyingConn.bufSize = bufSize;
     varyingConn.size = varying.data.size();
     varyingConn.stride = vertexAttribute.stride;
 
@@ -1022,13 +1029,18 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
         (isectState.primitiveType == GL_LINES) ||
         (isectState.primitiveType == GL_TRIANGLES)) {
 
+      LSGL_ASSERT(f0 * varyingConn.stride < varyingConn.bufSize, "f0 * stride = %d, f0 = %d, stride = %d, buf size = %d, ptr = %p", int(f0 * varyingConn.stride), int(f0), int(varyingConn.stride), int(varyingConn.bufSize), varyingConn.bufPtr);
+      LSGL_ASSERT(f1 * varyingConn.stride < varyingConn.bufSize, "f1 * stride = %d, buf size = %d, ptr = %p", int(f1 * varyingConn.stride), int(varyingConn.bufSize), varyingConn.bufPtr);
+      LSGL_ASSERT(f2 * varyingConn.stride < varyingConn.bufSize, "f2 * stride = %d, buf size = %d, ptr = %p", int(f2 * varyingConn.stride), int(varyingConn.bufSize), varyingConn.bufPtr);
+
+
       int elems = varying.data.size() / sizeof(GL_FLOAT);
       const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f0 * varyingConn.stride]);
+          &varyingConn.bufPtr[f0 * varyingConn.stride]);
       const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f1 * varyingConn.stride]);
+          &varyingConn.bufPtr[f1 * varyingConn.stride]);
       const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f2 * varyingConn.stride]);
+          &varyingConn.bufPtr[f2 * varyingConn.stride]);
       // GLfloat* dst =
       // reinterpret_cast<GLfloat*>(&(shadingState.varyings[i].data.at(0)));
 
@@ -1051,13 +1063,13 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       int elems = varying.data.size() / sizeof(GL_FLOAT);
       const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
-             &varyingConn.ptr[f0 * varyingConn.stride]);
+             &varyingConn.bufPtr[f0 * varyingConn.stride]);
       const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
-             &varyingConn.ptr[f1 * varyingConn.stride]);
+             &varyingConn.bufPtr[f1 * varyingConn.stride]);
       const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
-             &varyingConn.ptr[f2 * varyingConn.stride]);
+             &varyingConn.bufPtr[f2 * varyingConn.stride]);
       const GLfloat *f3ptr = reinterpret_cast<const GLfloat *>(
-             &varyingConn.ptr[f3 * varyingConn.stride]);
+             &varyingConn.bufPtr[f3 * varyingConn.stride]);
       
       for (int k = 0; k < elems; k++){
         dst[k] = (f0ptr[k] * d[0] + f1ptr[k] * d[1] +
@@ -1068,17 +1080,17 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       int elems = varying.data.size() / sizeof(GL_FLOAT);
       const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f0 * varyingConn.stride]);
+          &varyingConn.bufPtr[f0 * varyingConn.stride]);
       const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f1 * varyingConn.stride]);
+          &varyingConn.bufPtr[f1 * varyingConn.stride]);
       const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f2 * varyingConn.stride]);
+          &varyingConn.bufPtr[f2 * varyingConn.stride]);
       const GLfloat *f3ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f3 * varyingConn.stride]);
+          &varyingConn.bufPtr[f3 * varyingConn.stride]);
       const GLfloat *f4ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f4 * varyingConn.stride]);
+          &varyingConn.bufPtr[f4 * varyingConn.stride]);
       const GLfloat *f5ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f5 * varyingConn.stride]);
+          &varyingConn.bufPtr[f5 * varyingConn.stride]);
       
       for (int k = 0; k < elems; k++){
         dst[k] = (f0ptr[k] * d[0] + f1ptr[k] * d[1] + f2ptr[k] * d[2] +
@@ -1090,15 +1102,15 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       int elems = varying.data.size() / sizeof(GL_FLOAT);
       const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f0 * varyingConn.stride]);
+          &varyingConn.bufPtr[f0 * varyingConn.stride]);
       const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f1 * varyingConn.stride]);
+          &varyingConn.bufPtr[f1 * varyingConn.stride]);
       const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f2 * varyingConn.stride]);
+          &varyingConn.bufPtr[f2 * varyingConn.stride]);
       const GLfloat *f3ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f3 * varyingConn.stride]);
+          &varyingConn.bufPtr[f3 * varyingConn.stride]);
       const GLfloat *f4ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f4 * varyingConn.stride]);
+          &varyingConn.bufPtr[f4 * varyingConn.stride]);
       
       for (int k = 0; k < elems; k++){
         dst[k] = f0ptr[k] * d[0] + f1ptr[k] * d[1] + f2ptr[k] * d[2] +
@@ -1109,21 +1121,21 @@ bool FragmentShader::Eval(GLfloat fragColor[4], FragmentState &fragmentState,
       
       int elems = varying.data.size() / sizeof(GL_FLOAT);
       const GLfloat *f0ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f0 * varyingConn.stride]);
+          &varyingConn.bufPtr[f0 * varyingConn.stride]);
       const GLfloat *f1ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f1 * varyingConn.stride]);
+          &varyingConn.bufPtr[f1 * varyingConn.stride]);
       const GLfloat *f2ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f2 * varyingConn.stride]);
+          &varyingConn.bufPtr[f2 * varyingConn.stride]);
       const GLfloat *f3ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f3 * varyingConn.stride]);
+          &varyingConn.bufPtr[f3 * varyingConn.stride]);
       const GLfloat *f4ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f4 * varyingConn.stride]);
+          &varyingConn.bufPtr[f4 * varyingConn.stride]);
       const GLfloat *f5ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f5 * varyingConn.stride]);
+          &varyingConn.bufPtr[f5 * varyingConn.stride]);
       const GLfloat *f6ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f6 * varyingConn.stride]);
+          &varyingConn.bufPtr[f6 * varyingConn.stride]);
       const GLfloat *f7ptr = reinterpret_cast<const GLfloat *>(
-          &varyingConn.ptr[f7 * varyingConn.stride]);
+          &varyingConn.bufPtr[f7 * varyingConn.stride]);
       
       for (int k = 0; k < elems; k++){
         dst[k] = f0ptr[k] * d[0] + f1ptr[k] * d[1] + f2ptr[k] * d[2] +

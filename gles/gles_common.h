@@ -26,11 +26,19 @@
 
 #ifdef LSGL_DEBUG_TRACE
 #define TRACE_EVENT(message, ...)                                              \
-  fprintf(stderr, "[LSGL] %s(%s:%d) " message "\n", __FUNCTION__, __FILE__,    \
+  fprintf(stdout, "[LSGL] %s(%s:%d) " message "\n", __FUNCTION__, __FILE__,    \
           __LINE__, ##__VA_ARGS__)
 #else
 #define TRACE_EVENT(message, ...) (void(0))
 #endif
+
+#define LSGL_ASSERT(cond, message, ...) { \
+  if (!(cond)) { \
+    fprintf(stderr, "[LSGL] " #cond " : %s(%s:%d) " message "\n", __FUNCTION__, __FILE__,    \
+     __LINE__, ##__VA_ARGS__); \
+    abort(); \
+  } \
+}
 
 #ifdef WIN32
 #ifdef LSGL_EXPORT
@@ -591,7 +599,8 @@ struct VaryingLocation {
 struct VaryingConnection {
   int srcIndex;             // the index to vertex attrib.
   int dstIndex;             // the slot index to varying variable.
-  const unsigned char *ptr; // the pointer to vertex attribute.
+  const unsigned char *bufPtr; // the pointer to vertex attribute data.
+  size_t bufSize; // Size of vertex attribute data(data size passed to glBufferData).
   int size;
   int stride;
 };
