@@ -189,7 +189,7 @@ static int GetGLTypeSize(GLenum type) {
 
   // @todo { bool, matrix }
 
-  assert(sz && "Unsupported type specified.");
+  LSGL_ASSERT(sz, "Unsupported type specified.");
   return sz;
 }
 
@@ -849,20 +849,20 @@ bool FragmentShader::PrepareEval(
 
       // get buffer pointer from handle
       int handle = vertexAttribute.handle;
-      assert((handle > 0) && "Unexpected behavior");
+      LSGL_ASSERT(handle > 0, "Unexpected behavior");
 
       const Buffer *buf = ctx.resourceManager_.GetBuffer(handle);
-      assert(buf && "Unexpected behavior");
+      LSGL_ASSERT(buf, "Unexpected behavior");
 
       bufPtr = buf->GetData();
       bufSize = buf->GetSize();
 
     } else {
-      assert(0 && "TODO: Vertex attribute should be specified by vertex buffer "
+      LSGL_ASSERT(0, "TODO: Vertex attribute should be specified by vertex buffer "
                   "in current implelementation.");
     }
 
-    assert(ptr);
+    LSGL_ASSERT(bufPtr, "bufPtr is null");
 
     VaryingConnection varyingConn;
     varyingConn.srcIndex = i;
