@@ -397,7 +397,7 @@ public:
       } else if (texture3D_->data_type == LSGL_RENDER_TEXTURE3D_FORMAT_BYTE) {
         FilterTexture3DByte(rgba, texture3D_, uu, vv, rr, texture3D_->wrapS, texture3D_->wrapT, texture3D_->wrapR);
       } else {
-        assert(0); // && "Unknown 3D texture format");
+        LSGL_ASSERT(0, "Unknown 3D texture format");
       }
     }
   }

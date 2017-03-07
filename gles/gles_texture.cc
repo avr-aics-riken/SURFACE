@@ -88,7 +88,7 @@ void Context::glGenTextures(GLsizei n, GLuint *textures) {
     return;
   }
 
-  assert(textures && "textures are null");
+  LSGL_ASSERT(textures, "textures are null");
 
   for (int i = 0; i < n; i++) {
     textures[i] = resourceManager_.CreateTexture();
@@ -566,7 +566,7 @@ void Context::glTexParameteri(GLenum target, GLenum pname, GLint param) {
     tex->SetWrapR(param);
     break;
   default:
-    assert(0 && "Unsupported parameter.");
+    LSGL_ASSERT(0, "Unsupported parameter.");
   }
 }
 
@@ -588,7 +588,7 @@ void Context::glTexSubImage2D(GLenum target, GLint level, GLint xoffset,
               target, level, xoffset, yoffset, width, height, format, type,
               pixels);
 
-  assert(0 && "glTexSubImage2D is not supported yet");
+  LSGL_ASSERT(0, "glTexSubImage2D is not supported yet");
 }
 
 void Context::glTexSubImage3D(GLenum target, GLint level, GLint xoffset,
@@ -658,7 +658,7 @@ void Context::glDeleteTextures(GLsizei n, const GLuint *textures) {
     return;
   }
 
-  assert(textures && "textures are null");
+  LSGL_ASSERT(textures, "textures are null");
 
   for (int i = 0; i < n; i++) {
     resourceManager_.DeleteTexture(textures[i]);
@@ -674,7 +674,7 @@ void Context::glCompressedTexImage2D(GLenum target, GLint level,
                                      GLenum internalformat, GLsizei width,
                                      GLsizei height, GLint border,
                                      GLsizei imageSize, const GLvoid *data) {
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "Not supported");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -683,7 +683,7 @@ void Context::glCompressedTexSubImage2D(GLenum target, GLint level,
                                         GLsizei width, GLsizei height,
                                         GLenum format, GLsizei imageSize,
                                         const GLvoid *data) {
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "Not supported");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -695,7 +695,7 @@ void Context::glCopyTexImage2D(GLenum target, GLint level,
               "height = %d, GLint border = %d)",
               target, level, internalformat, x, y, width, height, border);
 
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -707,7 +707,7 @@ void Context::glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset,
               "%d, GLsizei height = %d)",
               target, level, xoffset, yoffset, x, y, width, height);
 
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -715,13 +715,13 @@ void Context::glGetTexParameterfv(GLenum target, GLenum pname,
                                   GLfloat *params) {
   TRACE_EVENT("(GLenum target = %d, GLenum pname = %d, GLfloat* params = %p\n",
               target, pname, params);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
 void Context::glGetTexParameteriv(GLenum target, GLenum pname, GLint *params) {
   TRACE_EVENT("(GLenum target = %d, GLenum pname = %d, GLint* params = %p\n",
               target, pname, params);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }

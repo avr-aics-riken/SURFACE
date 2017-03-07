@@ -1248,7 +1248,7 @@ void Texture::Data3D(const void *data, GLuint width, GLuint height,
     size_ = width * height * depth * sizeof(unsigned char) * compos;
     data_type = LSGL_RENDER_TEXTURE3D_FORMAT_BYTE;
   } else {
-    assert(0 && "Unknown format.");
+    LSGL_ASSERT(0, "Unknown format.");
   }
 
   // allocate and copy the texture data
@@ -1293,7 +1293,7 @@ void Texture::Retain3D(const void *data, GLuint width, GLuint height,
     size_ = width * height * depth * sizeof(unsigned char) * compos;
     data_type = LSGL_RENDER_TEXTURE3D_FORMAT_BYTE;
   } else {
-    assert(0 && "Unknown format.");
+    LSGL_ASSERT(0, "Unknown format.");
   }
 
   // create a new texture object. Texture data is sent to internal object
@@ -1356,7 +1356,7 @@ void Texture::SubImage3D(GLint xoffset, GLint yoffset, GLint zoffset,
     } else if (type_ == GL_DOUBLE) {
       dataSize = 8;
     } else {
-      assert(0 && "Unsupported data type.");
+      LSGL_ASSERT(0, "Unsupported data type.");
     }
 
     // Find region.
@@ -1575,7 +1575,7 @@ Framebuffer::Framebuffer()
 Framebuffer::~Framebuffer() {}
 
 void Framebuffer::AttachColorBuffer(GLuint index, Renderbuffer *rb) {
-  assert(index < kMaxColorAttachments && "color buffer index out of range");
+  LSGL_ASSERT(index < kMaxColorAttachments, "color buffer index out of range");
   colorBuffers_[index] = rb;
   UpdateAttachmentStatus();
 }

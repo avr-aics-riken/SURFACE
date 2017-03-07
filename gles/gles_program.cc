@@ -368,10 +368,10 @@ bool Program::SetUniform1iv(GLint location, GLsizei count, const GLint *v) {
            v, sizeof(GLint) * n);
 
   } else if (uniform->type == GL_BOOL) {
-    assert(0 && "Bool type is todo.");
+    LSGL_ASSERT(0, "Bool type is todo.");
   } else {
     // Unsupported type.
-    assert(0 && "Unsupported type.");
+    LSGL_ASSERT(0,  "Unsupported type.");
     return false;
   }
 

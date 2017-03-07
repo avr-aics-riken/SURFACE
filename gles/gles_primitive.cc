@@ -279,7 +279,7 @@ void Context::glDrawElements(GLenum mode, GLsizei count, GLenum type,
     solidAccel->BoundingBox(bmin, bmax);
     accel = reinterpret_cast<unsigned char *>(solidAccel);
   } else {
-    assert(0 && "Unsupported primitive type");
+    LSGL_ASSERT(0, "Unsupported primitive type");
   }
 
   if (accel != NULL) {

@@ -148,7 +148,7 @@ void Context::glGetAttachedShaders(GLuint program, GLsizei maxcount,
   TRACE_EVENT("(GLuint program = %d, GLsizei maxcount = %d, GLsizei* count = "
               "%p, GLuint* shaders = %p)",
               program, maxcount, count, shaders);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -404,7 +404,7 @@ void Context::glUseProgram(GLuint program) {
 
 void Context::glValidateProgram(GLuint program) {
   TRACE_EVENT("(GLuint program = %d)", program);
-  assert(0 && "glValidateProgram is not yet implemented.");
+  LSGL_ASSERT(0, "glValidateProgram is not yet implemented.");
 }
 
 void Context::glReleaseShaderCompiler(void) {
@@ -458,7 +458,7 @@ void Context::glGetShaderPrecisionFormat(GLenum shadertype,
               "range = %p, GLint* precision = %p)",
               shadertype, precisiontype, range, precision);
 
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -583,7 +583,7 @@ void Context::glUniform1fv(GLint location, GLsizei count, const GLfloat *v) {
   TRACE_EVENT(
       "(GLint location = %d, GLsiszei count = %d, const GLfloat* v = %p)",
       location, count, v);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -625,7 +625,7 @@ void Context::glUniform1i(GLint location, GLint x) {
 void Context::glUniform1iv(GLint location, GLsizei count, const GLint *v) {
   TRACE_EVENT("(GLuint location = %d, GLsizei count = %d, const GLint* v = %p)",
               location, count, v);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -674,14 +674,14 @@ void Context::glUniform2fv(GLint location, GLsizei count, const GLfloat *v) {
 void Context::glUniform2i(GLint location, GLint x, GLint y) {
   TRACE_EVENT("(GLint location = %d, GLint x = %d, GLint y = %d)", location, x,
               y);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
 void Context::glUniform2iv(GLint location, GLsizei count, const GLint *v) {
   TRACE_EVENT("(GLuint location = %d, GLsizei count = %d, const GLint* v = %p)",
               location, count, v);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -733,14 +733,14 @@ void Context::glUniform3fv(GLint location, GLsizei count, const GLfloat *v) {
 void Context::glUniform3i(GLint location, GLint x, GLint y, GLint z) {
   TRACE_EVENT("(GLint location = %d, GLint x = %d, GLint y = %d, GLint z = %d)",
               location, x, y, z);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
 void Context::glUniform3iv(GLint location, GLsizei count, const GLint *v) {
   TRACE_EVENT("(GLuint location = %d, GLsizei count = %d, const GLint* v = %p)",
               location, count, v);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -790,14 +790,14 @@ void Context::glUniform4i(GLint location, GLint x, GLint y, GLint z, GLint w) {
   TRACE_EVENT("(GLuint location = %d, GLint x = %d, GLint y = %d, GLint z = "
               "%d, GLint w = %d)",
               location, x, y, z, w);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
 void Context::glUniform4iv(GLint location, GLsizei count, const GLint *v) {
   TRACE_EVENT("(GLuint location = %d, GLsizei count = %d, const GLint* v = %p)",
               location, count, v);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -866,7 +866,7 @@ void Context::glGetShaderInfoLog(GLuint shader, GLsizei bufsize,
   TRACE_EVENT("(GLuint shader = %d, GLsizei bufsize = %d, GLsizei* length = "
               "%p, GLchar* infolog = %p)",
               shader, bufsize, length, infolog);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -875,21 +875,21 @@ void Context::glGetProgramInfoLog(GLuint program, GLsizei bufsize,
   TRACE_EVENT("(GLuint program = %d, GLsizei bufsize = %d, GLsizei* length = "
               "%p, GLchar* infolog = %p)",
               program, bufsize, length, infolog);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
 void Context::glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat *params) {
   TRACE_EVENT("(GLuint index = %d, GLenum pname = %d, GLfloat* params = %p)",
               index, pname, params);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
 void Context::glGetVertexAttribiv(GLuint index, GLenum pname, GLint *params) {
   TRACE_EVENT("(GLuint index = %d, GLenum pname = %d, GLint* params = %p)",
               index, pname, params);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -897,7 +897,7 @@ void Context::glGetVertexAttribPointerv(GLuint index, GLenum pname,
                                         GLvoid **pointer) {
   TRACE_EVENT("(GLuint index = %d, GLenum pname = %d, GLvoid** pointer = %p)",
               index, pname, pointer);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -949,7 +949,7 @@ void Context::glGetUniformfv(GLuint program, GLint location, GLfloat *params) {
   } break;
   default:
     // Unknown or unsupported data type.
-    assert(0 && "TODO");
+    LSGL_ASSERT(0, "TODO");
     break;
   }
 
@@ -959,7 +959,7 @@ void Context::glGetUniformfv(GLuint program, GLint location, GLfloat *params) {
 void Context::glGetUniformiv(GLuint program, GLint location, GLint *params) {
   TRACE_EVENT("(GLuint program = %d, GLint location = %d, GLint* params = %p)",
               program, location, params);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -970,7 +970,7 @@ void Context::glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufsize,
       "(GLuint program = %d, GLuint index = %d, GLsizei bufsize = %d, GLsizei* "
       "length = %p, GLint* size = %p, GLenum* type = %p, GLchar* name = %p)",
       program, index, bufsize, length, size, type, name);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -981,7 +981,7 @@ void Context::glGetActiveUniform(GLuint program, GLuint index, GLsizei bufsize,
       "(GLuint program = %d, GLuint index = %d, GLsizei bufsize = %d, GLsizei* "
       "length = %p, GLint* size = %p, GLenum* type = %p, GLchar* name = %p)",
       program, index, bufsize, length, size, type, name);
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -991,7 +991,7 @@ void Context::glBindAttribLocation(GLuint program, GLuint index,
       "(GLuint program = %d, GLuint index = %d, const GLchar* name = %p)",
       program, index, name);
 
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
@@ -1001,7 +1001,7 @@ void Context::glGetShaderSource(GLuint shader, GLsizei bufsize, GLsizei *length,
               "%p, GLchar* source = %p)",
               shader, bufsize, length, source);
 
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 

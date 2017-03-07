@@ -63,12 +63,12 @@ AccelBuilder::TriangleAccelerator *AccelBuilder::BuildTriangleAccel(
   // != GL_DOUBLE)) ||
   //    (attrPos->normalized != GL_FALSE) ||
   //    (attrPos->stride != (3 * sizeof(float)))) {
-  //  assert((attrPos->size == 3) && "vtxattr position size should be 3");
-  //  assert((attrPos->type == GL_FLOAT) &&
+  //  LSGL_ASSERT((attrPos->size == 3), "vtxattr position size should be 3");
+  //  LSGL_ASSERT((attrPos->type == GL_FLOAT),
   //         "vtxattr position type should be GL_FLOAT");
-  //  assert((attrPos->normalized == GL_FALSE) &&
+  //  LSGL_ASSERT((attrPos->normalized == GL_FALSE),
   //         "vtxattr position normalized should be GL_FALSE");
-  //  assert((attrPos->stride == (3 * sizeof(float))) &&
+  //  LSGL_ASSERT((attrPos->stride == (3 * sizeof(float))) ,
   //         "vtxattr position stride must be equal to 3*sizeof(float)");
   //  return NULL;
   //}
@@ -134,12 +134,12 @@ AccelBuilder::ParticleAccelerator *AccelBuilder::BuildParticleAccel(
   if ((attrPos->size != 3) || (attrPos->type != GL_FLOAT) ||
       (attrPos->normalized != GL_FALSE) ||
       (attrPos->stride != (3 * sizeof(float)))) {
-    assert((attrPos->size == 3) && "vtxattr position size should be 3");
-    assert((attrPos->type == GL_FLOAT) &&
+    LSGL_ASSERT((attrPos->size == 3), "vtxattr position size should be 3");
+    LSGL_ASSERT((attrPos->type == GL_FLOAT),
            "vtxattr position type should be GL_FLOAT");
-    assert((attrPos->normalized == GL_FALSE) &&
+    LSGL_ASSERT((attrPos->normalized == GL_FALSE),
            "vtxattr position normalized should be GL_FALSE");
-    assert((attrPos->stride == (3 * sizeof(float))) &&
+    LSGL_ASSERT((attrPos->stride == (3 * sizeof(float))),
            "vtxattr position stride must be equal to 3*sizeof(float)");
     return NULL;
   }
@@ -204,12 +204,12 @@ AccelBuilder::LineAccelerator *AccelBuilder::BuildLineAccel(
   if ((attrPos->size != 3) || (attrPos->type != GL_FLOAT) ||
       (attrPos->normalized != GL_FALSE) ||
       (attrPos->stride != (3 * sizeof(float)))) {
-    assert((attrPos->size == 3) && "vtxattr position size should be 3");
-    assert((attrPos->type == GL_FLOAT) &&
+    LSGL_ASSERT((attrPos->size == 3), "vtxattr position size should be 3");
+    LSGL_ASSERT((attrPos->type == GL_FLOAT),
            "vtxattr position type should be GL_FLOAT");
-    assert((attrPos->normalized == GL_FALSE) &&
+    LSGL_ASSERT((attrPos->normalized == GL_FALSE),
            "vtxattr position normalized should be GL_FALSE");
-    assert((attrPos->stride == (3 * sizeof(float))) &&
+    LSGL_ASSERT((attrPos->stride == (3 * sizeof(float))),
            "vtxattr position stride must be equal to 3*sizeof(float)");
     return NULL;
   }
@@ -1072,7 +1072,7 @@ void AccelBuilder::FreePrim(CacheEntry *ce) {
         reinterpret_cast<AccelBuilder::SolidAccelerator *>(ce->primData.accel);
     delete accel;
   } else {
-    assert(0 && "Unknown error");
+    LSGL_ASSERT(0, "Unknown error");
   }
 
   // free the cache entry
