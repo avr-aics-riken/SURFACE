@@ -252,8 +252,6 @@ template <typename T>
 void MergeScreen(int region[4], int masterRank, int rank,
                  unsigned char *framebuffer, // [inout]
                  int width, int height, int components) {
-  int ret;
-
   //
   // !!! Assume all subregion(rank) has same extent. !!!
   //
@@ -281,9 +279,13 @@ void MergeScreen(int region[4], int masterRank, int rank,
   MPI_Barrier(MPI_COMM_WORLD);
 
   int size = subWidth * subHeight * components * sizeof(T);
-  ret = MPI_Gather(&buf.at(0), size, MPI_BYTE, framebuffer, size, MPI_BYTE,
+  int ret = MPI_Gather(&buf.at(0), size, MPI_BYTE, framebuffer, size, MPI_BYTE,
                    masterRank, MPI_COMM_WORLD);
+  if (ret != MPI_SUCCESS) {
+    fprintf(stderr, "[LSGL] MergeScreen: MPI_Gather failed. ret = %d\n", ret);
+  }
   assert(ret == MPI_SUCCESS);
+  
 
   MPI_Barrier(MPI_COMM_WORLD);
 
@@ -348,8 +350,6 @@ void RaytraceEngine::SetStereoEnvCamera(const GLfloat *eye,
   real3 veye(eye[0], eye[1], eye[2]);
   real3 vtarget(target[0], target[1], target[2]);
   real3 vup(up[0], up[1], up[2]);
-
-  bool ortho = false;
 
   camera_ = new Camera(veye, vtarget, vup, zeroParallax, eyeSeparation);
 }

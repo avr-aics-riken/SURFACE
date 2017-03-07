@@ -354,15 +354,31 @@ bool LineAccel::Dump(const char *filename) {
 
   int r = 0;
   r = fwrite(&numNodes, sizeof(unsigned long long), 1, fp);
+  if (r != 1) {
+    fprintf(stderr, "[LineAccel] Cannot write data to : %s\n", filename);
+    return false;
+  }
   assert(r == 1);
 
   r = fwrite(&nodes_.at(0), sizeof(LineNode), numNodes, fp);
+  if (r != numNodes) {
+    fprintf(stderr, "[LineAccel] Cannot write data to : %s\n", filename);
+    return false;
+  }
   assert(r == numNodes);
 
   r = fwrite(&numIndices, sizeof(unsigned long long), 1, fp);
+  if (r != 1) {
+    fprintf(stderr, "[LineAccel] Cannot write data to : %s\n", filename);
+    return false;
+  }
   assert(r == 1);
 
   r = fwrite(&indices_.at(0), sizeof(unsigned int), numIndices, fp);
+  if (r != numIndices) {
+    fprintf(stderr, "[LineAccel] Cannot write data to : %s\n", filename);
+    return false;
+  }
   assert(r == numIndices);
 
   fclose(fp);
@@ -419,13 +435,13 @@ inline bool IntersectRayAABB(real &tminOut, // [out]
   return false; // no hit
 }
 
-inline real3 vcross(real3 a, real3 b) {
-  real3 c;
-  c[0] = a[1] * b[2] - a[2] * b[1];
-  c[1] = a[1] * b[2] - a[2] * b[1];
-  c[2] = a[1] * b[2] - a[2] * b[1];
-  return c;
-}
+//inline real3 vcross(real3 a, real3 b) {
+//  real3 c;
+//  c[0] = a[1] * b[2] - a[2] * b[1];
+//  c[1] = a[1] * b[2] - a[2] * b[1];
+//  c[2] = a[1] * b[2] - a[2] * b[1];
+//  return c;
+//}
 
 inline real vdot(real3 a, real3 b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -708,8 +724,6 @@ bool LineAccel::Traverse(Intersection &isectRet, Ray &ray) const {
   int nodeStack[kMaxStackDepth];
   nodeStack[0] = 0;
   CylinderIntersection isect;
-
-  bool ret = false;
 
   // Init isect info as no hit
   isect.t = hitT;

@@ -167,9 +167,7 @@ bool RenderGraph::Trace(Intersection &isect, Ray &ray) {
 
     double tMax = (std::numeric_limits<double>::max)();
     double tNearest = tMax;
-    unsigned int hitNodeID;
     bool hasHit = false;
-    const char *renderElement = NULL;
 
     // Find detailed intersection.
     // Note that intersection list are already sorted in its distance.
