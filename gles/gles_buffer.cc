@@ -57,7 +57,7 @@ void Context::glGenBuffers(GLsizei n, GLuint *buffers) {
     return;
   }
 
-  assert(buffers && "buffers are null");
+  LSGL_ASSERT(buffers, "buffers are null");
 
   for (int i = 0; i < n; i++) {
     buffers[i] = resourceManager_.CreateBuffer();
@@ -73,7 +73,7 @@ void Context::glGenFramebuffers(GLsizei n, GLuint *framebuffers) {
     return;
   }
 
-  assert(framebuffers && "framebuffers are null");
+  LSGL_ASSERT(framebuffers, "framebuffers are null");
 
   for (int i = 0; i < n; i++) {
     framebuffers[i] = resourceManager_.CreateFramebuffer();
@@ -89,7 +89,7 @@ void Context::glGenRenderbuffers(GLsizei n, GLuint *renderbuffers) {
     return;
   }
 
-  assert(renderbuffers && "renderbuffers are null");
+  LSGL_ASSERT(renderbuffers, "renderbuffers are null");
 
   for (int i = 0; i < n; i++) {
     renderbuffers[i] = resourceManager_.CreateRenderbuffer();
@@ -171,7 +171,7 @@ void Context::glDeleteBuffers(GLsizei n, const GLuint *buffers) {
     return;
   }
 
-  assert(buffers && "buffers are null");
+  LSGL_ASSERT(buffers, "buffers are null");
 
   for (int i = 0; i < n; i++) {
     // invalidate the buffer in our mesh builder first, then delete it from the
@@ -194,7 +194,7 @@ void Context::glDeleteFramebuffers(GLsizei n, const GLuint *framebuffers) {
     return;
   }
 
-  assert(framebuffers && "framebuffers are null");
+  LSGL_ASSERT(framebuffers, "framebuffers are null");
 
   for (int i = 0; i < n; i++) {
     resourceManager_.DeleteFramebuffer(framebuffers[i]);
@@ -211,7 +211,7 @@ void Context::glDeleteRenderbuffers(GLsizei n, const GLuint *renderbuffers) {
     return;
   }
 
-  assert(renderbuffers && "renderbuffers are null");
+  LSGL_ASSERT(renderbuffers, "renderbuffers are null");
 
   for (int i = 0; i < n; i++) {
     resourceManager_.DeleteRenderbuffer(renderbuffers[i]);
@@ -354,7 +354,7 @@ void Context::glFramebufferTexture2D(GLenum target, GLenum attachment,
               "%d, GLuint teture = %d, GLint level = %d)",
               target, attachment, textarget, texture, level);
 
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
 }
 
 void Context::glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data,
@@ -637,13 +637,13 @@ void Context::glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height,
       fprintf(stderr, "[LSGL] Unsupported internalformat & format/type pair. "
                       "internalformat = %d, format = %d, type = %d\n",
               rb->GetFormat(), format, type);
-      assert(0 && "TODO");
+      LSGL_ASSERT(0, "TODO");
     }
 
   } else {
     // @todo { Reading partial region }
     printf("rb->width %d, rb->height %d\n", rb->GetWidth(), rb->GetHeight());
-    assert(0 && "TODO");
+    LSGL_ASSERT(0, "TODO");
   }
 }
 

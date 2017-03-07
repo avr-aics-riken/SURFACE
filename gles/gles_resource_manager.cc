@@ -40,7 +40,7 @@ GLuint ResourceManager::CreateShader(GLenum type) {
     break;
 
   default:
-    assert(0 && "unsupported shader type");
+    LSGL_ASSERT(0, "unsupported shader type");
     break;
   }
 

@@ -771,16 +771,16 @@ const GLubyte *Context::glGetString(GLenum name) {
 }
 
 void Context::glCullFace(GLenum mode) {
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
 void Context::glFrontFace(GLenum mode) {
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }
 
 void Context::glPolygonOffset(GLfloat factor, GLfloat units) {
-  assert(0 && "TODO");
+  LSGL_ASSERT(0, "TODO");
   return SetGLError(GL_INVALID_OPERATION);
 }

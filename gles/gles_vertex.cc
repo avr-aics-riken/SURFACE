@@ -120,25 +120,25 @@ void Context::glVertexAttrib4f(GLuint indx, GLfloat x, GLfloat y, GLfloat z,
 
 void Context::glVertexAttrib1fv(GLuint indx, const GLfloat *values) {
   TRACE_EVENT("(GLuint indx = %d, const GLfloat* values = %p)", indx, values);
-  assert(0 && "VertexAttrib1fv is not yet supported");
+  LSGL_ASSERT(0,  "VertexAttrib1fv is not yet supported");
   assert(indx < kMaxVertexAttribs);
 }
 
 void Context::glVertexAttrib2fv(GLuint indx, const GLfloat *values) {
   TRACE_EVENT("(GLuint indx = %d, const GLfloat* values = %p)", indx, values);
-  assert(0 && "VertexAttrib2fv is not yet supported");
+  LSGL_ASSERT(0, "VertexAttrib2fv is not yet supported");
   assert(indx < kMaxVertexAttribs);
 }
 
 void Context::glVertexAttrib3fv(GLuint indx, const GLfloat *values) {
   TRACE_EVENT("(GLuint indx = %d, const GLfloat* values = %p)", indx, values);
-  assert(0 && "VertexAttrib3fv is not yet supported");
+  LSGL_ASSERT(0, "VertexAttrib3fv is not yet supported");
   assert(indx < kMaxVertexAttribs);
 }
 
 void Context::glVertexAttrib4fv(GLuint indx, const GLfloat *values) {
   TRACE_EVENT("(GLuint indx = %d, const GLfloat* values = %p)", indx, values);
-  assert(0 && "VertexAttrib4fv is not yet supported");
+  LSGL_ASSERT(0, "VertexAttrib4fv is not yet supported");
   assert(indx < kMaxVertexAttribs);
 }
 
