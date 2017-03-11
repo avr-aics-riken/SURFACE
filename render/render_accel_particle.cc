@@ -1879,15 +1879,31 @@ bool ParticleAccel::Dump(const char *filename) {
 
   int r = 0;
   r = fwrite(&numNodes, sizeof(unsigned long long), 1, fp);
+  if (r != 1) {
+    fprintf(stderr, "[ParticleAccel] Cannot write data to file: %s\n", filename);
+    return false;
+  }
   assert(r == 1);
 
   r = fwrite(&nodes_.at(0), sizeof(ParticleNode), numNodes, fp);
+  if (r != numNodes) {
+    fprintf(stderr, "[ParticleAccel] Cannot write data to file: %s\n", filename);
+    return false;
+  }
   assert(r == numNodes);
 
   r = fwrite(&numIndices, sizeof(unsigned long long), 1, fp);
+  if (r != 1) {
+    fprintf(stderr, "[ParticleAccel] Cannot write data to file: %s\n", filename);
+    return false;
+  }
   assert(r == 1);
 
   r = fwrite(&indices_.at(0), sizeof(unsigned int), numIndices, fp);
+  if (r != numIndices) {
+    fprintf(stderr, "[ParticleAccel] Cannot write data to file: %s\n", filename);
+    return false;
+  }
   assert(r == numIndices);
 
   fclose(fp);
@@ -2422,7 +2438,7 @@ inline void SphereIsectD2(double2 &vtInOut,
 // http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
 inline bool SphereIsect(real &tInOut, const real *v, real radius,
                         const real3 &rayOrg, const real3 &rayDir, double prevT, const real3& prevN, bool selfIntersection = false) {
-  const real kEPS = REAL_EPSILON * 16.0;
+  //const real kEPS = REAL_EPSILON * 16.0;
 
   real3 center(v[0], v[1], v[2]);
   real3 oc = rayOrg - center;

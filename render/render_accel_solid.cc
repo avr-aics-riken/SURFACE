@@ -56,15 +56,15 @@ using namespace lsgl::render;
 namespace {
 
 // assume real == float
-void PrintReal(std::string msg, real v) {
-  printf("%s : %f(0x%08x)\n", msg.c_str(), v, *((unsigned int *)&v));
-}
+//void PrintReal(std::string msg, real v) {
+//  printf("%s : %f(0x%08x)\n", msg.c_str(), v, *((unsigned int *)&v));
+//}
 
-void PrintVec3(std::string msg, real3 v) {
-  printf("%s : %f(0x%08x), %f(0x%08x), %f(0x%08x)\n", msg.c_str(), v[0],
-         *((unsigned int *)&v[0]), v[1], *((unsigned int *)&v[1]), v[2],
-         *((unsigned int *)&v[2]));
-}
+//void PrintVec3(std::string msg, real3 v) {
+//  printf("%s : %f(0x%08x), %f(0x%08x), %f(0x%08x)\n", msg.c_str(), v[0],
+//         *((unsigned int *)&v[0]), v[1], *((unsigned int *)&v[1]), v[2],
+//         *((unsigned int *)&v[2]));
+//}
 
 FORCEINLINE double3 vcrossd(double3 a, double3 b) {
   double3 c;
@@ -86,17 +86,17 @@ FORCEINLINE double3 normalize(double3 a) { return a / length(a); }
 
 FORCEINLINE real3 toreal3(double3 a) { return real3(a.x(), a.y(), a.z()); }
 
-FORCEINLINE int fsign(const double x) {
-  // real eps = std::numeric_limits<real>::epsilon() * 16;
-  double eps = DBL_EPSILON;
-  return (x > eps ? 1 : (x < -eps ? -1 : 0));
-}
+//FORCEINLINE int fsign(const double x) {
+//  // real eps = std::numeric_limits<real>::epsilon() * 16;
+//  double eps = DBL_EPSILON;
+//  return (x > eps ? 1 : (x < -eps ? -1 : 0));
+//}
 
 // Vertex order definitial table. Counter clock-wise.
-const int kTetraFaces[4][3] = {{0,2,1}, {1,2,3}, {0,3,2}, {0,1,3} };
-const int kPyramidFaces[5][4] = {{0,3,2,1}, {0,1,4,-1}, {1,2,4,-1}, {2,3,4,-1}, {0,4,3,-1} };
-const int kPrismFaces[5][4] = {{0,2,1,-1}, {3,4,5,-1}, {0,3,5,2}, {0,1,4,3}, {1,2,5,4} };
-const int kHexaFaces[6][4] = {{0,3,2,1}, {4,5,6,7}, {0,1,5,4}, {1,2,6,5}, {2,3,7,6}, {0,4,7,3}, };
+//const int kTetraFaces[4][3] = {{0,2,1}, {1,2,3}, {0,3,2}, {0,1,3} };
+//const int kPyramidFaces[5][4] = {{0,3,2,1}, {0,1,4,-1}, {1,2,4,-1}, {2,3,4,-1}, {0,4,3,-1} };
+//const int kPrismFaces[5][4] = {{0,2,1,-1}, {3,4,5,-1}, {0,3,5,2}, {0,1,4,3}, {1,2,5,4} };
+//const int kHexaFaces[6][4] = {{0,3,2,1}, {4,5,6,7}, {0,1,5,4}, {1,2,6,5}, {2,3,7,6}, {0,4,7,3}, };
   
 //
 // Simple Pluecker coordinate class
@@ -289,7 +289,7 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
     float d = (pt - rayorg).length();
     
     // cross flag of ray vs edges.
-    bool cross_rve[edge_n(solid_type)];
+    //bool cross_rve[edge_n(solid_type)];
     
     for(int i = 0; i < edge_n(solid_type) ; i++){
       ws[i] = dot(raydir, edgepc[i]) + dot(edges[i], raypc);
@@ -297,7 +297,7 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
       else cw_f[0][i] = false;
       if(ws[i] <= kEPS)  cw_f[1][i] = true;
       else cw_f[1][i] = false;
-      if (cw_f[0][i] && cw_f[1][i]) cross_rve[i] = 1;
+      //if (cw_f[0][i] && cw_f[1][i]) cross_rve[i] = true;
     }
     
     real3 cp(1e16,1e16,1e16);
@@ -569,7 +569,7 @@ bool IntersectPrismD(const double3& rayorg, const double3& raydir,
   double3 edgepc[9];
   
   // cross flag of ray vs edges.
-  bool cross_rve[9];
+  //bool cross_rve[9];
   
   for(int i = 0; i < 9; i ++){
     edgepc[i] = vcrossd(edges[i], verts[i%6]);
@@ -578,7 +578,7 @@ bool IntersectPrismD(const double3& rayorg, const double3& raydir,
     else cw_f[0][i] = false;
     if(ws[i] <= 0)  cw_f[1][i] = true;
     else cw_f[1][i] = false;
-    if (cw_f[0][i] && cw_f[1][i]) cross_rve[i] = 1;
+    //if (cw_f[0][i] && cw_f[1][i]) cross_rve[i] = 1;
   }
   
   for (int i = 0,n = 1; i < 2; i++,n--)
@@ -2137,15 +2137,31 @@ bool SolidAccel::Dump(const char *filename) {
 
   int r;
   r = fwrite(&numNodes, sizeof(unsigned long long), 1, fp);
+  if (r != 1) {
+    fprintf(stderr, "[SolidAccel] Cannot write data to file: %s\n", filename);
+    return false;
+  }
   assert(r == 1);
 
   r = fwrite(&nodes_.at(0), sizeof(SolidNode), numNodes, fp);
+  if (r != numNodes) {
+    fprintf(stderr, "[SolidAccel] Cannot write data to file: %s\n", filename);
+    return false;
+  }
   assert(r == numNodes);
 
   r = fwrite(&numIndices, sizeof(unsigned long long), 1, fp);
+  if (r != 1) {
+    fprintf(stderr, "[SolidAccel] Cannot write data to file: %s\n", filename);
+    return false;
+  }
   assert(r == 1);
 
   r = fwrite(&indices_.at(0), sizeof(unsigned int), numIndices, fp);
+  if (r != numIndices) {
+    fprintf(stderr, "[SolidAccel] Cannot write data to file: %s\n", filename);
+    return false;
+  }
   assert(r == numIndices);
 
   fclose(fp);
