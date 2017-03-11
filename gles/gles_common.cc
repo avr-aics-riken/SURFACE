@@ -534,8 +534,7 @@ void Shader::BuildUniformInfo(std::vector<Uniform> &uniforms,
     // so fill with zero.
 
     int tySize = GetGLTypeSize(compoundTy);
-    uniform.data.resize(tySize);
-    memset(&uniform.data.at(0), 0, sizeof(tySize));
+    uniform.data.resize(tySize, 0);
 
     uniforms.push_back(uniform);
     uniformLocations.push_back(uniformLocation);
@@ -744,11 +743,14 @@ bool FragmentShader::PrepareEval(
     const Context &ctx) const {
   FragmentState *state = new FragmentState();
 
+  LSGL_ASSERT(uniforms.size() <= MAX_FRAGMENT_UNIFORM_VECTORS, "uniforms.size(%d) must be less than MAX_FRAGMENT_UNIFORM_VECTORS(%d)", int(uniforms.size()), MAX_FRAGMENT_UNIFORM_VECTORS);
+
   //
   // Fill uniforms
   //
   for (size_t i = 0; i < uniforms.size(); i++) {
     if (uniforms[i].data.empty()) {
+      // This should not be happen, but just in case.
       state->uniforms[i].data = NULL;
     } else {
       unsigned char *ptr = const_cast<unsigned char *>(&uniforms[i].data.at(0));
@@ -777,6 +779,7 @@ bool FragmentShader::PrepareEval(
           uniforms[i].type == GL_SAMPLER_3D ||
           uniforms[i].type == GL_SAMPLER_CUBE) {
         state->textures[i] = *(reinterpret_cast<int *>(ptr));
+        state->uniforms[i].data = NULL;
 #endif
       } else {
         // Pass uniform data as opeque pointer.

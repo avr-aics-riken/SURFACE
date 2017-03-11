@@ -64,7 +64,7 @@ using namespace lsgl::render;
 // Value must be less than `glsl/glsl_runtine.h`
 const int kMaxVertexAttribs = 8;
 const int kMaxVertexUniformVectors = 128;
-const int kMaxFragmentUniformVectors = 16;
+const int kMaxFragmentUniformVectors = 32;
 const int kMaxVaryingVectors = 8;
 const int kMaxTextureImageUnits = 8;
 const int kMaxColorAttachments = 1;

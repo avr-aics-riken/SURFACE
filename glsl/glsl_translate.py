@@ -1819,6 +1819,9 @@ def emitInitializer():
         ty = uniform['type']
         idx = uniform['index']
 
+        s += Indent() + "GLSL_ASSERT(" + str(idx) + " < MAX_FRAGMENT_UNIFORM_VECTORS);\n"
+        s += Indent() + "config->uniformInfos[" + str(idx) + "].type.name = \"" + ty[0] + "\";\n"
+
         s += Indent() + "// " + str(uniform) + "\n"
         s += Indent() + "config->uniformInfos[" + str(idx) + "].type.name = \"" + ty[0] + "\";\n"
         s += Indent() + "config->uniformInfos[" + str(idx) + "].type.n    = " + str(ty[1]) + ";\n"

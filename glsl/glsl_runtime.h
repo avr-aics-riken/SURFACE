@@ -2,8 +2,9 @@
 #define __GLSL_CC_SHADER_RUNTIME_H__
 
 #include <stdio.h>
+#include <stdlib.h>
 
-#define MAX_TEXTURE_UNITS               (16)
+#define MAX_TEXTURE_UNITS               (32) // FIXME(syoyo): Currently this must be same with MAX_FRAGMENT_UNIFORM_VECTORS
 #define MAX_FRAGMENT_UNIFORM_VECTORS    (32)
 #define MAX_FRAGMENT_VARYING_VARIABLES  (8)
 #define MAX_DRAW_BUFFERS                (4)
@@ -16,6 +17,19 @@
 #define GLSL_RT_DLLEXPORT __declspec(dllexport)
 #else
 #define GLSL_RT_DLLEXPORT
+#endif
+
+#define GLSL_ENABLE_ASSERTION (1)
+
+#if GLSL_ENABLE_ASSERTION
+#define GLSL_ASSERT(cond) { \
+  if (!(cond)) { \
+    fprintf(stderr, "[GLSL] " #cond " : %s(%s:%d)\n", __FUNCTION__, __FILE__, __LINE__); \
+    abort(); \
+  } \
+}
+#else
+#define GLSL_ASSERT(cond) (void)(cond)
 #endif
 
 #define OPTIMIZED_TEXTURING (0)
@@ -204,7 +218,8 @@ typedef struct
 
 typedef struct
 {
-    unsigned long long textures[MAX_TEXTURE_UNITS];
+    // FIXME(syoyo): Currently texture slot index is shared with uniforms, thus textures must have same array size of uniforms, not MAX_TEXTURE_UNITS.
+    unsigned long long textures[MAX_FRAGMENT_UNIFORM_VECTORS];
     FragmentUniform uniforms[MAX_FRAGMENT_UNIFORM_VECTORS];
     FragmentVarying varyings[MAX_FRAGMENT_VARYING_VARIABLES];
 } FragmentState;
