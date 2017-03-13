@@ -179,6 +179,10 @@ LoadShader(
 
   static GLchar srcbuf[16384];
   FILE *fp = fopen(fragShaderSourceFilename, "rb");
+  if (!fp) {
+    fprintf(stderr, "file not found: %s\n", fragShaderSourceFilename);
+    exit(-1);
+  }
   assert(fp);
   fseek(fp, 0, SEEK_END);
   size_t len = ftell(fp);
