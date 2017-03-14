@@ -10,11 +10,13 @@ import subprocess
 
 import glsl_config
 import glsl_translate
+from functools import reduce
+
 
 def compile_c(c_code, cxx, cxxflags, opts):
 
     hasS = False
-    hasV = False # verbose flag
+    hasV = False  # verbose flag
     outputname = "shader.so"
     for opt in opts:
         if opt[0] == '-S':
@@ -31,36 +33,37 @@ def compile_c(c_code, cxx, cxxflags, opts):
         f.write(c_code)
         f.close()
         sys.exit(0)
-        
-    tmp_f = tempfile.NamedTemporaryFile(prefix=outputname, suffix=".cc", delete=False)  # 2.6
-    assert tmp_f 
 
-    #(tmp_fd, tmp_fname) = tempfile.mkstemp(prefix=outputname, suffix=".cc") # 2.4 compat
-    #print ("tmp_fd = %d" % tmp_fd) + ", tmp_fname = " + tmp_fname
-    #assert tmp_fd
+    tmp_f = tempfile.NamedTemporaryFile(
+        prefix=outputname, suffix=".cc", delete=False)  # 2.6
+    assert tmp_f
+
+    # (tmp_fd, tmp_fname) = tempfile.mkstemp(prefix=outputname, suffix=".cc") # 2.4 compat
+    # print ("tmp_fd = %d" % tmp_fd) + ", tmp_fname = " + tmp_fname
+    # assert tmp_fd
 
     if hasV:
-        print tmp_f.name
-        #print tmp_fname
+        print(tmp_f.name)
+        # print tmp_fname
 
     # for mkstemp
-    #tmp_f = os.fdopen(tmp_fd,'w')
-    #tmp_f.write(c_code);
-    #tmp_f.close()
+    # tmp_f = os.fdopen(tmp_fd,'w')
+    # tmp_f.write(c_code);
+    # tmp_f.close()
 
     tmp_fname = tmp_f.name
-    tmp_f.write(c_code);
+    tmp_f.write(c_code.encode('utf-8'))
     tmp_f.close()
 
     # get script path
-    scriptPath = os.path.dirname(sys.argv[0]) 
-    if len(scriptPath) < 1: # current dir?
+    scriptPath = os.path.dirname(sys.argv[0])
+    if len(scriptPath) < 1:  # current dir?
         scriptPath = "."
 
     fjcompiler = False  # True if FCC(native) or FCCpx(cross)
     if re.search("FCC", cxx) is not None:
         fjcompiler = True
-    
+
     cmd = []
     cmd.append(cxx)
     cmd.append("-I%s" % scriptPath)
@@ -93,24 +96,25 @@ def compile_c(c_code, cxx, cxxflags, opts):
     cmd.append(tmp_fname)
 
     if hasV:
-        print cmd
+        print(cmd)
 
     if sys.platform.startswith('win32'):
         # import lib
         cmd.append("%s/../gles/LSGLESd.lib" % scriptPath)
 
     if hasV:
-        print "CMD: ", cmd
+        print("CMD: ", cmd)
 
     try:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, close_fds=True)
         (stdout, stderr) = p.communicate()
-    except:
-        print "Failed to execute: ", cmd
+    except Exception:
+        print("Failed to execute: ", cmd)
         raise
 
     if len(stderr):
-        print stderr
+        print(stderr)
 
     os.unlink(tmp_fname)
     assert os.path.exists(tmp_fname) is False
@@ -121,8 +125,8 @@ def compile_c(c_code, cxx, cxxflags, opts):
 def compile_glsl(filepath, mesa_glsl_compiler_path, cxx, cxxflags, opts):
     """
     Invole Mesa's offline compiler to get S-expression style IR from GLSL language
-    """ 
-    
+    """
+
     cmd = []
     cmd.append(mesa_glsl_compiler_path)
     cmd.append("--glsl-es")
@@ -130,78 +134,90 @@ def compile_glsl(filepath, mesa_glsl_compiler_path, cxx, cxxflags, opts):
     cmd.append(filepath)
 
     try:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, close_fds=True)
         (stdout, stderr) = p.communicate()
-    except:
-        print "Failed to execute GLSL frontend: ", cmd
+    except Exception:
+        print("Failed to execute GLSL frontend: ", cmd)
         raise
 
+    # For Python 3 Compatibility
+    if not isinstance(stdout, str):
+        stdout = stdout.decode('utf-8')
+    if not isinstance(stderr, str):
+        stderr = stderr.decode('utf-8')
+
     if len(stderr):
-        print stderr
+        print(stderr)
         sys.exit(1)
 
-    if (len(re.findall("\: error\:", stdout)) > 0) or (len(re.findall("\: preprocessor error\:", stdout)) > 0):
-        print "// Parse error "
-        print stdout
+    if (len(re.findall("\: error\:", stdout)) > 0) or \
+       (len(re.findall("\: preprocessor error\:", stdout)) > 0):
+        print("// Parse error ")
+        print(stdout)
         sys.exit(1)
 
     if ('-v', '') in opts:
-        print "output:", stdout
+        print("output:", stdout)
 
     c_code_str = glsl_translate.ir_to_c(stdout, opts)
-    
+
     if ('-v', '') in opts:
-        print c_code_str
+        print(c_code_str)
 
     retcode = compile_c(c_code_str, cxx, cxxflags, opts)
 
     return retcode
 
+
 def showHelp():
-    print "Usage: glslc <options> input.frag" 
-    print "  <options>"
-    print "  -S                 : Emit source code, instead of binary"
-    print "  -o filename        : Specify output filename"
-    print "  -v                 : Verbose"
-    print "  --mesacc string    : Specify the path to Mesa GLSL compiler"
-    print "                       (overrides glsl_config.mesa_glsl_compiler_path)"
-    print "  --cxx    string    : Specify the path to native CXX compiler"
-    print "                       (overrides glsl_config.cxx_compiler_path)"
-    print "  --cxxflags  string : Specify additional compiler flags"
-    print "                       (overrides glsl_config.cxx_compiler_path)"
-    print "  --help             : Show help"
+    print("Usage: glslc <options> input.frag")
+    print("  <options>")
+    print("  -S                 : Emit source code, instead of binary")
+    print("  -o filename        : Specify output filename")
+    print("  -v                 : Verbose")
+    print("  --mesacc string    : Specify the path to Mesa GLSL compiler")
+    print("                       (overrides glsl_config.mesa_glsl_compiler_path)")
+    print("  --cxx    string    : Specify the path to native CXX compiler")
+    print("                       (overrides glsl_config.cxx_compiler_path)")
+    print("  --cxxflags  string : Specify additional compiler flags")
+    print("                       (overrides glsl_config.cxx_compiler_path)")
+    print("  --help             : Show help")
+
 
 def main():
 
-    print "GLSL Compiler. version 0.2.4"
+    print("GLSL Compiler. version 0.2.4")
     if (len(sys.argv) < 2):
         showHelp()
         sys.exit(1)
 
-    (optlist, args) = getopt.getopt(sys.argv[1:], 'So:vm:c:f:h', ['mesacc=', 'cxx=', 'cxxflags=', 'help'])
+    (optlist, args) = getopt.getopt(sys.argv[1:], 'So:vm:c:f:h', [
+        'mesacc=', 'cxx=', 'cxxflags=', 'help'])
 
-    if ('--help','') in optlist:
+    if ('--help', '') in optlist:
         showHelp()
         sys.exit(1)
 
     if (len(args) < 1):
-        print "Needs input file"
+        print("Needs input file")
         sys.exit(1)
 
     inputfilename = args[0]
 
     if ('-v', '') in optlist:
-        print "Input: ", inputfilename
+        print("Input: ", inputfilename)
 
-    #print inputfilename
+    # print inputfilename
     if os.path.exists(inputfilename) is False:
         sys.stderr.write('File not found: ' + inputfilename + '\n')
         sys.exit(1)
 
     # compilation configuration.
-    mesacc = glsl_config.mesa_glsl_compiler_path if glsl_config.__dict__.has_key("mesa_glsl_compiler_path") else "glsl_compiler"
-    cxx = glsl_config.cxx_compiler_path if glsl_config.__dict__.has_key("cxx_compiler_path") else "g++"
-    cxxflags = reduce(lambda x, y: x + ' ' + y, glsl_config.additional_compiler_options) if glsl_config.__dict__.has_key("additional_compiler_options") else ""
+    mesacc = glsl_config.mesa_glsl_compiler_path if "mesa_glsl_compiler_path" in glsl_config.__dict__ else "glsl_compiler"
+    cxx = glsl_config.cxx_compiler_path if "cxx_compiler_path" in glsl_config.__dict__ else "g++"
+    cxxflags = reduce(lambda x, y: x + ' ' + y,
+                      glsl_config.additional_compiler_options) if "additional_compiler_options" in glsl_config.__dict__ else ""
 
     for opt in optlist:
         if opt[0] == '--cxx':
@@ -211,11 +227,10 @@ def main():
         if opt[0] == '--mesacc':
             mesacc = opt[1]
 
-
     if ('-v', '') in optlist:
-        print "mesa:" + mesacc
-        print "cxx:" + cxx
-        print "cxxflags:" + cxxflags
+        print("mesa:" + mesacc)
+        print("cxx:" + cxx)
+        print("cxxflags:" + cxxflags)
 
     retcode = compile_glsl(inputfilename, mesacc, cxx, cxxflags, optlist)
 

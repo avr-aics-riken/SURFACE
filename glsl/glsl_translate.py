@@ -16,10 +16,7 @@ from string import Template
 from sexps import *
 
 gSlotToN = {
-    'x' : 0
-  , 'y' : 1
-  , 'z' : 2
-  , 'w' : 3 
+    'x': 0, 'y': 1, 'z': 2, 'w': 3
 }
 
 gNToSlot = ['x', 'y', 'z', 'w']
@@ -30,21 +27,23 @@ gVarCount = 0
 # Symbol table(as stack) for tempolrary variables
 # depth 1 = global scope
 # depth 2 = function scope
-gSymbolTable        = []
+gSymbolTable = []
 
 # @todo { Create context to save these variables. }
-gUniformInputs      = {}
-gUniformCount       = 0
+gUniformInputs = {}
+gUniformCount = 0
 
-gVaryingInputs      = {}
-gVaryingInputCount  = 0
+gVaryingInputs = {}
+gVaryingInputCount = 0
 
-gVaryingOutputs     = []
+gVaryingOutputs = []
 
-gStructDefs         = {}
+gStructDefs = {}
+
 
 def DefineStruct(struct):
     gStructDefs[struct['name']] = struct
+
 
 def FindStruct(name):
     if isinstance(name, list) and name[0] == 'array':
@@ -52,16 +51,17 @@ def FindStruct(name):
         # ['array', 'Sphere__0x7fdac1c11eb0', '3']
         p = name[1].split('__')
         if len(p) > 1:
-            sname = p[0] + '__' 
+            sname = p[0] + '__'
         else:
-            sname = p[0] 
-        if gStructDefs.has_key(sname):
+            sname = p[0]
+        if sname in gStructDefs:
             return gStructDefs[sname]
         raise
-    elif gStructDefs.has_key(name):
+    elif name in gStructDefs:
         return gStructDefs[name]
 
     return False
+
 
 def GetGLTypeSize(basety, n):
     # 4 = sizeof(float)
@@ -76,21 +76,24 @@ def GetGLTypeSize(basety, n):
         return 1 * n    # byte
     elif basety == "mat":
         return 4 * n * n
-    
+
     # Unknown type
     assert 0
-    
+
+
 def AddSymbol(varname, ty, n, quals):
     assert len(gSymbolTable) > 0
 
     # Add symbol to last stack of symbol table
-    gSymbolTable[-1][varname] = {'type' : (ty, n), 'quals' : quals, 'name' : varname}
+    gSymbolTable[-1][varname] = {'type': (ty, n),
+                                 'quals': quals, 'name': varname}
+
 
 def GetSymbol(varname):
     assert len(gSymbolTable) > 0
 
     # search internal scope first
-    n = len(gSymbolTable) - 1 
+    n = len(gSymbolTable) - 1
     while n >= 0:
 
         if varname in gSymbolTable[n]:
@@ -98,26 +101,27 @@ def GetSymbol(varname):
 
         n = n - 1
 
-
     return False
+
 
 def GetScopeLevel():
     return len(gSymbolTable)
-    
+
 
 def IsArray(s):
     return isinstance(s, (list, tuple))
 
+
 def IsSamplerTy(tyname):
     samplers = [
-        "sampler2D"
-      , "sampler3D"
+        "sampler2D", "sampler3D"
     ]
 
     if tyname in samplers:
         return True
 
     return False
+
 
 def ParseTy(tyname):
     """
@@ -148,31 +152,32 @@ def ParseTy(tyname):
 
 def IsBuiltinTextureFunction(fname):
     builtins = [
-        "texture2D"
-      , "texture3D"
+        "texture2D", "texture3D"
     ]
 
     if fname in builtins:
         return True
 
     return False
+
 
 def IsBuiltinTraceFunction(fname):
     builtins = [
-        "trace"                 # LSGL ext
-      , "raydepth"              # LSGL ext
-      , "rayattrib"             # LSGL ext
-      , "rayoption"             # LSGL ext
-      , "isectinfo"             # LSGL ext
-      , "camerainfo"            # LSGL ext
-      , "numIntersects"         # LSGL ext
-      , "queryIntersect"        # LSGL ext
+        "trace",                # LSGL ext
+        "raydepth",             # LSGL ext
+        "rayattrib",            # LSGL ext
+        "rayoption",            # LSGL ext
+        "isectinfo",            # LSGL ext
+        "camerainfo",           # LSGL ext
+        "numIntersects",        # LSGL ext
+        "queryIntersect",       # LSGL ext
     ]
 
     if fname in builtins:
         return True
 
     return False
+
 
 def IsBuiltinRandomFunction(fname):
     builtins = [
@@ -184,65 +189,66 @@ def IsBuiltinRandomFunction(fname):
 
     return False
 
+
 def IsBuiltinFunction(fname):
     builtins = [
-        "radians"
-      , "degrees"
-      , "sin"
-      , "cos"
-      , "tan"
-      , "asin"
-      , "acos"
-      , "atan"
-      , "atan2"
-      , "pow"
-      , "exp"
-      , "log"
-      , "exp2"
-      , "log2"
-      , "sqrt"
-      , "inversesqrt"
-      , "abs"
-      , "sign"
-      , "floor"
-      , "ceil"
-      , "fract"
-      , "mod"
-      , "min"
-      , "max"
-      , "clamp"
-      , "mix"
-      , "step"
-      , "smoothstep"
-      , "length"
-      , "distance"
-      , "dot"
-      , "cross"
-      , "normalize"
-      , "faceforward"
-      , "reflect"
-      , "refract"
-      , "matrixCompMult"
-      , "lessThan"
-      , "lessThanEqual"
-      , "greaterThan"
-      , "greaterThanEqual"
-      , "equal"
-      , "notEqual"
-      , "any"
-      , "all"
-      , "not"
-      , "texture2D"
-      , "texture3D"
-      , "trace"                 # LSGL ext
-      , "raydepth"              # LSGL ext
-      , "rayattrib"             # LSGL ext
-      , "rayoption"             # LSGL ext
-      , "isectinfo"             # LSGL ext
-      , "camerainfo"            # LSGL ext
-      , "random"                # LSGL ext
-      , "numIntersects"         # LSGL ext
-      , "queryIntersect"        # LSGL ext
+        "radians",
+        "degrees",
+        "sin",
+        "cos",
+        "tan",
+        "asin",
+        "acos",
+        "atan",
+        "atan2",
+        "pow",
+        "exp",
+        "log",
+        "exp2",
+        "log2",
+        "sqrt",
+        "inversesqrt",
+        "abs",
+        "sign",
+        "floor",
+        "ceil",
+        "fract",
+        "mod",
+        "min",
+        "max",
+        "clamp",
+        "mix",
+        "step",
+        "smoothstep",
+        "length",
+        "distance",
+        "dot",
+        "cross",
+        "normalize",
+        "faceforward",
+        "reflect",
+        "refract",
+        "matrixCompMult",
+        "lessThan",
+        "lessThanEqual",
+        "greaterThan",
+        "greaterThanEqual",
+        "equal",
+        "notEqual",
+        "any",
+        "all",
+        "not",
+        "texture2D",
+        "texture3D",
+        "trace",                # LSGL ext
+        "raydepth",             # LSGL ext
+        "rayattrib",            # LSGL ext
+        "rayoption",            # LSGL ext
+        "isectinfo",            # LSGL ext
+        "camerainfo",           # LSGL ext
+        "random",               # LSGL ext
+        "numIntersects",        # LSGL ext
+        "queryIntersect",       # LSGL ext
     ]
 
     if fname in builtins:
@@ -250,23 +256,24 @@ def IsBuiltinFunction(fname):
 
     return False
 
+
 def GetBuiltinType(varname):
     builtins = {
-        "gl_FragCoord" : ("vec", 4)
-      , "gl_FrontFacing" : ("bool", 1)
-      , "gl_FragColor" : ("vec", 4)
-      , "gl_PointCoord" : ("vec", 2)
-      , "gl_MaxVertexAttribs" : ("int", 1)
-      , "gl_MaxVertexUniformVectors" : ("int", 1)
-      , "gl_MaxVaryingVectors" : ("int", 1)
-      , "gl_MaxVertexTextureImageUnits" : ("int", 1)
-      , "gl_MaxCombinedTextureImageUnits" : ("int", 1)
-      , "gl_MaxTextureImageUnits" : ("int", 1)
-      , "gl_MaxFragmentUniformVectors" : ("int", 1)
-      , "gl_DepthRangeParameters" : ("todo", 1)
-      , "gl_DepthRange" : ("todo", -1)
-      , "gl_MaxDrawBuffers" : ("int", 1)
-      , "gl_FragData" : ("todo", -1)
+        "gl_FragCoord": ("vec", 4),
+        "gl_FrontFacing": ("bool", 1),
+        "gl_FragColor": ("vec", 4),
+        "gl_PointCoord": ("vec", 2),
+        "gl_MaxVertexAttribs": ("int", 1),
+        "gl_MaxVertexUniformVectors": ("int", 1),
+        "gl_MaxVaryingVectors": ("int", 1),
+        "gl_MaxVertexTextureImageUnits": ("int", 1),
+        "gl_MaxCombinedTextureImageUnits": ("int", 1),
+        "gl_MaxTextureImageUnits": ("int", 1),
+        "gl_MaxFragmentUniformVectors": ("int", 1),
+        "gl_DepthRangeParameters": ("todo", 1),
+        "gl_DepthRange": ("todo", -1),
+        "gl_MaxDrawBuffers": ("int", 1),
+        "gl_FragData": ("todo", -1),
     }
 
     if varname in builtins:
@@ -274,23 +281,24 @@ def GetBuiltinType(varname):
 
     return False
 
+
 def IsBuiltinVariable(varname):
     builtins = [
-        "gl_FragCoord"
-      , "gl_FrontFacing"
-      , "gl_FragColor"
-      , "gl_PointCoord"
-      , "gl_MaxVertexAttribs"
-      , "gl_MaxVertexUniformVectors"
-      , "gl_MaxVaryingVectors"
-      , "gl_MaxVertexTextureImageUnits"
-      , "gl_MaxCombinedTextureImageUnits"
-      , "gl_MaxTextureImageUnits"
-      , "gl_MaxFragmentUniformVectors"
-      , "gl_DepthRangeParameters"
-      , "gl_DepthRange"
-      , "gl_MaxDrawBuffers"
-      , "gl_FragData"
+        "gl_FragCoord",
+        "gl_FrontFacing",
+        "gl_FragColor",
+        "gl_PointCoord",
+        "gl_MaxVertexAttribs",
+        "gl_MaxVertexUniformVectors",
+        "gl_MaxVaryingVectors",
+        "gl_MaxVertexTextureImageUnits",
+        "gl_MaxCombinedTextureImageUnits",
+        "gl_MaxTextureImageUnits",
+        "gl_MaxFragmentUniformVectors",
+        "gl_DepthRangeParameters",
+        "gl_DepthRange",
+        "gl_MaxDrawBuffers",
+        "gl_FragData",
     ]
 
     if varname in builtins:
@@ -298,12 +306,15 @@ def IsBuiltinVariable(varname):
 
     return False
 
+
 def AddUniformInput(varname, ty, n, quals):
 
     # Assign unique index(from 0)
     global gUniformCount
-    gUniformInputs[varname] = {'type' : (ty, n), 'quals' : quals, 'name' : varname, 'index' : gUniformCount}
+    gUniformInputs[varname] = {
+        'type': (ty, n), 'quals': quals, 'name': varname, 'index': gUniformCount}
     gUniformCount += 1
+
 
 def IsUniform(varname):
     global gUniformInputs
@@ -312,10 +323,12 @@ def IsUniform(varname):
 
     return False
 
+
 def GetUniform(varname):
     global gUniformInputs
 
     return gUniformInputs[varname]
+
 
 def IsVaryingInput(varname):
     global gVaryingInputs
@@ -324,10 +337,12 @@ def IsVaryingInput(varname):
 
     return False
 
+
 def GetVaryingInput(varname):
     global gVaryingInputs
 
     return gVaryingInputs[varname]
+
 
 def IsTexture(varname):
 
@@ -339,6 +354,7 @@ def IsTexture(varname):
 
     return False
 
+
 def IsTemporary(varname):
     if IsTexture(varname) or IsVaryingInput(varname) or IsUniform(varname):
         return False
@@ -346,11 +362,14 @@ def IsTemporary(varname):
     # Might be temporary variable
     return True
 
+
 def AddVaryingInput(varname, ty, n, quals):
     # Assign unique index(from 0)
     global gVaryingInputCount
-    gVaryingInputs[varname] = {'type' : (ty, n), 'quals' : quals, 'name' : varname, 'index' : gVaryingInputCount}
+    gVaryingInputs[varname] = {
+        'type': (ty, n), 'quals': quals, 'name': varname, 'index': gVaryingInputCount}
     gVaryingInputCount += 1
+
 
 def GetTypeCastString(varname):
 
@@ -381,6 +400,7 @@ def GetTypeCastString(varname):
     # No typecast required
     return ""
 
+
 def GetTypeOfSymbol(varname):
 
     if IsVaryingInput(varname):
@@ -410,11 +430,13 @@ def IncrementIndent():
     global gIndentLevel
     gIndentLevel += 1
 
+
 def DecrementIndent():
     global gIndentLevel
     gIndentLevel -= 1
     if gIndentLevel < 0:
         gIndentLevel = 0
+
 
 def Indent():
     global gIndentLevel
@@ -423,7 +445,8 @@ def Indent():
         s += "  "
 
     return s
-        
+
+
 def NewTempVar():
     global gVarCount
 
@@ -433,32 +456,36 @@ def NewTempVar():
 
     return s
 
+
 def IsVectorType(s):
-    tys = [ 'vec', 'ivec', 'bvec', 'dvec' ]
+    tys = ['vec', 'ivec', 'bvec', 'dvec']
     if s in tys:
         return True
-    
+
     return False
 
+
 def IsMatrixType(s):
-    tys = [ 'mat' ]
+    tys = ['mat']
     if s in tys:
         return True
-    
+
     return False
+
 
 def baseType(ty):
 
     if ty == "vec":
         return "float"
     elif ty == "ivec":
-        return "int";
+        return "int"
     elif ty == "bvec":
         return "bool"
     elif ty == "mat":
         return "float"
     else:
         return ty
+
 
 def parseValue(lst):
 
@@ -467,8 +494,9 @@ def parseValue(lst):
 
     return (ty, n, values)
 
+
 def renameVariable(varname):
-    #if varname == "gl_FragColor":
+    # if varname == "gl_FragColor":
     #    return "(fragment->fragColor)"
 
     # Rewrite builtin variables
@@ -499,11 +527,12 @@ def renameVariable(varname):
     # Might be local variable. No rewrite required.
     return varname
 
+
 class VarDecl:
     def __init__(self, varname, ty, n):
         self.varname = varname
-        self.ty      = ty
-        self.n       = n
+        self.ty = ty
+        self.n = n
 
     def __str__(self):
         return self.varname
@@ -534,7 +563,7 @@ class VarDecl:
 
     def getExprString(self, slot, i):
         return self.varname + ("[%d]" % gSlotToN[slot])
-            
+
 
 class VarRef:
     def __init__(self, varname):
@@ -582,7 +611,8 @@ class VarRef:
             isInput = True
 
         else:
-            # If this variable is temporary variable, add some prefix depending on its type.
+            # If this variable is temporary variable, add some prefix depending
+            # on its type.
             var = GetSymbol(self.orgname)
             if var is not False:
                 if IsVectorType(var['type'][0]):
@@ -606,7 +636,8 @@ class VarRef:
                 return "/*var_ref*/" + tycast + self.varname + prefix + ("[%d]" % gSlotToN[slot])
             else:
                 return "/*var_ref*/" + "(*" + tycast + postfix + "(" + self.varname + prefix + "))"
-            
+
+
 class RecordRef:
     def __init__(self, varname, membername):
 
@@ -624,6 +655,7 @@ class RecordRef:
             self.is_array = True
         else:
             raise
+
     def __str__(self):
         return str(self.var) + "." + self.membername
 
@@ -644,14 +676,13 @@ class RecordRef:
         struct = FindStruct(sty)
         assert struct is not False
 
-
         # Look up type of member variable
         member = struct['members'][self.membername]
         assert member is not False
 
         (ty, n) = ParseTy(member['ty'])
 
-        return "/*record_ref*/" + "(" + str(self.var) + "." + self.membername + ")" 
+        return "/*record_ref*/" + "(" + str(self.var) + "." + self.membername + ")"
 
     def getExprString(self, slot, i):
 
@@ -664,7 +695,6 @@ class RecordRef:
         # print((sty, sn))
         struct = FindStruct(sty)
         assert struct is not False
-
 
         # Look up type of member variable
         member = struct['members'][self.membername]
@@ -687,10 +717,10 @@ class RecordRef:
 
 class ArrayRef:
     def __init__(self, varname, indexname):
-        assert len(varname) == 2;   # should be ['var_ref', 'str']
-        assert varname[0] == 'var_ref';
+        assert len(varname) == 2   # should be ['var_ref', 'str']
+        assert varname[0] == 'var_ref'
 
-        assert len(indexname) == 3;   # should be ['constant', 'int', [N]]
+        assert len(indexname) == 3   # should be ['constant', 'int', [N]]
 
         self.var = VarRef(varname[1])
         self.recordname = varname[1]
@@ -741,15 +771,16 @@ class ArrayRef:
             if IsMatrixType(ty):
                 return "/*array_ref*/" + "(*" + tycast + "(" + name + prefix + (")).v[%s][%d]" % (self.indexname, gSlotToN[slot]))
             else:
-                print (ty, n)
+                print((ty, n))
                 raise
-                #return "/*array_ref*/" + "(" + self.recordname + "[" + self.indexname + "]" + ")"
+                # return "/*array_ref*/" + "(" + self.recordname + "[" +
+                # self.indexname + "]" + ")"
 
         else:
 
             # Look up struct definition
             sym = GetSymbol(self.recordname)
-            #print sym, self.recordname
+            # print sym, self.recordname
             assert sym is not False
 
             (ty, n) = sym['type']
@@ -768,17 +799,18 @@ class ArrayRef:
             else:
                 return "/*array_ref*/" + "(" + self.recordname + "[" + self.indexname + "]" + ")"
 
+
 class Constant:
     def __init__(self, ty, n, values):
         self.ty = ty
-        self.n  = n
-        i = 0;
+        self.n = n
+        i = 0
 
         self.values = []
         # Consider '10', 'e', '-10' case
         while i < len(values):
-            if i + 2 < len(values) and (values[i+1] == 'e' or values[i+1] == 'E'):     
-                val = values[i] + values[i+1] + values[i+2]
+            if i + 2 < len(values) and (values[i + 1] == 'e' or values[i + 1] == 'E'):
+                val = values[i] + values[i + 1] + values[i + 2]
                 self.values.append(val)
                 i = i + 3
             else:
@@ -835,10 +867,10 @@ class Constant:
 class Swizzle:
     def __init__(self, slots, values):
         self.slots = slots
-        self.values = values;
+        self.values = values
 
     def __str__(self):
-        #return "TODO(swizzle: %s, %s)" % (self.slots, str(self.values))
+        # return "TODO(swizzle: %s, %s)" % (self.slots, str(self.values))
         return ""
 
     def getDeclareString(self):
@@ -852,7 +884,7 @@ class Swizzle:
         s = ""
         s += self.values.getIntermExprString()
 
-        #for i in range(self.n):
+        # for i in range(self.n):
         #    slot = gNToSlot[i]
         #    s += Indent()
         #    s += self.getExprString(slot, i)
@@ -890,6 +922,7 @@ class Swizzle:
 
         return s
 
+
 class Break:
     def __init__(self):
         pass
@@ -909,14 +942,15 @@ class Break:
     def getExprString(self, slot, i):
         return "break"
 
+
 class Assign:
     def __init__(self, slots, lhs, rhs):
         self.slots = slots
-        self.lhs   = lhs;
-        self.rhs   = rhs;
+        self.lhs = lhs
+        self.rhs = rhs
 
     def __str__(self):
-        #return "TODO(swizzle: %s, %s)" % (self.slots, str(self.values))
+        # return "TODO(swizzle: %s, %s)" % (self.slots, str(self.values))
         return ""
 
     def getDeclareString(self):
@@ -927,10 +961,10 @@ class Assign:
         #s = ""
         #s += self.values.getIntermExprString()
 
-        #for (n, slot) in enumerate(self.slots):
+        # for (n, slot) in enumerate(self.slots):
         #    #slot = gNToSlot[i]
         #    s += Indent() + self.values.getExprString(slot, n) + ";\n"
-        #return s
+        # return s
 
     def getCExpr(self):
         # todo
@@ -951,14 +985,15 @@ class Assign:
 
         return s
 
+
 class BinaryExpression:
     def __init__(self, ty, n, op, lhs, rhs):
-        self.ty     = ty
-        self.n      = n
-        self.op     = op
-        self.lhs    = lhs
-        self.rhs    = rhs
-        self.dst    = NewTempVar()
+        self.ty = ty
+        self.n = n
+        self.op = op
+        self.lhs = lhs
+        self.rhs = rhs
+        self.dst = NewTempVar()
 
     def __str__(self):
         return "TODO(expr)"
@@ -982,22 +1017,22 @@ class BinaryExpression:
         s += self.lhs.getIntermExprString()
         s += self.rhs.getIntermExprString()
 
-        if self.ty == 'vec' and self.n >= 4: # mat and vec?
+        if self.ty == 'vec' and self.n >= 4:  # mat and vec?
             ops = {
-                '/' : '__div'
-              , '+' : '__add'
-              , '-' : '__sub'
-              , '*' : '__mul'
-              , '>' : '__gt'
-              , '>=' : '__ge'
-              , '<' : '__lt'
-              , '<=' : '__le'
-              , '==' : '__eq'
-              , '&&' : '__and'
-              , '||' : '__or'
-              , '!' : '__not'
-              , 'any_nequal' : '__any_neq'
-              , 'all_equal' : '__all_eq'
+                '/': '__div',
+                '+': '__add',
+                '-': '__sub',
+                '*': '__mul',
+                '>': '__gt',
+                '>=': '__ge',
+                '<': '__lt',
+                '<=': '__le',
+                '==': '__eq',
+                '&&': '__and',
+                '||': '__or',
+                '!': '__not',
+                'any_nequal': '__any_neq',
+                'all_equal': '__all_eq',
             }
 
             func = ops[self.op]
@@ -1028,20 +1063,20 @@ class BinaryExpression:
     def getCExpr(self):
 
         ops = {
-            '/' : '__div'
-          , '+' : '__add'
-          , '-' : '__sub'
-          , '*' : '__mul'
-          , '>' : '__gt'
-          , '>=' : '__ge'
-          , '<' : '__lt'
-          , '<=' : '__le'
-          , '==' : '__eq'
-          , '&&' : '__and'
-          , '||' : '__or'
-          , '!' : '__not'
-          , 'any_nequal' : '__any_neq'
-          , 'all_equal' : '__all_eq'
+            '/': '__div',
+            '+': '__add',
+            '-': '__sub',
+            '*': '__mul',
+            '>': '__gt',
+            '>=': '__ge',
+            '<': '__lt',
+            '<=': '__le',
+            '==': '__eq',
+            '&&': '__and',
+            '||': '__or',
+            '!': '__not',
+            'any_nequal': '__any_neq',
+            'all_equal': '__all_eq',
         }
 
         func = ops[self.op]
@@ -1068,13 +1103,14 @@ class BinaryExpression:
     def dst(self):
         return self.dst
 
+
 class UnaryExpression:
     def __init__(self, ty, n, op, src):
-        self.ty     = ty
-        self.n      = n
-        self.op     = op
-        self.src    = src
-        self.dst    = NewTempVar()
+        self.ty = ty
+        self.n = n
+        self.op = op
+        self.src = src
+        self.dst = NewTempVar()
 
     def __str__(self):
         return "TODO(uexpr)"
@@ -1095,12 +1131,12 @@ class UnaryExpression:
         # print "UnaryInterm\n"
 
         ops = {
-            'neg' : '-('
-          , 'rcp' : '__rcp('
-          , 'i2f' : '(float)('
-          , 'f2i' : '(int)('
-          , 'b2f' : '(float)('
-          , '!' : '!('
+            'neg': '-(',
+            'rcp': '__rcp(',
+            'i2f': '(float)(',
+            'f2i': '(int)(',
+            'b2f': '(float)(',
+            '!': '!(',
         }
 
         opExpr = ops[self.op]
@@ -1121,13 +1157,13 @@ class UnaryExpression:
     def getCExpr(self):
 
         ops = {
-            'neg' : '__neg'
-          , 'rcp' : '__rcp'
-          , 'rsq' : '__rsq'
-          , 'i2f' : '__i2f'
-          , 'f2i' : '__f2i'
-          , 'b2f' : '__b2f'
-          , '!' : '__not'
+            'neg': '__neg',
+            'rcp': '__rcp',
+            'rsq': '__rsq',
+            'i2f': '__i2f',
+            'f2i': '__f2i',
+            'b2f': '__b2f',
+            '!': '__not',
         }
 
         func = ops[self.op]
@@ -1153,6 +1189,7 @@ class UnaryExpression:
     def dst(self):
         return self.dst
 
+
 def constructExpr(expr):
 
     name = expr[0]
@@ -1166,8 +1203,8 @@ def constructExpr(expr):
         return Constant(ty, n, values)
     elif name == "assign":
         slots = expr[1]
-        lhs   = constructExpr(expr[2])
-        rhs   = constructExpr(expr[3])
+        lhs = constructExpr(expr[2])
+        rhs = constructExpr(expr[3])
         return Assign(slots, lhs, rhs)
     elif name == "swiz":
         slots = expr[1]
@@ -1188,7 +1225,7 @@ def constructExpr(expr):
     elif name == "declare":
         quals = expr[1]
         ty = expr[2]
-        offt = 3;
+        offt = 3
 
         (ty, n) = ParseTy(ty)
 
@@ -1205,10 +1242,11 @@ def constructExpr(expr):
     elif name == "array_ref":
         return ArrayRef(expr[1], expr[2])
     else:
-        print "expr:", expr
-        print "name:", name
-        raise;
+        print("expr:", expr)
+        print("name:", name)
+        raise
         return None
+
 
 def EvalExpr(expr):
 
@@ -1226,6 +1264,7 @@ def EvalExpr(expr):
 
     return ss
 
+
 def eAssign(exp):
     slots = exp[1]
 
@@ -1237,18 +1276,21 @@ def eAssign(exp):
         lhs = constructExpr(exp[2])
         rhs = constructExpr(exp[3])
 
-
         if isinstance(lhs, VarRef):
             (ty, n) = GetTypeOfSymbol(lhs.orgname)
             if IsMatrixType(ty):
-                
+
                 for j in range(n):
                     for i in range(n):
                         if isinstance(rhs, Constant):
                             idx = j * n + i
-                            ss += Indent() + "%s.v[%d][%d] = %s;\n" % (lhs, j, i, rhs.values[idx])
+                            ss += Indent() + \
+                                "%s.v[%d][%d] = %s;\n" % (
+                                    lhs, j, i, rhs.values[idx])
                         else:
-                            ss += Indent() + "%s.v[%d][%d] = %s.v[%d][%d];\n" % (lhs, j, i, rhs, j, i)
+                            ss += Indent() + \
+                                "%s.v[%d][%d] = %s.v[%d][%d];\n" % (
+                                    lhs, j, i, rhs, j, i)
 
             else:
                 sym = GetSymbol(lhs.orgname)
@@ -1258,22 +1300,22 @@ def eAssign(exp):
                         # struct type
                         ss += Indent() + "%s = %s;\n" % (lhs, rhs)
                     else:
-                        print "Invalid definition:" + sym
+                        print("Invalid definition:" + sym)
                         raise
                 else:
-                    print "Unknown or unsupported type:" + ty
+                    print("Unknown or unsupported type:" + ty)
                     raise
         else:
-            print "Unknown assign op"
+            print("Unknown assign op")
             raise
 
     else:
 
-        # Don't emit code for redundant assignment 
+        # Don't emit code for redundant assignment
         #
         # e.g. assign to `assignment_tmp` in global scope.
         # (assign  (xyz) (var_ref assignment_tmp)  (var_ref normalize_retval) )
-        if GetScopeLevel() ==1:
+        if GetScopeLevel() == 1:
             if len(exp[2]) == 2 and exp[2][0] == 'var_ref' and exp[2][1] == 'assignment_tmp':
                 return "// killed redundant assign to 'assignment_tmp'\n"
 
@@ -1288,21 +1330,24 @@ def eAssign(exp):
         ss += rhs.getDeclareString() + "\n"
 
         # emit intermediate expr
-        ss += lhs.getIntermExprString();
-        ss += rhs.getIntermExprString();
+        ss += lhs.getIntermExprString()
+        ss += rhs.getIntermExprString()
 
         # body
         for (i, s) in enumerate(slot):
-            #print "lhs:" + lhs
-            #print "rhs:" + str(rhs)
-            ss += Indent() + lhs.getExprString(s, i) + " = " + rhs.getExprString(s, i) + ";\n"
+            # print "lhs:" + lhs
+            # print "rhs:" + str(rhs)
+            ss += Indent() + lhs.getExprString(s, i) + " = " + \
+                rhs.getExprString(s, i) + ";\n"
 
     # print ss
     return ss
 
+
 def eExpression(exp):
-    assert 0 # todo
-    print exp
+    assert 0  # todo
+    print(exp)
+
 
 def eReturn(exp):
 
@@ -1325,18 +1370,19 @@ def eDiscard(exp):
 
 def eSwizzle(expr):
     slots = expr[1]
-    args  = expr[2]
+    args = expr[2]
     # print expr
+
 
 def eCall(expr):
     name = expr[1]
 
     if len(expr) < 4:
         # might be void type
-        dst  = False
+        dst = False
         args = expr[2]
     else:
-        dst  = expr[2]
+        dst = expr[2]
         args = expr[3]
 
     # print "dst:", dst
@@ -1390,7 +1436,7 @@ def eCall(expr):
 
         tycast = ""
         isInput = False
-        isVarRef  = False
+        isVarRef = False
 
         if isinstance(exp, VarRef):
             (ty, n) = GetTypeOfSymbol(exp.orgname)
@@ -1404,7 +1450,8 @@ def eCall(expr):
             if IsVectorType(ty):
                 s += "/*input:vec*/(*(" + tycast + "(" + str(exp) + ".data)))"
             else:
-                s += "/*input:scalar*/" + "(*(" + tycast + "(" + str(exp) + ".data)))"
+                s += "/*input:scalar*/" + \
+                    "(*(" + tycast + "(" + str(exp) + ".data)))"
             pass
         elif isVarRef:
 
@@ -1422,7 +1469,7 @@ def eCall(expr):
         else:
             s += exp.getCExpr()
 
-        if (isBuiltin and (not isFuncPtrBuiltin)) and ((len(args)-1) != count):
+        if (isBuiltin and (not isFuncPtrBuiltin)) and ((len(args) - 1) != count):
             s += ", "
 
     s += ");\n"
@@ -1430,6 +1477,7 @@ def eCall(expr):
     return s
 
     # assert 0
+
 
 def eIf(expr):
     # print "expr:", expr
@@ -1444,7 +1492,7 @@ def eIf(expr):
         elseStmt = expr[3]
     else:
         elseStmt = None
-    
+
     # print "cond:", condExpr
     # print "then:", thenStmt
     # print "else:", elseStmt
@@ -1486,6 +1534,7 @@ def eIf(expr):
 
     return ss
 
+
 def eLoop(expr):
     # print "expr:", expr
     declStmt = expr[1]
@@ -1493,7 +1542,7 @@ def eLoop(expr):
     condStmt = expr[3]
     tickStmt = expr[4]
     stmt = expr[5]
-    # print "stmt:", stmt 
+    # print "stmt:", stmt
 
     if len(declStmt) == 0 and len(initStmt) == 0 and len(condStmt) == 0 and len(tickStmt) == 0:
         # while loop
@@ -1506,7 +1555,7 @@ def eLoop(expr):
         ss += Indent() + "}\n"
 
     else:
-        # for(i = init; i < cond; i += tick) 
+        # for(i = init; i < cond; i += tick)
         ss = ""
 
         assert len(declStmt) == 1
@@ -1535,7 +1584,8 @@ def eLoop(expr):
         condE = constructExpr(condExpr)
         tickE = constructExpr(tickExpr)
 
-        ss += Indent() + "for (; " + decl['name'] + " < " + condE.getCExpr() + "; " + decl['name'] + " += " + tickE.getCExpr() + ") {\n"
+        ss += Indent() + "for (; " + decl['name'] + " < " + condE.getCExpr(
+        ) + "; " + decl['name'] + " += " + tickE.getCExpr() + ") {\n"
         #ss += Indent() + decl['name'] + " += " + tickE.getCExpr() + ";\n"
         IncrementIndent()
 
@@ -1555,7 +1605,7 @@ def eLoop(expr):
             if tickStmt:
                 if name == "assign":
                     # ['assign', ['x'], ['var_ref', 'i'], ['expression', 'int', '+', ['var_ref', 'i'], ['constant', 'int', ['1']]]]
-                    if e[2][1]  == decl['name']:
+                    if e[2][1] == decl['name']:
                         # Skip this expression
                         continue
 
@@ -1573,16 +1623,18 @@ def eLoop(expr):
 
     return ss
 
+
 def eBreak(expr):
     # print "break"
     return Indent() + "break;\n"
 
+
 def eDeclare(exp):
     quals = exp[1]
     ty = exp[2]
-    #if IsArray(ty):
-    #    print "array", ty 
-    offt = 3;
+    # if IsArray(ty):
+    #    print "array", ty
+    offt = 3
 
     (ty, n) = ParseTy(ty)
 
@@ -1592,11 +1644,11 @@ def eDeclare(exp):
     # print "[eDeclare] ty:", (ty, n), ", var:", varname
 
     isBuiltin = False
-    isInOut   = False
+    isInOut = False
 
     if ('in' in quals) or ('out' in quals) or ('uniform' in quals):
         isInOut = True
-    
+
     if not IsBuiltinVariable(varname):
         if 'in' in quals:
             # ((ty, n), qual, name)
@@ -1612,7 +1664,8 @@ def eDeclare(exp):
     # user defined global var or temporary variable needs var declaration.
     if (not isInOut) and (not isBuiltin):
 
-        # skip redundant AST in global scope, generated from MESA's GLSL compiler.
+        # skip redundant AST in global scope, generated from MESA's GLSL
+        # compiler.
         if varname == "assignment_tmp" and (GetScopeLevel() == 1):
             s = ""
         else:
@@ -1620,20 +1673,21 @@ def eDeclare(exp):
             AddSymbol(varname, ty, n, quals)
 
             decl = VarDecl(varname, ty, n)
-            s = Indent() + decl.getDeclareString();
+            s = Indent() + decl.getDeclareString()
 
     return s
 
+
 def parseDeclare(exp):
-   
+
     d = {}
 
     quals = exp[1]
     ty = exp[2]
-    #if IsArray(ty):
-    #    print "array", ty 
+    # if IsArray(ty):
+    #    print "array", ty
 
-    offt = 3;
+    offt = 3
 
     (ty, n) = ParseTy(ty)
 
@@ -1642,11 +1696,12 @@ def parseDeclare(exp):
     # print exp
     # print "ty:", (ty, n), ", var:", varname
 
-    d['type']  = (ty, n)
+    d['type'] = (ty, n)
     d['quals'] = quals
-    d['name']  = varname 
+    d['name'] = varname
 
     return d
+
 
 def emitCArgs(args):
 
@@ -1673,11 +1728,12 @@ def emitCArgs(args):
 
         if n != (len(args[1:]) - 1):
             s += ", "
-            
+
     return s
 
+
 def eFunction(exp):
-    name = exp[1] 
+    name = exp[1]
     params = exp[2]
 
     # consider struct type
@@ -1712,11 +1768,12 @@ def eFunction(exp):
         s += "// args = " + str(args)
         s += "\n"
         s += "static "
-        s += signature  # @fixme. Support compound and vector type.  
+        s += signature  # @fixme. Support compound and vector type.
         s += " "
         s += name
         s += " ("
-        # __fragment and __state arg are required to access builtin/uniform/varying variable from user-defined function 
+        # __fragment and __state arg are required to access
+        # builtin/uniform/varying variable from user-defined function
         s += "Fragment* __fragment, FragmentState* __state"
         if len(argStr) > 0:
             s += ", "
@@ -1729,20 +1786,18 @@ def eFunction(exp):
                 quals = arg[1]
                 ty = arg[2]
                 # if IsArray(ty):
-                #     print "array", ty 
-                offt = 3;
+                #     print "array", ty
+                offt = 3
 
                 (ty, n) = ParseTy(ty)
 
                 varname = arg[offt]
 
                 AddSymbol(varname, ty, n, quals)
-        
-
 
     if len(statements) < 1:
         # Seems it has no function body.
-        s += " {};\n\n";
+        s += " {};\n\n"
         return s
 
     s += "\n{\n"
@@ -1769,31 +1824,34 @@ def eFunction(exp):
 
     return s
 
+
 expTables = {
-    'declare'     : eDeclare
-  , 'function'    : eFunction
-  , 'assign'      : eAssign
-  , 'expression'  : eExpression
-  , 'swiz'        : eSwizzle
-  , 'call'        : eCall
-  , 'if'          : eIf
-  , 'loop'        : eLoop
-  , 'break'       : eBreak
-  , 'return'      : eReturn
-  , 'discard'     : eDiscard
+    'declare': eDeclare,
+    'function': eFunction,
+    'assign': eAssign,
+    'expression': eExpression,
+    'swiz': eSwizzle,
+    'call': eCall,
+    'if': eIf,
+    'loop': eLoop,
+    'break': eBreak,
+    'return': eReturn,
+    'discard': eDiscard,
 }
+
 
 def emitEntryPoint():
     """
     Emit C entry point function definition.
     """
 
-    s  = "extern \"C\" {\n"
-    s += "void  shader(Fragment* __fragment, FragmentState* __state);\n";
+    s = "extern \"C\" {\n"
+    s += "void  shader(Fragment* __fragment, FragmentState* __state);\n"
     s += "int   shader_info(FragmentConfig* config);\n"
     s += "}\n"
 
     return s
+
 
 def emitInitializer():
     """
@@ -1801,9 +1859,9 @@ def emitInitializer():
     """
 
     qualDic = {
-        'in'      : "GLSL_QUALIFIER_IN"
-      , 'out'     : "GLSL_QUALIFIER_OUT"
-      , 'uniform' : "GLSL_QUALIFIER_UNIFORM"
+        'in': "GLSL_QUALIFIER_IN",
+        'out': "GLSL_QUALIFIER_OUT",
+        'uniform': "GLSL_QUALIFIER_UNIFORM",
     }
 
     s = ""
@@ -1812,7 +1870,7 @@ def emitInitializer():
     IncrementIndent()
 
     # Uniforms
-    for uniform in gUniformInputs.values():
+    for uniform in list(gUniformInputs.values()):
 
         qualStr = "GLSL_QUALIFIER_UNIFORM"
 
@@ -1820,17 +1878,25 @@ def emitInitializer():
         idx = uniform['index']
 
         s += Indent() + "// " + str(uniform) + "\n"
-        s += Indent() + "config->uniformInfos[" + str(idx) + "].type.name = \"" + ty[0] + "\";\n"
-        s += Indent() + "config->uniformInfos[" + str(idx) + "].type.n    = " + str(ty[1]) + ";\n"
-        s += Indent() + "config->uniformInfos[" + str(idx) + "].qualifier = " + qualStr + ";\n" # redundant?
-        s += Indent() + "config->uniformInfos[" + str(idx) + "].name      = \"" + uniform['name'] + "\";\n"
+        s += Indent() + \
+            "config->uniformInfos[" + \
+            str(idx) + "].type.name = \"" + ty[0] + "\";\n"
+        s += Indent() + \
+            "config->uniformInfos[" + str(idx) + \
+            "].type.n    = " + str(ty[1]) + ";\n"
+        s += Indent() + \
+            "config->uniformInfos[" + str(idx) + "].qualifier = " + \
+            qualStr + ";\n"  # redundant?
+        s += Indent() + \
+            "config->uniformInfos[" + str(idx) + "].name      = \"" + \
+            uniform['name'] + "\";\n"
         s += "\n"
 
     s += Indent() + "config->numUniforms = %d;\n" % (len(gUniformInputs))
     s += "\n"
 
     # Varyings
-    for varying in gVaryingInputs.values():
+    for varying in list(gVaryingInputs.values()):
 
         qualStr = ""
         if len(varying['quals']) == 0:
@@ -1845,10 +1911,18 @@ def emitInitializer():
         idx = varying['index']
 
         s += Indent() + "// " + str(varying) + "\n"
-        s += Indent() + "config->varyingInfos[" + str(idx) + "].type.name = \"" + ty[0] + "\";\n"
-        s += Indent() + "config->varyingInfos[" + str(idx) + "].type.n    = " + str(ty[1]) + ";\n"
-        s += Indent() + "config->varyingInfos[" + str(idx) + "].qualifier = " + qualStr + ";\n"
-        s += Indent() + "config->varyingInfos[" + str(idx) + "].name      = \"" + varying['name'] + "\";\n"
+        s += Indent() + \
+            "config->varyingInfos[" + \
+            str(idx) + "].type.name = \"" + ty[0] + "\";\n"
+        s += Indent() + \
+            "config->varyingInfos[" + str(idx) + \
+            "].type.n    = " + str(ty[1]) + ";\n"
+        s += Indent() + \
+            "config->varyingInfos[" + \
+            str(idx) + "].qualifier = " + qualStr + ";\n"
+        s += Indent() + \
+            "config->varyingInfos[" + str(idx) + "].name      = \"" + \
+            varying['name'] + "\";\n"
         s += "\n"
 
     s += Indent() + "config->numVaryings = %d;\n" % (len(gVaryingInputs))
@@ -1861,6 +1935,7 @@ def emitInitializer():
 
     return s
 
+
 def ir_to_c(input_sexp_string, opts):
     """
     Converts S-expression style IR to C/C++ code.
@@ -1868,8 +1943,8 @@ def ir_to_c(input_sexp_string, opts):
 
     ir_exp = parse_sexp(input_sexp_string)
 
-    if ('-v','') in opts:
-        print "IR:" + str(ir_exp)
+    if ('-v', '') in opts:
+        print("IR:" + str(ir_exp))
 
     s = ""
 
@@ -1899,16 +1974,16 @@ def ir_to_c(input_sexp_string, opts):
             structname = e[1][0] + "__"
             struct['name'] = structname
 
-            members    = e[4]
+            members = e[4]
             memberDefs = {}
             s += "// struct_def = " + str(e) + "\n"
             s += "typedef struct {\n"
             for member in members:
-                ty   = member[0][0]
+                ty = member[0][0]
                 name = member[1][0]
                 memberDefs[name] = {'ty': ty, 'name': name}
 
-                s += "    " + ty + " " + name + ";\n";
+                s += "    " + ty + " " + name + ";\n"
             s += "} %s;\n" % structname
 
             struct['members'] = memberDefs
@@ -1936,7 +2011,6 @@ def ir_to_c(input_sexp_string, opts):
 
     s += "// <-- global variables\n"
 
-
     #
     # pass2: emit global variable initializer
     #
@@ -1956,7 +2030,7 @@ def ir_to_c(input_sexp_string, opts):
     #
     # pass3: body
     #
-     
+
     for e in ir_exp:
         if isinstance(e, list):
             name = e[0]
@@ -1968,7 +2042,7 @@ def ir_to_c(input_sexp_string, opts):
             continue
 
         # might be member field of struct
-        if isinstance(name, list):  
+        if isinstance(name, list):
             continue
 
         if name in expTables:
