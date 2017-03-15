@@ -7,6 +7,7 @@ import subprocess
 passed = []
 failed = []
 
+
 def execTest(testfile):
 
     cmd = "./glslc %s" % testfile
@@ -15,8 +16,9 @@ def execTest(testfile):
 
     if ret:
         return False
-   
+
     return True
+
 
 def stat():
 
@@ -25,19 +27,20 @@ def stat():
 
     n = len(passed) + len(failed)
 
-    print "# of total tests : %d" % n
-    print "# of tests passed: %d" % len(passed)
-    print "# of tests failed: %d" % len(failed)
+    print("# of total tests : %d" % n)
+    print("# of tests passed: %d" % len(passed))
+    print("# of tests failed: %d" % len(failed))
 
     for f in failed:
-        print f
+        print(f)
+
 
 def main():
     test_dir = "test"
     for f in glob.glob(os.path.join(test_dir, "*.frag")):
         ret = execTest(f)
 
-        print "%s %s" % (f, ret)
+        print("%s %s" % (f, ret))
 
         if ret:
             passed.append(f)
@@ -45,5 +48,6 @@ def main():
             failed.append(f)
 
     stat()
+
 
 main()
