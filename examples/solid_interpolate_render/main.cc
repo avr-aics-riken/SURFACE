@@ -328,7 +328,7 @@ static void RandomPrismMake(std::vector<float> &vertices, double bmin[3], double
 
 bool RandomHexaMake(float *vertices, float *bmin, float *bmax){
     
-    float3 min(bmin);
+    float3 boundmin(bmin);
     
     float scale = (bmax[0] - bmin[0]) * (bmax[1] - bmin[1]) * (bmax[1] - bmin[1])*0.1f;
     scale = pow(scale, 0.333);
@@ -386,7 +386,7 @@ bool RandomHexaMake(float *vertices, float *bmin, float *bmax){
                               mat[0][1] * verts[n].x + mat[1][1] * verts[n].y +
                               mat[2][1] * verts[n].z + mat[3][1],
                               mat[0][2] * verts[n].x + mat[1][2] * verts[n].y +
-                              mat[2][2] * verts[n].z + mat[3][2]) + min;
+                              mat[2][2] * verts[n].z + mat[3][2]) + boundmin;
             
             if( verts[n].x > bmax[0] || verts[n].x < bmin[0]) f = true;
             if( verts[n].y > bmax[1] || verts[n].y < bmin[1]) f = true;

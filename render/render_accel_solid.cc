@@ -289,7 +289,7 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
     float d = (pt - rayorg).length();
     
     // cross flag of ray vs edges.
-    bool cross_rve[edge_n(solid_type)];
+    bool cross_rve[16]; // alloc enough size. larger than edge_n(solid_type);
     
     for(int i = 0; i < edge_n(solid_type) ; i++){
       ws[i] = dot(raydir, edgepc[i]) + dot(edges[i], raypc);
@@ -413,7 +413,7 @@ void interpolate(float d_out[12], float p[3], const int solid_type, const double
     
   }
   
-  float ds = 0, dss = 0, d[solid_type], w = 0;
+  float ds = 0, dss = 0, d[16], w = 0;
   for (int i = 0; i < solid_type; i++) {
     ds += (pt - verts[i]).length();
   }
