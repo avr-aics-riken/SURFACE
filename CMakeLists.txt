@@ -31,6 +31,7 @@ SET(SURFACE_BUILD_K_CROSS_COMPILE OFF CACHE BOOL "Build for K/FX10 target with c
 SET(SURFACE_BUILD_WITH_MPI OFF CACHE BOOL "Build with MPI support?")
 SET(SURFACE_BUILD_WITH_OPENMP OFF CACHE BOOL "Build with OpenMP support?")
 SET(SURFACE_BUILD_WITH_DEBUG_TRACE OFF CACHE BOOL "Build with debug trace?")
+SET(SURFACE_BUILD_EXAMPLES OFF CACHE BOOL "Build examples?")
 
 # Deprecated. to be removed.
 SET(SURFACE_BUILD_SCREEN_PARALLEL OFF CACHE BOOL "[DEPRECATED] Build with screen parallel support?(Also need to enable SURFACE_BUILD_WITH_MPI option)")
@@ -161,5 +162,13 @@ ADD_SUBDIRECTORY(gles gles)
 ADD_SUBDIRECTORY(glsl glsl)
 
 # examples
+IF (SURFACE_BUILD_EXAMPLES)
 ADD_SUBDIRECTORY(examples)
+ENDIF()
+
+# Unit tests
+IF (SURFACE_BUILD_UNIT_TEST)
+ADD_SUBDIRECTORY(third_party/gtest-1.7.0/)
+ADD_SUBDIRECTORY(test/cctest/)
+ENDIF()
 

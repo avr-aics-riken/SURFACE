@@ -1,0 +1,33 @@
+FILE ( GLOB SURFACE_UNIT_TEST_SOURCE
+  *.cc
+  )
+
+PROJECT( unit_test )
+
+# Enable UINT64_C
+# http://stackoverflow.com/questions/986426/what-do-stdc-limit-macros-and-stdc-constant-macros-mean
+ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)
+
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/gles")
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/glsl")
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/render")
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
+
+# gtest
+SET(GTEST_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/gtest-1.7.0/include")
+INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIR})
+
+ADD_EXECUTABLE ( unit_test
+  ${SURFACE_UNIT_TEST_SOURCE}
+  )
+ADD_SANITIZERS ( unit_test )
+
+IF (WIN32)
+TARGET_LINK_LIBRARIES(unit_test LSGLES gtest)
+ELSE()
+TARGET_LINK_LIBRARIES(unit_test LSGLES gtest dl)
+ENDIF()
+
+# --
+INSTALL(TARGETS unit_test DESTINATION bin)
+# --
